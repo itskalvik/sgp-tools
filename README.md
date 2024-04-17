@@ -40,14 +40,14 @@ Run the following commands to install the package
 
 ```
 sudo apt-get install libhdf5-dev netcdf-bin libnetcdf-dev python3-pip -y
-git clone https://github.com/itskalvik/sgp-tools.git
-cd sgp_ipp
+git clone https://github.com/itskalvik/sgp_tools.git
+cd sgp_tools
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
 ## About SGP-Tools
-This repository is based on the following [Sensor Placement](https://itskalvik.com/publications/SGP-SP) and [Informative Path Planning](https://itskalvik.com/publications/IPP) papers:
+This repository is based on the following [Sensor Placement](https://itskalvik.com/publication/sgp-sp) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) papers:
 
 ```
 @misc{JakkalaA23SP,
@@ -55,7 +55,7 @@ AUTHOR={Kalvik Jakkala and Srinivas Akella},
 TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
 NOTE= {Preprint},
 YEAR={2023},
-URL={https://itskalvik.github.io/publications/SGP-SP},
+URL={https://itskalvik.github.io/publication/sgp-sp},
 }
 
 @inproceedings{JakkalaA24IPP,
@@ -64,7 +64,7 @@ TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussia
 booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
 YEAR={2024},
 PUBLISHER = {{IEEE}},
-URL={https://itskalvik.github.io/publications/IPP}
+URL={https://itskalvik.github.io/publication/sgp-ipp}
 }
 ``` 
 
