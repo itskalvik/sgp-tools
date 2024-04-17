@@ -1,0 +1,73 @@
+# SGP-Tools: SGP-based Optimization Tools
+Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
+
+## Codemap
+- `datasets/`: Datasets used in the paper
+- `demos/`: Datasets used in the paper
+    - `IPP.ipynb`: Code to demo IPP (point, non-point, distance constrained)
+    - `non_point_FoV.ipynb`: Code to demo IPP with non-point FoV sensors
+    - `non_stationary_demo.ipynb`: Code to demo IPP with non-stationary kernel
+    - `obsticleIPP.ipynb`: Script used to demo sensor placement in an environment with obsticles
+    - `spline_path.ipynb`: Code to demo spline IPP
+- `sgptools/`: SGP-Tools library
+    - `kernels/`: Kernel functions
+        - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
+    - `models/`: Sensor placement and IPP methods
+        - `core/`: GP/SGP models used for sensor placement and IPP
+            - `augmented_gpr.py`: GPflow's GP that supports transformations (expansion and aggregation)
+            - `augmented_sgpr.py`: GPflow's SGP that supports transformations (expansion and aggregation)
+            - `transformations.py`: Expansion and aggregation transformations
+        - `bo.py`: Bayesian optimization-based sensor placement method
+        - `cma_es.py`: Genetic algorithm-based sensor placement method
+        - `continuous_sgp.py`: Continuous SGP-based sensor placement method
+        - `greedy_mi.py`: Greedy mutual information-based sensor placement method
+        - `greedy_sgp.py`: Greedy SGP-based sensor placement method
+    - `utils/`: Tools used for preprocessing the data, training GPs and SGPs, and generating paths
+        - `data.py`: Tools to preprocess datasets
+        - `gpflow.py`: Tools to interface with GPflow
+        - `metrics.py`: Metrics used to quantify the solution quality
+        - `misc.py`: Miscellaneous helper functions
+        - `tsp.py`: TSP solver
+
+## Datasets
+* The Intel lab dataset can be downloaded from [here](http://db.csail.mit.edu/labdata/labdata.html)
+* The ROMS dataset can be downloaded from [here](https://oceanmodeling.ucsc.edu/ccsnrt/#txtOverview)
+* The Precipitation dataset can be downloaded from [here](http://research.jisao.washington.edu/data_sets/widmann/)
+* The US soil dataset can be downloaded from [here](https://www.drought.gov/data-maps-tools/nasa-sport-lis-soil-moisture-products)
+
+## Installation
+Run the following commands to install the package
+
+```
+sudo apt-get install libhdf5-dev netcdf-bin libnetcdf-dev python3-pip -y
+git clone https://github.com/itskalvik/sgp-tools.git
+cd sgp_ipp
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
+```
+
+## About SGP-Tools
+This repository is based on the following [Sensor Placement](https://itskalvik.com/publications/SGP-SP) and [Informative Path Planning](https://itskalvik.com/publications/IPP) papers:
+
+```
+@misc{JakkalaA23SP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
+NOTE= {Preprint},
+YEAR={2023},
+URL={https://itskalvik.github.io/publications/SGP-SP},
+}
+
+@inproceedings{JakkalaA24IPP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes},
+booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+YEAR={2024},
+PUBLISHER = {{IEEE}},
+URL={https://itskalvik.github.io/publications/IPP}
+}
+``` 
+
+## License
+The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.
+See LICENSE for more information.
