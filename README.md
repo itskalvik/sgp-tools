@@ -4,7 +4,7 @@ Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning
 ## Codemap
 - `datasets/`: Datasets used in the paper
 - `demos/`: Datasets used in the paper
-    - `IPP.ipynb`: Code to demo IPP (point, non-point, distance constrained)
+    - `IPP.ipynb`: Code to demo IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
     - `non_point_FoV.ipynb`: Code to demo IPP with non-point FoV sensors
     - `non_stationary_demo.ipynb`: Code to demo IPP with non-stationary kernel
     - `obsticleIPP.ipynb`: Script used to demo sensor placement in an environment with obsticles
@@ -30,10 +30,11 @@ Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning
         - `tsp.py`: TSP solver
 
 ## Datasets
-* The Intel lab dataset can be downloaded from [here](http://db.csail.mit.edu/labdata/labdata.html)
-* The ROMS dataset can be downloaded from [here](https://oceanmodeling.ucsc.edu/ccsnrt/#txtOverview)
+* The Intel lab temperature dataset can be downloaded from [here](http://db.csail.mit.edu/labdata/labdata.html)
+* The ROMS ocean salinity dataset can be downloaded from [here](https://oceanmodeling.ucsc.edu/ccsnrt/#txtOverview)
 * The Precipitation dataset can be downloaded from [here](http://research.jisao.washington.edu/data_sets/widmann/)
-* The US soil dataset can be downloaded from [here](https://www.drought.gov/data-maps-tools/nasa-sport-lis-soil-moisture-products)
+* The US soil moisture dataset can be downloaded from [here](https://www.drought.gov/data-maps-tools/nasa-sport-lis-soil-moisture-products)
+* The US elevation dataset can be downloaded from [here](https://coast.noaa.gov/digitalcoast/)
 
 ## Installation
 Run the following commands to install the package

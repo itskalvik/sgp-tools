@@ -13,16 +13,49 @@
 # limitations under the License.
 
 import numpy as np
-import mpl_toolkits
 import pandas as pd
 import netCDF4 as nc
 from matplotlib import path
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
 from .misc import get_inducing_pts, cont2disc
+from sklearn.preprocessing import StandardScaler
+from hkb_diamondsquare.DiamondSquare import diamond_square
 
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = 317500000
+
+
+####################################################
+# Utils used to prepare synthetic datasets  
+
+'''
+Remove points inside polygons
+'''
+def remove_polygons(X, Y, polygons):
+    points = np.array([X.flatten(), Y.flatten()]).T
+    for polygon in polygons:
+        p = path.Path(polygon)
+        points = points[~p.contains_points(points)]
+    return points[:, 0], points[:, 1]
+
+'''
+Remove points inside circle patches
+'''
+def remove_circle_patches(X, Y, circle_patches):
+    points = np.array([X.flatten(), Y.flatten()]).T
+    for circle_patch in circle_patches:
+        points = points[~circle_patch.contains_points(points)]
+    return points[:, 0], points[:, 1]
+
+'''
+Generate a point at a distance d from a point at angle theta
+
+Args:
+    point: (N, 2) array of points
+    d: distance
+    theta: angle in radians
+'''
+def point_pos(point, d, theta):
+    return np.c_[point[:, 0] + d*np.cos(theta), point[:, 1] + d*np.sin(theta)]
 
 ####################################################
 
@@ -84,9 +117,11 @@ def get_day_data(df, date_id, aggregation_rate=1000):
     day_df = day_df.dropna()
     return day_df.values.copy()  
 
-def prep_intel_dataset():
-    candidates, df = get_intel_dataset('datasets/intel-temperature-data/mote_locs.txt',
-                                       'datasets/intel-temperature-data/data.txt')
+def prep_intel_dataset(dataset_path=None):
+    if dataset_path is None:
+        x_path = 'datasets/intel-temperature-data/mote_locs.txt'
+        y_path = 'datasets/intel-temperature-data/data.txt'
+    candidates, df = get_intel_dataset(x_path, y_path)
 
     # Get sensor data from day 1 to learn the kernel parameters
     y_train = get_day_data(df, 0)
@@ -172,7 +207,7 @@ def get_salinity_dataset(filename, sample_rate=2):
 
 def prep_salinity_dataset(num_train=3, sample_rate=2, dataset_path=None):
     if dataset_path is None:
-        dataset_path='datasets/ROMS.nc'
+        dataset_path='datasets/salinity.nc'
     X, y = get_salinity_dataset(dataset_path, sample_rate=sample_rate)
 
     # Get sensor data from num_train days to learn the kernel parameters
@@ -190,126 +225,6 @@ def prep_salinity_dataset(num_train=3, sample_rate=2, dataset_path=None):
     candidates = X.copy()
 
     return X_train, y_train, X_test, y_test, candidates
-
-def add_time_dim(X, num_time_steps, num_locations):
-    time_steps = np.arange(num_time_steps)
-    time_steps = np.tile(time_steps, (num_locations, 1)).T.reshape(-1, 1)
-    X = np.hstack((X, time_steps))
-    return X
-
-####################################################
-
-'''
-Remove points inside polygons
-'''
-def remove_polygons(X, Y, polygons):
-    points = np.array([X.flatten(), Y.flatten()]).T
-    for polygon in polygons:
-        p = path.Path(polygon)
-        points = points[~p.contains_points(points)]
-    return points[:, 0], points[:, 1]
-
-'''
-Remove points inside circle patches
-'''
-def remove_circle_patches(X, Y, circle_patches):
-    points = np.array([X.flatten(), Y.flatten()]).T
-    for circle_patch in circle_patches:
-        points = points[~circle_patch.contains_points(points)]
-    return points[:, 0], points[:, 1]
-
-'''
-Generate a point at a distance d from a point at angle theta
-
-Args:
-    point: (N, 2) array of points
-    d: distance
-    theta: angle in radians
-'''
-def point_pos(point, d, theta):
-    return np.c_[point[:, 0] + d*np.cos(theta), point[:, 1] + d*np.sin(theta)]
-
-####################################################
-
-def lonlat2xyz(lonlat):
-    lonlat = np.deg2rad(lonlat)
-    return 6378.137 * np.stack(
-        [
-            np.cos(lonlat[..., 0]) * np.cos(lonlat[..., 1]),
-            np.sin(lonlat[..., 0]) * np.cos(lonlat[..., 1]),
-            np.sin(lonlat[..., 1]),
-        ],
-        axis=-1,
-    )
-
-def xyz2latlong(x, y, z):
-    long = np.arctan2(y, x)
-    xy2 = x**2 + y**2
-    lat = np.arctan2(z, np.sqrt(xy2))
-    return np.rad2deg(np.stack([lat, long], axis=-1))
-
-def plot_map():
-    m = mpl_toolkits.basemap.Basemap(projection='cea',
-                                     llcrnrlat=-90,
-                                     urcrnrlat=90,
-                                     llcrnrlon=-180,
-                                     urcrnrlon=180,
-                                     resolution='c')
-    m.shadedrelief()
-    m.drawparallels(np.arange(-90.,91.,30.), labels=[False,True,True,False])
-    m.drawmeridians(np.arange(-180.,181.,60.), labels=[True,False,False,True])
-
-    plt.xlabel('\nLongitude')
-    plt.ylabel('\nLatitude')
-
-    return m
-
-def plot_placements(placements, m, color='r'):
-    placements = xyz2latlong(placements[:, 0], 
-                             placements[:, 1],
-                             placements[:, 2])
-    for i in range(placements.shape[0]):
-        lat = placements[i, 0]
-        lon = placements[i, 1]
-        if lon < -175 or lon > 175:
-            continue
-        if lat < -70 or lat > 70:
-            continue
-        poly = m.tissot(lon,lat, 1.5, 100,
-                        facecolor=color,
-                        zorder=10)
-        
-def get_ozone_data(file):
-    ds = nc.Dataset(file)
-
-    lat = ds.variables['latitude'][:]
-    lon = ds.variables['longitude'][:]
-    X = np.array(np.meshgrid(lon, lat))
-    X = np.transpose(X, (2, 1, 0))
-    y = np.array(ds.variables['total_ozone_column'])
-    y = np.transpose(y, (1, 0))
-
-    X = X.reshape(-1, 2)
-    y = y.reshape(-1, 1)
-
-    return X, y
-
-def prep_ozone_dataset(aggregation_rate=250):
-    # Load the data
-    files = 'datasets/ozone.nc'
-    X, y = get_ozone_data(files)
-    X, y = X[::aggregation_rate], y[::aggregation_rate]
-
-    # Reshape data
-    X = X.reshape(-1, 2)
-    y = y.reshape(-1, 1)
-
-    # Standardize data
-    y_scaler = StandardScaler()
-    y_scaler.fit(y)
-    y = y_scaler.transform(y)
-
-    return X.astype(float), y.astype(float)
 
 ####################################################
 
@@ -340,6 +255,8 @@ def prep_soil_dataset(dataset_path=None, aggregation_rate=25):
 
     return X.astype(float), y.astype(float)
 
+####################################################
+
 def prep_elevation_dataset(dataset_path=None, extent=[500, 1000, 500, 1000]):
     # Load data
     if dataset_path is None:
@@ -367,6 +284,24 @@ def prep_elevation_dataset(dataset_path=None, extent=[500, 1000, 500, 1000]):
 
 ####################################################
 
+def prep_synthetic_dataset():
+    data = diamond_square(shape=(50,50), 
+                          min_height=0, 
+                          max_height=30, 
+                          roughness=0.5)
+
+    # create x and y coordinates from the extent
+    x_coords = np.arange(0, data.shape[0])/10
+    y_coords = np.arange(0, data.shape[1])/10
+    xx, yy = np.meshgrid(x_coords, y_coords)
+    X = np.c_[xx.ravel(), yy.ravel()]
+    y = data.ravel()
+    y = y.reshape(-1, 1)
+
+    return X.astype(float), y.astype(float)
+
+####################################################
+
 def get_dataset(dataset, dataset_path=None,
                 num_train=1000,
                 num_test=2500, 
@@ -374,7 +309,7 @@ def get_dataset(dataset, dataset_path=None,
     
     # Load the data
     if dataset == 'intel':
-        X_train, y_train, X_test, y_test, candidates = prep_intel_dataset()
+        X_train, y_train, X_test, y_test, candidates = prep_intel_dataset(dataset_path=dataset_path)
         X = X_test
         y = y_test
     elif dataset == 'precipitation':
@@ -389,8 +324,10 @@ def get_dataset(dataset, dataset_path=None,
         X, y = prep_soil_dataset(dataset_path=dataset_path)
     elif dataset == 'elevation':
         X, y = prep_elevation_dataset(dataset_path=dataset_path)
+    elif dataset == 'synthetic':
+        X, y = prep_synthetic_dataset()
 
-    if dataset in ['salinity', 'soil' ,'elevation']:
+    if dataset in ['salinity', 'soil' ,'elevation', 'synthetic']:
         X_train = get_inducing_pts(X, num_train)
         X_train, y_train = cont2disc(X_train, X, y)
 

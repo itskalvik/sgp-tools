@@ -59,9 +59,9 @@ def plot_paths(paths, candidates=None, title=None):
                     c='g', label='Start', zorder=2, marker='o')
         if candidates is not None:
             plt.scatter(candidates[:, 0], candidates[:, 1], 
-                        c='k', s=1, label='Candidates', zorder=0)
+                        c='k', s=1, label='Unlabeled Train-Set Points', zorder=0)
         if i==0:
-            plt.legend(bbox_to_anchor=(1.3, 1.02))
+            plt.legend(bbox_to_anchor=(1.0, 1.02))
     if title is not None:
         plt.title(title)
     plt.xlabel('X')
