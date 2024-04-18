@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Original SGP code from GPflow library (https://github.com/GPflow/GPflow)
+
 import numpy as np
 import tensorflow as tf
 from gpflow.models import SGPR
@@ -28,7 +30,7 @@ from .transformations import Transformer
 SGPR model from the GPFlow library augmented to use a Transformer object's
 expand and aggregate functions on the inducing points where necessary. The object
 has an additional update function to update the kernel and noise variance parameters 
-(works only with RBF kernels).  
+(currently, the online updates part works only with RBF kernels).  
 
 Args:
     transformer: Transformer object from sgp-tools

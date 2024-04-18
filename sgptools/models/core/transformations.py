@@ -357,6 +357,9 @@ class SquareHeightTransformer(Transformer):
         return X
 
 ########################################################################################
+# Here be dragons
+# Transformers for different sensor models (untested code) 
+########################################################################################
 
 class SplineIPPTransformer(Transformer):
     '''
@@ -483,8 +486,6 @@ class MultiRobotIPPTransformer(Transformer):
             paths.append(path)
         return np.array(paths)
     
-########################################################################################
-
 '''
 Applies a mask to the inducing points. 
 The mask maps the compact inducing points parametrization to individual points. 

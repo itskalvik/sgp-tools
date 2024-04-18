@@ -6,7 +6,7 @@ Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning
     - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
     - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
     - `non_stationary_demo.ipynb`: SP with non-stationary kernel
-    - `obsticleIPP.ipynb`: SP in an environment with obsticles
+    - `obsticles.ipynb`: SP in an environment with obsticles
 - `sgptools/`: SGP-Tools library
     - `kernels/`: Kernel functions
         - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
@@ -66,6 +66,9 @@ PUBLISHER = {{IEEE}},
 URL={https://itskalvik.github.io/publication/sgp-ipp}
 }
 ``` 
+
+## Acknowledgements
+This work was funded in part by the UNC Charlotte Office of Research and Economic Development and by NSF under Award Number IIP-1919233.
 
 ## License
 The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.

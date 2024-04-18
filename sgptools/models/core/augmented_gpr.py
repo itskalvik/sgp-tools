@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Original GP code from GPflow library (https://github.com/GPflow/GPflow)
 
 import gpflow
 from gpflow.models import GPR
