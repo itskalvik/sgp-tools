@@ -2,7 +2,7 @@
 Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
 
 ## Codemap
-- `demos/`: Datasets used in the paper
+- `demos/`: Jupyter notebooks with code to demonstrate each method in the library
     - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
     - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
     - `non_stationary_demo.ipynb`: SP with non-stationary kernel
