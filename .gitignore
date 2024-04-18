@@ -1,9 +1,6 @@
 __pycache__/
-datasets/intel-temperature-data/data.txt
 *.pdf
 *.png
 *.nii
-datasets/*tif
-datasets/*nc
-outcmaes/
+datasets/
 sgptools.egg-info/

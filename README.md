@@ -2,13 +2,11 @@
 Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
 
 ## Codemap
-- `datasets/`: Datasets used in the paper
 - `demos/`: Datasets used in the paper
-    - `IPP.ipynb`: Code to demo IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
-    - `non_point_FoV.ipynb`: Code to demo IPP with non-point FoV sensors
-    - `non_stationary_demo.ipynb`: Code to demo IPP with non-stationary kernel
-    - `obsticleIPP.ipynb`: Script used to demo sensor placement in an environment with obsticles
-    - `spline_path.ipynb`: Code to demo spline IPP
+    - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
+    - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
+    - `non_stationary_demo.ipynb`: SP with non-stationary kernel
+    - `obsticleIPP.ipynb`: SP in an environment with obsticles
 - `sgptools/`: SGP-Tools library
     - `kernels/`: Kernel functions
         - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
@@ -16,7 +14,7 @@ Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning
         - `core/`: GP/SGP models used for sensor placement and IPP
             - `augmented_gpr.py`: GPflow's GP that supports transformations (expansion and aggregation)
             - `augmented_sgpr.py`: GPflow's SGP that supports transformations (expansion and aggregation)
-            - `transformations.py`: Expansion and aggregation transformations
+            - `transformations.py`: Expansion and aggregation transformations for IPP
         - `bo.py`: Bayesian optimization-based sensor placement method
         - `cma_es.py`: Genetic algorithm-based sensor placement method
         - `continuous_sgp.py`: Continuous SGP-based sensor placement method
