@@ -5,6 +5,15 @@
 # SGP-based Optimization Tools
 Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
 
+<p align="center">
+  <img alt="Light" src="static/point_sensing.gif" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="static/non-point_sensing.gif" width="45%">
+</p>
+
+## Method Summary
+<p align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></p>
+
 ## Codemap
 - `demos/`: Jupyter notebooks with code to demonstrate each method in the library
     - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
