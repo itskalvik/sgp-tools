@@ -3,7 +3,7 @@
 </div>
 
 # SGP-based Optimization Tools
-Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
+Software suite for SGP-based [Sensor Placement](https://itskalvik.com/publication/sgp-sp) (SP) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) (IPP)
 
 <p align="center">
   <img alt="Light" src="static/point_sensing.gif" width="45%">
@@ -59,7 +59,7 @@ python3 -m pip install -e .
 ```
 
 ## About SGP-Tools
-This repository is based on the following [Sensor Placement](https://itskalvik.com/publication/sgp-sp) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) papers:
+This repository is based on the following papers:
 
 ```
 @misc{JakkalaA23SP,
