@@ -1,5 +1,5 @@
 <div style="text-align:left">
-<img width="415" src="static/SGP-Tools.png">
+<img width="472" src="static/SGP-Tools.png">
 </div>
 
 # SGP-based Optimization Tools
