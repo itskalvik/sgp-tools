@@ -1,6 +1,4 @@
 __pycache__/
 *.pdf
-*.png
-*.nii
 datasets/
 sgptools.egg-info/

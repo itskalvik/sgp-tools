@@ -1,4 +1,8 @@
-# SGP-Tools: SGP-based Optimization Tools
+<div style="text-align:left">
+<img width="415" src="static/SGP-Tools.png">
+</div>
+
+# SGP-based Optimization Tools
 Software suite for SGP-based Sensor Placement (SP) and Informative Path Planning (IPP)
 
 ## Codemap

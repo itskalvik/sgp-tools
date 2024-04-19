@@ -15,5 +15,4 @@ cma
 bayesian-optimization
 pillow
 netCDF4==1.6.2
-nibabel
 hkb_diamondsquare
