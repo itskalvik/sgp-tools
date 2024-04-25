@@ -14,7 +14,6 @@
 
 import numpy as np
 import pandas as pd
-import netCDF4 as nc
 from matplotlib import path
 from .misc import get_inducing_pts, cont2disc
 from sklearn.preprocessing import StandardScaler
@@ -140,6 +139,7 @@ def prep_intel_dataset(dataset_path=None):
 ####################################################
 
 def get_precipitation_dataset(filename, aggregation_rate=100):
+    import netCDF4 as nc
     ds = nc.Dataset(filename)
     lat = np.array(ds.variables['lat'][:])
     lon = np.array(ds.variables['lon'][:])
@@ -185,6 +185,7 @@ def prep_precip_dataset(num_train=15, num_test=10, dataset_path=None):
 ####################################################
 
 def get_salinity_dataset(filename, sample_rate=2):
+    import netCDF4 as nc
     ds = nc.Dataset(filename)
     y = np.array(ds.variables['salt'])[0, :-1, ::sample_rate, ::sample_rate]
 

@@ -5,7 +5,6 @@ scikit-learn==1.1.1
 scipy==1.8.1
 tensorflow==2.13.0
 tensorflow_probability==0.21.0
-tensorflow-graphics
 gpflow==2.7.0
 numpy==1.23.5
 ortools==9.2.9972
@@ -14,5 +13,4 @@ shapely
 cma
 bayesian-optimization
 pillow
-netCDF4==1.6.2
 hkb_diamondsquare
