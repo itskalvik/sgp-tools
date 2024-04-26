@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tensorflow_graphics.math.interpolation import bspline
+try:
+    from tensorflow_graphics.math.interpolation import bspline
+except:
+  pass
+
 import tensorflow as tf
 import numpy as np
 
