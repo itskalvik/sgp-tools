@@ -21,6 +21,9 @@ import numpy as np
 SGP-based sensor placement approach. Uses a greedy algorithm to 
 select sensor placements from a given discrete set of candidates.
 
+Refer to the following paper for more details:
+Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+
 Args:
     num_inducing: number of inducing points
     S: Candidate sensor locations

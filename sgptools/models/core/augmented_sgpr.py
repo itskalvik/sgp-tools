@@ -32,6 +32,10 @@ expand and aggregate functions on the inducing points where necessary. The objec
 has an additional update function to update the kernel and noise variance parameters 
 (currently, the online updates part works only with RBF kernels).  
 
+Refer to the following papers for more details:
+Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
 Args:
     transformer: Transformer object from sgp-tools
     inducing_variable_time: Temporal dimensions of the inducing points 

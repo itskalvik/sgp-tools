@@ -18,8 +18,11 @@ import numpy as np
 
 
 '''
-GP-based mutual information for sensor placement approach 
-(submodular objective function)
+GP-based mutual information for sensor placement approach (submodular objective function)
+
+Refer to the following papers for more details:
+Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
+Data-driven learning and planning for environmental sampling [Ma et al., 2018]
 
 Args:
     S: Candidate sensor locations

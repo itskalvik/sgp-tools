@@ -21,6 +21,9 @@ from ..utils.data import get_inducing_pts
 
 '''
 Class for optimizing sensor placements with CMA-ES
+
+Refer to the following paper for more details:
+Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
 '''
 class CMA_ES:
     def __init__(self, X_train, noise_variance, kernel,

@@ -19,7 +19,7 @@ Software suite for SGP-based [Sensor Placement](https://itskalvik.com/publicatio
     - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
     - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
     - `non_stationary_demo.ipynb`: SP with non-stationary kernel
-    - `obsticles.ipynb`: SP in an environment with obsticles
+    - `obstacles.ipynb`: SP in an environment with obstacles
 - `sgptools/`: SGP-Tools library
     - `kernels/`: Kernel functions
         - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
@@ -28,10 +28,10 @@ Software suite for SGP-based [Sensor Placement](https://itskalvik.com/publicatio
             - `augmented_gpr.py`: GPflow's GP that supports transformations (expansion and aggregation)
             - `augmented_sgpr.py`: GPflow's SGP that supports transformations (expansion and aggregation)
             - `transformations.py`: Expansion and aggregation transformations for IPP
-        - `bo.py`: Bayesian optimization-based sensor placement method
-        - `cma_es.py`: Genetic algorithm-based sensor placement method
+        - `bo.py`: Bayesian optimization-based sensor placement method that maximizes mutual information
+        - `cma_es.py`: Genetic algorithm-based sensor placement method that maximizes mutual information
         - `continuous_sgp.py`: Continuous SGP-based sensor placement method
-        - `greedy_mi.py`: Greedy mutual information-based sensor placement method
+        - `greedy_mi.py`: Greedy sensor placement method that maximizes mutual information
         - `greedy_sgp.py`: Greedy SGP-based sensor placement method
     - `utils/`: Tools used for preprocessing the data, training GPs and SGPs, and generating paths
         - `data.py`: Tools to preprocess datasets
@@ -59,7 +59,7 @@ python3 -m pip install -e .
 ```
 
 ## About SGP-Tools
-This repository is based on the following papers:
+Please consider citing the following papers if you use SGP-Tools in your academic work :smile:
 
 ```
 @misc{JakkalaA23SP,

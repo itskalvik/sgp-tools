@@ -25,6 +25,10 @@ from .core.augmented_sgpr import AugmentedSGPR
 '''
 Get sensor placement solution using the Continuous VFE-SGP method
 
+Refer to the following papers for more details:
+Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
 Args:
     num_inducing: Number of inducing points
     X_train: Numpy array (n ,d) with n d-dimensional data points

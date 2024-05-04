@@ -27,6 +27,10 @@ from .transformations import Transformer
 GPR model from the GPFlow library augmented to use a Transformer object's
 expand and aggregate functions on the data points where necessary.  
 
+Refer to the following papers for more details:
+Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
 Args:
     transformer: Transformer object from sgp-tools
 '''

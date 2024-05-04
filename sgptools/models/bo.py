@@ -18,6 +18,11 @@ from ..utils.data import get_inducing_pts
 from bayes_opt import BayesianOptimization
 
 
+'''
+Refer to the following papers for more details:
+UAV route planning for active disease classification [Vivaldini et al., 2019]
+Occupancy map building through {B}ayesian exploration [Francis et al., 2019]
+'''
 class BayesianOpt:
     '''
     Class for optimizing sensor placements with Bayesian Optimization
