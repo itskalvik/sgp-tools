@@ -20,11 +20,11 @@ import tensorflow as tf
 
 from gpflow.base import InputData, MeanAndVariance
 from gpflow.utilities import add_likelihood_noise_cov, assert_params_false
-from .transformations import Transformer
+from .transformations import Transform
 
 
 '''
-GPR model from the GPFlow library augmented to use a Transformer object's
+GPR model from the GPFlow library augmented to use a transform object's
 expand and aggregate functions on the data points where necessary.  
 
 Refer to the following papers for more details:
@@ -32,23 +32,23 @@ Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Con
 Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
 
 Args:
-    transformer: Transformer object from sgp-tools
+    transform: transform object from sgp-tools
 '''
 class AugmentedGPR(GPR):
     def __init__(
         self,
         *args,
-        transformer,
+        transform,
         **kwargs
     ):
         super().__init__(
             *args,
             **kwargs
         )
-        if transformer is None:
-            self.transformer = Transformer()
+        if transform is None:
+            self.transform = Transform()
         else:
-            self.transformer = transformer
+            self.transform = transform
 
     def predict_f(
         self, Xnew: InputData, 
@@ -57,8 +57,8 @@ class AugmentedGPR(GPR):
         aggregate_train: bool = False,
     ) -> MeanAndVariance:
         assert_params_false(self.predict_f, full_output_cov=full_output_cov)
-        if self.transformer is not None:
-            Xnew = self.transformer.expand(Xnew)
+        if self.transform is not None:
+            Xnew = self.transform.expand(Xnew)
 
         X, Y = self.data
         err = Y - self.mean_function(X)
@@ -68,18 +68,18 @@ class AugmentedGPR(GPR):
         kmn = self.kernel(X, Xnew)
         kmm_plus_s = add_likelihood_noise_cov(kmm, self.likelihood, X)
 
-        if self.transformer is not None:
-            kmn = self.transformer.aggregate(tf.transpose(kmn))
+        if self.transform is not None:
+            kmn = self.transform.aggregate(tf.transpose(kmn))
             kmn = tf.transpose(kmn)
-            knn = self.transformer.aggregate(knn)
+            knn = self.transform.aggregate(knn)
 
         if aggregate_train:
-            kmm_plus_s = self.transformer.aggregate(kmm_plus_s)
-            err = self.transformer.aggregate(err)
+            kmm_plus_s = self.transform.aggregate(kmm_plus_s)
+            err = self.transform.aggregate(err)
             # reduce kmn only if it was not reduced before
             # which can when train and test data are the same size
             if kmn.shape[0] != kmn.shape[1]:
-                kmn = self.transformer.aggregate(kmn)
+                kmn = self.transform.aggregate(kmn)
         
         conditional = gpflow.conditionals.base_conditional
         f_mean_zero, f_var = conditional(

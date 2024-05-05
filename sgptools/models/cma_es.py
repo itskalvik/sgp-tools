@@ -20,10 +20,18 @@ from ..utils.data import get_inducing_pts
 
 
 '''
-Class for optimizing sensor placements with CMA-ES
+Class for optimizing sensor placements using CMA-ES (a genetic algorithm)
 
 Refer to the following paper for more details:
 Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
+
+Args:
+    X_train: Numpy array (n ,d) with n d-dimensional data points
+    noise_variance: data variance
+    kernel: kernel function
+    distance_budget: (optional, float) distaance budget
+    num_robots: (optional, int) number of robots, used when 
+                modeling multi-robot IPP with a distance budget
 '''
 class CMA_ES:
     def __init__(self, X_train, noise_variance, kernel,

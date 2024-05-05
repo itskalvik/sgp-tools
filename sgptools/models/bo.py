@@ -19,9 +19,16 @@ from bayes_opt import BayesianOptimization
 
 
 '''
+Class for optimizing sensor placements using Bayesian Optimization
+
 Refer to the following papers for more details:
 UAV route planning for active disease classification [Vivaldini et al., 2019]
-Occupancy map building through {B}ayesian exploration [Francis et al., 2019]
+Occupancy map building through Bayesian exploration [Francis et al., 2019]
+
+Args:
+    X_train: Numpy array (n ,d) with n d-dimensional data points
+    noise_variance: data variance
+    kernel: kernel function
 '''
 class BayesianOpt:
     '''
@@ -49,11 +56,16 @@ class BayesianOpt:
         return -get_mi(X, self.noise_variance, self.kernel, self.X_train)
     
     '''
-    Optimizes the SP objective function with CMA-ES without any constraints
+    Optimizes the SP objective function with BO without any constraints
     '''
-    def optimize(self, num_sensors=10, num_steps=100):
-        x_init = get_inducing_pts(self.X_train, num_sensors, random=True)
-        x_init = x_init.reshape(-1)
+    def optimize(self, 
+                 num_sensors=10, 
+                 max_steps=100,  
+                 X_init=None,
+                 init_points=10):
+        if X_init is None:
+            X_init = get_inducing_pts(self.X_train, num_sensors, random=True)
+        X_init = X_init.reshape(-1)
 
         pbounds = {}
         for i in range(self.num_dim*num_sensors):
@@ -68,8 +80,8 @@ class BayesianOpt:
         )
 
         optimizer.maximize(
-            init_points=10,
-            n_iter=num_steps,
+            init_points=init_points,
+            n_iter=max_steps,
         )
 
         sol = []

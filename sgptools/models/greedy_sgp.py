@@ -31,16 +31,17 @@ Args:
     noise_variance: data variance
     kernel: kernel function
     Xu_fixed: fixed inducing points
+    transform: (optional) Transform object
 '''
 class GreedySGP:
     def __init__(self, num_inducing, S, V, noise_variance, kernel, 
                  Xu_fixed=None, 
-                 transformer=None):
+                 transform=None):
         self.gp = AugmentedSGPR((V, np.zeros((len(V), 1))),
                                 noise_variance=noise_variance,
                                 kernel=kernel, 
                                 inducing_variable=S[:num_inducing],
-                                transformer=transformer)
+                                transform=transform)
         self.locs = S
         self.Xu_fixed = Xu_fixed
         self.num_inducing = num_inducing
@@ -62,9 +63,9 @@ class GreedySGP:
 Get sensor placement solution using the Greedy VFE-SGP method
 '''
 def get_greedy_sgp_sol(num_sensors, candidates, X_train, noise_variance, kernel, 
-                       transformer=None):
+                       transform=None):
     sgp_model = GreedySGP(num_sensors, candidates, X_train, 
-                          noise_variance, kernel, transformer=transformer)
+                          noise_variance, kernel, transform=transform)
     model = CustomSelection(num_sensors,
                             sgp_model.bound,
                             optimizer='naive',

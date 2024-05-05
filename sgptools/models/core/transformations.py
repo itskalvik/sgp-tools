@@ -33,7 +33,7 @@ from sklearn.metrics import pairwise_distances
 '''
 Base class for transformations of the inducing points.
 '''
-class Transformer:
+class Transform:
     def __init__(self, 
                  aggregation_size=None, 
                  constraint_weight=1.0,
@@ -95,10 +95,10 @@ class Transformer:
     
 
 '''
-Non-point transformer to model a square FoV. Only works for single robot cases. 
+Non-point Transform to model a square FoV. Only works for single robot cases. 
 ToDo: update expand function to handle multi-robot case
 '''
-class SquareTransformer(Transformer):
+class SquareTransform(Transform):
 
     '''
     Args:
@@ -163,13 +163,13 @@ class SquareTransformer(Transformer):
         return X
 
 '''
-Transformer to model IPP problems. 
+Transform to model IPP problems. 
 -For point sensing, set sampling_rate=2
 -For continuous sensing, set sampling_rate>2 (approx the data collected along the path)
 -For multi-robot case, set num_robots>1
 -For onlineIPP use update_fixed to freeze the visited waypoints
 '''
-class IPPTransformer(Transformer):
+class IPPTransform(Transform):
     '''
     Args:
         sampling_rate: [s] - number of points to sample between each pair of inducing points
@@ -177,7 +177,7 @@ class IPPTransformer(Transformer):
         num_robots: [n] - number of robots
         Xu_fixed: (num_robots, num_visited, num_dim) - visited waypoints that don't need to be optimized
         num_dim: [d] - dimension of the data collection environment
-        sensor_model: [Transformer] - Transformer object to expand each inducing point to p points 
+        sensor_model: [Transform] - Transform object to expand each inducing point to p points 
                                       approximating each sensor's FoV.
     '''
     def __init__(self, 
@@ -302,9 +302,9 @@ class IPPTransformer(Transformer):
 Applies a mask to the inducing points. 
 The mask maps the compact inducing points parametrization to individual points. 
 ToDo:
-Convert from single to multi-robot setup and make it compatible with IPPTransformer
+Convert from single to multi-robot setup and make it compatible with IPPTransform
 '''
-class SquareHeightTransformer(Transformer):
+class SquareHeightTransform(Transform):
     
     '''
     Args:
@@ -368,10 +368,10 @@ class SquareHeightTransformer(Transformer):
 
 ########################################################################################
 # Here be dragons
-# Transformers for different sensor models (untested code) 
+# Transforms for different sensor models (untested code) 
 ########################################################################################
 
-class SplineIPPTransformer(Transformer):
+class SplineIPPTransform(Transform):
     '''
     Args:
         num_points: [s] - number of points along each side of the FoV
@@ -427,7 +427,7 @@ class SplineIPPTransformer(Transformer):
         return Xu
 
 # For spatio-temporal models
-class MultiRobotIPPTransformer(Transformer):
+class MultiRobotIPPTransform(Transform):
     '''
     Args:
         num_points: [s] - number of points along each side of the FoV
@@ -500,7 +500,7 @@ class MultiRobotIPPTransformer(Transformer):
 Applies a mask to the inducing points. 
 The mask maps the compact inducing points parametrization to individual points. 
 '''
-class LineCTScanTransformer(Transformer):
+class LineCTScanTransform(Transform):
     '''
     Args:
         num_points: [s] - number of points in each line segment
@@ -541,7 +541,7 @@ class LineCTScanTransformer(Transformer):
 Applies a mask to the inducing points. 
 The mask maps the compact inducing points parametrization to individual points. 
 '''
-class FanCTScanTransformer(Transformer):
+class FanCTScanTransform(Transform):
     '''
     Args:
         num_points: [s] - number of points in each line segment

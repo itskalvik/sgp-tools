@@ -32,17 +32,16 @@ Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Proce
 Args:
     num_inducing: Number of inducing points
     X_train: Numpy array (n ,d) with n d-dimensional data points
-    noise_variance:
-    kernel:
-    num_steps: 
-    lr: 
-    Xu_init: 
-    Xu_time:
-    orientation:
-    trace_fn:
+    noise_variance: data variance
+    kernel: kernel function
+    transform: (optional) Transform object
+    Xu_init: (optional) Initial inducing points array
+    Xu_time: (optional) Temporal inducing points (used in spatio-temporal models)
+    orientation: If True, a additionl dimension is added to the 
+                 inducing points to represent the FoV orientation
 '''
 def continuous_sgp(num_inducing, X_train, noise_variance, kernel, 
-                   transformer=None,
+                   transform=None,
                    Xu_init=None, 
                    Xu_time=None, 
                    orientation=False,
@@ -59,7 +58,7 @@ def continuous_sgp(num_inducing, X_train, noise_variance, kernel,
                          kernel=kernel, 
                          inducing_variable=Xu_init,
                          inducing_variable_time=Xu_time,
-                         transformer=transformer)
+                         transform=transform)
 
     # Train the mode
     loss = optimize_model(sgpr,

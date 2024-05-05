@@ -23,11 +23,11 @@ from gpflow.utilities import add_noise_cov
 from gpflow.base import InputData, MeanAndVariance
 from gpflow.utilities import add_noise_cov, to_default_float
 from gpflow.models.util import inducingpoint_wrapper
-from .transformations import Transformer
+from .transformations import Transform
 
 
 '''
-SGPR model from the GPFlow library augmented to use a Transformer object's
+SGPR model from the GPFlow library augmented to use a transform object's
 expand and aggregate functions on the inducing points where necessary. The object
 has an additional update function to update the kernel and noise variance parameters 
 (currently, the online updates part works only with RBF kernels).  
@@ -37,7 +37,7 @@ Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Con
 Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
 
 Args:
-    transformer: Transformer object from sgp-tools
+    transform: transform object from sgp-tools
     inducing_variable_time: Temporal dimensions of the inducing points 
                             to model spatio-temporal IPP (Defaults: None)
 '''
@@ -46,7 +46,7 @@ class AugmentedSGPR(SGPR):
     def __init__(
         self,
         *args,
-        transformer,
+        transform,
         inducing_variable_time=None,
         **kwargs
     ):
@@ -60,21 +60,21 @@ class AugmentedSGPR(SGPR):
         :param kernel: An appropriate GPflow kernel object.
         :param mean_function: An appropriate GPflow mean function object.
         :param aggregate: Whether to aggregate the inducing points
-        :param transformer: A Transformer object that transforms the inducing points 
+        :param transform: A transform object that transforms the inducing points 
             (expansion and aggregation)
         """
         super().__init__(
             *args,
             **kwargs
         )
-        if transformer is None:
-            self.transformer = Transformer()
+        if transform is None:
+            self.transform = Transform()
         else:
-            self.transformer = transformer
+            self.transform = transform
 
         if inducing_variable_time is not None:
             self.inducing_variable_time = inducingpoint_wrapper(inducing_variable_time)
-            self.transformer.inducing_variable_time = self.inducing_variable_time
+            self.transform.inducing_variable_time = self.inducing_variable_time
         else:
             self.inducing_variable_time = None
 
@@ -93,13 +93,13 @@ class AugmentedSGPR(SGPR):
         x, _ = self.data
         
         iv = self.inducing_variable.Z  # [M]
-        iv = self.transformer.expand(iv)
+        iv = self.transform.expand(iv)
 
         kuf = self.kernel(iv, x)
-        kuf = self.transformer.aggregate(kuf)
+        kuf = self.transform.aggregate(kuf)
 
         kuu = self.kernel(iv) + 1e-6 * tf.eye(tf.shape(iv)[0], dtype=iv.dtype)
-        kuu = self.transformer.aggregate(kuu)
+        kuu = self.transform.aggregate(kuu)
 
         L = tf.linalg.cholesky(kuu)
 
@@ -127,7 +127,7 @@ class AugmentedSGPR(SGPR):
         const = -0.5 * num_data * output_dim * np.log(2 * np.pi)
         logdet = self.logdet_term(common)
         quad = self.quad_term(common)
-        constraints = self.transformer.constraints(self.inducing_variable.Z)
+        constraints = self.transform.constraints(self.inducing_variable.Z)
         return const + logdet + quad + constraints
 
     def predict_f(
@@ -143,7 +143,7 @@ class AugmentedSGPR(SGPR):
         X_data, Y_data = self.data
         
         iv = self.inducing_variable.Z
-        iv = self.transformer.expand(iv)
+        iv = self.transform.expand(iv)
 
         num_inducing = tf.shape(iv)[0]
 

@@ -16,7 +16,8 @@ Software suite for SGP-based [Sensor Placement](https://itskalvik.com/publicatio
 
 ## Codemap
 - `demos/`: Jupyter notebooks with code to demonstrate each method in the library
-    - `IPP.ipynb`: IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
+    - `IPP.ipynb`: SGP-based IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
+    - `IPPBaselines.ipynb`: SGP-based IPP approach and baseline methods
     - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
     - `non_stationary_demo.ipynb`: SP with non-stationary kernel
     - `obstacles.ipynb`: SP in an environment with obstacles
@@ -25,9 +26,9 @@ Software suite for SGP-based [Sensor Placement](https://itskalvik.com/publicatio
         - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
     - `models/`: Sensor placement and IPP methods
         - `core/`: GP/SGP models used for sensor placement and IPP
-            - `augmented_gpr.py`: GPflow's GP that supports transformations (expansion and aggregation)
-            - `augmented_sgpr.py`: GPflow's SGP that supports transformations (expansion and aggregation)
-            - `transformations.py`: Expansion and aggregation transformations for IPP
+            - `augmented_gpr.py`: GPflow's GP that supports transforms (expansion and aggregation)
+            - `augmented_sgpr.py`: GPflow's SGP that supports transforms (expansion and aggregation)
+            - `transformations.py`: Expansion and aggregation transforms for IPP
         - `bo.py`: Bayesian optimization-based sensor placement method that maximizes mutual information
         - `cma_es.py`: Genetic algorithm-based sensor placement method that maximizes mutual information
         - `continuous_sgp.py`: Continuous SGP-based sensor placement method
