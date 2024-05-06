@@ -1,0 +1,13 @@
+site_name: SGP-Tools
+
+theme:
+  name: "material"
+  logo: assets/SGP-Tools.png
+  palette:
+    primary: white
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - index.md
