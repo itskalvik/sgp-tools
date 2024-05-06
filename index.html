@@ -1,0 +1,838 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.21">
+    
+    
+      
+        <title>SGP-Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.66ac8b77.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sgptools.models.continuous_sgp.continuous_sgp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="SGP-Tools" class="md-header__button md-logo" aria-label="SGP-Tools" data-md-component="logo">
+      
+  <img src="assets/SGP-Tools.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SGP-Tools
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="SGP-Tools" class="md-nav__button md-logo" aria-label="SGP-Tools" data-md-component="logo">
+      
+  <img src="assets/SGP-Tools.png" alt="logo">
+
+    </a>
+    SGP-Tools
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.models.continuous_sgp.continuous_sgp" class="md-nav__link">
+    <span class="md-ellipsis">
+      continuous_sgp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.models.continuous_sgp.init_osgpr" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_osgpr
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.models.continuous_sgp.continuous_sgp" class="md-nav__link">
+    <span class="md-ellipsis">
+      continuous_sgp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.models.continuous_sgp.init_osgpr" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_osgpr
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  <h1>Home</h1>
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.models.continuous_sgp.continuous_sgp"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Get sensor placement solutions using the Continuous-SGP method</p>
+
+<details class="refer-to-the-following-papers-for-more-details" open>
+  <summary>Refer to the following papers for more details</summary>
+  <ul>
+<li>Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [<a href="https://www.itskalvik.com/publication/sgp-sp/">Jakkala and Akella, 2023</a>]</li>
+<li>Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [<a href="https://www.itskalvik.com/publication/sgp-ipp/">Jakkala and Akella, 2024</a>]</li>
+</ul>
+</details>
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>num_inducing</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of inducing points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>X_train</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Unlabeled random sampled training points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>data variance</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>transform</code></td>
+          <td>
+                <code>Transform</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Transform object</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>Xu_init</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Initial inducing points</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>Xu_time</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(t, d); Temporal inducing points used in spatio-temporal models</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>orientation</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, a additionl dimension is added to the 
+                inducing points to represent the FoV orientation</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>sgpr</code></td>          <td>
+                <code><span title="sgptools.models.core.augmented_sgpr.AugmentedSGPR">AugmentedSGPR</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimized sparse Gaussian process model</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>loss</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Loss values computed during training</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/models/continuous_sgp.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">continuous_sgp</span><span class="p">(</span><span class="n">num_inducing</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> 
+                   <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">Xu_init</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">Xu_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+                   <span class="n">orientation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get sensor placement solutions using the Continuous-SGP method</span>
+
+<span class="sd">    Refer to the following papers for more details:</span>
+<span class="sd">        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]</span>
+<span class="sd">        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [[Jakkala and Akella, 2024](https://www.itskalvik.com/publication/sgp-ipp/)]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        num_inducing (int): Number of inducing points</span>
+<span class="sd">        X_train (ndarray): (n, d); Unlabeled random sampled training points</span>
+<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+<span class="sd">        transform (Transform): Transform object</span>
+<span class="sd">        Xu_init (ndarray): (m, d); Initial inducing points</span>
+<span class="sd">        Xu_time (ndarray): (t, d); Temporal inducing points used in spatio-temporal models</span>
+<span class="sd">        orientation (bool): If True, a additionl dimension is added to the </span>
+<span class="sd">                            inducing points to represent the FoV orientation</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        sgpr (AugmentedSGPR): Optimized sparse Gaussian process model</span>
+<span class="sd">        loss (ndarray): Loss values computed during training</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Generate init inducing points</span>
+    <span class="k">if</span> <span class="n">Xu_init</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Xu_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">,</span> 
+                                   <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+
+    <span class="c1"># Fit spare GP</span>
+    <span class="n">sgpr</span> <span class="o">=</span> <span class="n">AugmentedSGPR</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">dtype</span><span class="p">)),</span>
+                         <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+                         <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> 
+                         <span class="n">inducing_variable</span><span class="o">=</span><span class="n">Xu_init</span><span class="p">,</span>
+                         <span class="n">inducing_variable_time</span><span class="o">=</span><span class="n">Xu_time</span><span class="p">,</span>
+                         <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+
+    <span class="c1"># Train the mode</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">optimize_model</span><span class="p">(</span><span class="n">sgpr</span><span class="p">,</span>
+                          <span class="n">kernel_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                          <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sgpr</span><span class="p">,</span> <span class="n">loss</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.models.continuous_sgp.init_osgpr"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Initialize a VFE OSGPR model with an RBF kernel with 
+unit variance and lengthcales, and 0.001 noise variance.
+Used in the Online Continuous SGP approach. </p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>X_train</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Unlabeled random sampled training points. 
+            They only effect the initial inducing point locations, 
+            i.e., limits them to the bounds of the data</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>num_inducing</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of inducing points</p>
+            </div>
+          </td>
+          <td>
+                <code>10</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>lengthscales</code></td>
+          <td>
+                <code>ndarray or list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Kernel lengthscale of each dimension of the data</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Kernel variance</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Data variance</p>
+            </div>
+          </td>
+          <td>
+                <code>0.001</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>online_param</code></td>          <td>
+                <code><span title="sgptools.models.core.osgpr.OSGPR_VFE">OSGPR_VFE</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Initialized online sparse Gaussian process model</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/models/continuous_sgp.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">init_osgpr</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> 
+               <span class="n">num_inducing</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> 
+               <span class="n">lengthscales</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+               <span class="n">variance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+               <span class="n">noise_variance</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize a VFE OSGPR model with an RBF kernel with </span>
+<span class="sd">    unit variance and lengthcales, and 0.001 noise variance.</span>
+<span class="sd">    Used in the Online Continuous SGP approach. </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X_train (ndarray): (n, d); Unlabeled random sampled training points. </span>
+<span class="sd">                        They only effect the initial inducing point locations, </span>
+<span class="sd">                        i.e., limits them to the bounds of the data</span>
+<span class="sd">        num_inducing (int): Number of inducing points</span>
+<span class="sd">        lengthscales (ndarray or list): Kernel lengthscale of each dimension of the data</span>
+<span class="sd">        variance (float): Kernel variance</span>
+<span class="sd">        noise_variance (float): Data variance</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        online_param (OSGPR_VFE): Initialized online sparse Gaussian process model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_train</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">Z_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">)</span>
+    <span class="n">init_param</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SGPR</span><span class="p">((</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">),</span>
+                                    <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">RBF</span><span class="p">(</span><span class="n">variance</span><span class="o">=</span><span class="n">variance</span><span class="p">,</span> 
+                                                       <span class="n">lengthscales</span><span class="o">=</span><span class="n">lengthscales</span><span class="p">),</span> 
+                                    <span class="n">inducing_variable</span><span class="o">=</span><span class="n">Z_init</span><span class="p">,</span> 
+                                    <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">)</span>
+
+    <span class="c1"># Initialize the OSGPR model using the parameters from the SGPR model</span>
+    <span class="c1"># The X_train and y_train here will be overwritten in the online phase </span>
+    <span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">Zopt</span> <span class="o">=</span> <span class="n">init_param</span><span class="o">.</span><span class="n">inducing_variable</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">mu</span><span class="p">,</span> <span class="n">Su</span> <span class="o">=</span> <span class="n">init_param</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">Zopt</span><span class="p">,</span> <span class="n">full_cov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">Kaa</span> <span class="o">=</span> <span class="n">init_param</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">Zopt</span><span class="p">)</span>
+    <span class="n">online_param</span> <span class="o">=</span> <span class="n">OSGPR_VFE</span><span class="p">((</span><span class="n">X_train</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">y_train</span><span class="p">[:</span><span class="mi">2</span><span class="p">]),</span>
+                             <span class="n">init_param</span><span class="o">.</span><span class="n">kernel</span><span class="p">,</span>
+                             <span class="n">mu</span><span class="p">,</span> <span class="n">Su</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Kaa</span><span class="p">,</span>
+                             <span class="n">Zopt</span><span class="p">,</span> <span class="n">Zopt</span><span class="p">)</span>
+    <span class="n">online_param</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">init_param</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variance</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">online_param</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.a7c05c9e.min.js"></script>
+      
+    
+  </body>
+</html>
