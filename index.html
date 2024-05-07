@@ -70,7 +70,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sgptools.models.core.augmented_gpr.AugmentedGPR" class="md-skip">
+        <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-skip">
           Skip to content
         </a>
       
@@ -224,6 +224,33 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      NeuralSpectralKernel
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel.K" class="md-nav__link">
+    <span class="md-ellipsis">
+      K
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.init_neural" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_neural
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#sgptools.models.core.augmented_gpr.AugmentedGPR" class="md-nav__link">
@@ -636,6 +663,33 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      NeuralSpectralKernel
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel.K" class="md-nav__link">
+    <span class="md-ellipsis">
+      K
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.kernels.neural_kernel.init_neural" class="md-nav__link">
+    <span class="md-ellipsis">
+      init_neural
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sgptools.models.core.augmented_gpr.AugmentedGPR" class="md-nav__link">
     <span class="md-ellipsis">
       AugmentedGPR
@@ -1032,6 +1086,696 @@
 
 
   <h1>Home</h1>
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="sgptools.kernels.neural_kernel.NeuralSpectralKernel"></a>
+  <div class="doc doc-contents first">
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="gpflow.kernels.Kernel">Kernel</span></code></p>
+
+  
+      <p>Neural Spectral Kernel function (non-stationary kernel function). 
+Based on the implementation from the following <a href="https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file">repo</a></p>
+
+<details class="refer-to-the-following-papers-for-more-details" open>
+  <summary>Refer to the following papers for more details</summary>
+  <ul>
+<li>Neural Non-Stationary Spectral Kernel [Remes et al., 2018]</li>
+</ul>
+</details>
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>input_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of data dimensions</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>active_dims</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of data dimensions that are used for computing the covariances</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>Q</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of MLP mixture components used in the kernel function</p>
+            </div>
+          </td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>hidden_sizes</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of hidden units in each MLP layer. Length of the list determines the number of layers.</p>
+            </div>
+          </td>
+          <td>
+                <code>[32, 32]</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/kernels/neural_kernel.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">class</span> <span class="nc">NeuralSpectralKernel</span><span class="p">(</span><span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Neural Spectral Kernel function (non-stationary kernel function). </span>
+<span class="sd">    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)</span>
+
+<span class="sd">    Refer to the following papers for more details:</span>
+<span class="sd">        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_dim (int): Number of data dimensions</span>
+<span class="sd">        active_dims (int): Number of data dimensions that are used for computing the covariances</span>
+<span class="sd">        Q (int): Number of MLP mixture components used in the kernel function</span>
+<span class="sd">        hidden_sizes (list): Number of hidden units in each MLP layer. Length of the list determines the number of layers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dim</span><span class="p">,</span> <span class="n">active_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">]):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">active_dims</span><span class="o">=</span><span class="n">active_dims</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">=</span> <span class="n">input_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_hidden</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">freq</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">):</span>
+            <span class="n">freq</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;selu&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_hidden</span><span class="p">)]</span> <span class="o">+</span> 
+                                    <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softplus&#39;</span><span class="p">)])</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;selu&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_hidden</span><span class="p">)]</span> <span class="o">+</span>
+                                   <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softplus&#39;</span><span class="p">)])</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">hidden_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;selu&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_hidden</span><span class="p">)]</span> <span class="o">+</span>
+                                   <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;softplus&#39;</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">K</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">X2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the covariances between/amongst the input variables</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            X (ndarray): Variables to compute the covariance matrix</span>
+<span class="sd">            X2 (ndarray): If passed, the covariance between X and X2 is computed. Otherwise, </span>
+<span class="sd">                          the covariance between X and X is computed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            cov (ndarray): covariance matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">X2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">X2</span> <span class="o">=</span> <span class="n">X</span>
+            <span class="n">equal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">equal</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">kern</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">):</span>
+            <span class="c1"># compute latent function values by the neural network</span>
+            <span class="n">freq</span><span class="p">,</span> <span class="n">freq2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+            <span class="n">lens</span><span class="p">,</span> <span class="n">lens2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+            <span class="n">var</span><span class="p">,</span> <span class="n">var2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+
+            <span class="c1"># compute length-scale term</span>
+            <span class="n">Xr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># N1 1 D</span>
+            <span class="n">X2r</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">X2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 1 N2 D</span>
+            <span class="n">l1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">lens</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># N1 1 D</span>
+            <span class="n">l2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">lens2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 1 N2 D</span>
+            <span class="n">L</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l2</span><span class="p">)</span>  <span class="c1"># N1 N2 D</span>
+            <span class="c1">#D = tf.square((Xr - X2r) / L)  # N1 N2 D</span>
+            <span class="n">D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Xr</span> <span class="o">-</span> <span class="n">X2r</span><span class="p">)</span> <span class="o">/</span> <span class="n">L</span>  <span class="c1"># N1 N2 D</span>
+            <span class="n">D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+            <span class="n">det</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">l2</span> <span class="o">/</span> <span class="n">L</span><span class="p">)</span>  <span class="c1"># N1 N2 D</span>
+            <span class="n">det</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_prod</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+            <span class="n">E</span> <span class="o">=</span> <span class="n">det</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">D</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+
+            <span class="c1"># compute cosine term</span>
+            <span class="n">muX</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">freq</span> <span class="o">*</span> <span class="n">X</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                   <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">freq2</span> <span class="o">*</span> <span class="n">X2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+            <span class="n">COS</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">muX</span><span class="p">)</span>
+
+            <span class="c1"># compute kernel variance term</span>
+            <span class="n">WW</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># w*w&#39;^T</span>
+
+            <span class="c1"># compute the q&#39;th kernel component</span>
+            <span class="n">kern</span> <span class="o">+=</span> <span class="n">WW</span> <span class="o">*</span> <span class="n">E</span> <span class="o">*</span> <span class="n">COS</span>
+        <span class="k">if</span> <span class="n">equal</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">robust_kernel</span><span class="p">(</span><span class="n">kern</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">kern</span>
+
+    <span class="k">def</span> <span class="nf">K_diag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="n">kd</span> <span class="o">=</span> <span class="n">default_jitter</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">):</span>
+            <span class="n">kd</span> <span class="o">+=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">kd</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="sgptools.kernels.neural_kernel.NeuralSpectralKernel.K" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">K</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X2</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes the covariances between/amongst the input variables</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>X</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Variables to compute the covariance matrix</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>X2</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If passed, the covariance between X and X2 is computed. Otherwise, 
+          the covariance between X and X is computed.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>cov</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>covariance matrix</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/kernels/neural_kernel.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">K</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">X2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the covariances between/amongst the input variables</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X (ndarray): Variables to compute the covariance matrix</span>
+<span class="sd">        X2 (ndarray): If passed, the covariance between X and X2 is computed. Otherwise, </span>
+<span class="sd">                      the covariance between X and X is computed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        cov (ndarray): covariance matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">X2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">X2</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="n">equal</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">equal</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">kern</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">):</span>
+        <span class="c1"># compute latent function values by the neural network</span>
+        <span class="n">freq</span><span class="p">,</span> <span class="n">freq2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+        <span class="n">lens</span><span class="p">,</span> <span class="n">lens2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+        <span class="n">var</span><span class="p">,</span> <span class="n">var2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">var</span><span class="p">[</span><span class="n">q</span><span class="p">](</span><span class="n">X2</span><span class="p">)</span>
+
+        <span class="c1"># compute length-scale term</span>
+        <span class="n">Xr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># N1 1 D</span>
+        <span class="n">X2r</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">X2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 1 N2 D</span>
+        <span class="n">l1</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">lens</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># N1 1 D</span>
+        <span class="n">l2</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">lens2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 1 N2 D</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">l2</span><span class="p">)</span>  <span class="c1"># N1 N2 D</span>
+        <span class="c1">#D = tf.square((Xr - X2r) / L)  # N1 N2 D</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">Xr</span> <span class="o">-</span> <span class="n">X2r</span><span class="p">)</span> <span class="o">/</span> <span class="n">L</span>  <span class="c1"># N1 N2 D</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+        <span class="n">det</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">l1</span> <span class="o">*</span> <span class="n">l2</span> <span class="o">/</span> <span class="n">L</span><span class="p">)</span>  <span class="c1"># N1 N2 D</span>
+        <span class="n">det</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_prod</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">det</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">D</span><span class="p">)</span>  <span class="c1"># N1 N2</span>
+
+        <span class="c1"># compute cosine term</span>
+        <span class="n">muX</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">freq</span> <span class="o">*</span> <span class="n">X</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+               <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">freq2</span> <span class="o">*</span> <span class="n">X2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+        <span class="n">COS</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">muX</span><span class="p">)</span>
+
+        <span class="c1"># compute kernel variance term</span>
+        <span class="n">WW</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># w*w&#39;^T</span>
+
+        <span class="c1"># compute the q&#39;th kernel component</span>
+        <span class="n">kern</span> <span class="o">+=</span> <span class="n">WW</span> <span class="o">*</span> <span class="n">E</span> <span class="o">*</span> <span class="n">COS</span>
+    <span class="k">if</span> <span class="n">equal</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">robust_kernel</span><span class="p">(</span><span class="n">kern</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">kern</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.kernels.neural_kernel.init_neural"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Helper function to initialize a Neural Spectral Kernel function (non-stationary kernel function). 
+Based on the implementation from the following <a href="https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file">repo</a></p>
+
+<details class="refer-to-the-following-papers-for-more-details" open>
+  <summary>Refer to the following papers for more details</summary>
+  <ul>
+<li>Neural Non-Stationary Spectral Kernel [Remes et al., 2018]</li>
+</ul>
+</details>
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>x</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Input training set points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>y</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Training set labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>inducing_variable</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Initial inducing points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>Q</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of MLP mixture components used in the kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>n_inits</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of times to initalize the kernel function (returns the best model)</p>
+            </div>
+          </td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>hidden_sizes</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of hidden units in each MLP layer. Length of the list determines the number of layers.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/kernels/neural_kernel.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">init_neural</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">inducing_variable</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">n_inits</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hidden_sizes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to initialize a Neural Spectral Kernel function (non-stationary kernel function). </span>
+<span class="sd">    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)</span>
+
+<span class="sd">    Refer to the following papers for more details:</span>
+<span class="sd">        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (ndarray): (n, d); Input training set points</span>
+<span class="sd">        y (ndarray): (n, 1); Training set labels</span>
+<span class="sd">        inducing_variable (ndarray): (m, d); Initial inducing points</span>
+<span class="sd">        Q (int): Number of MLP mixture components used in the kernel function</span>
+<span class="sd">        n_inits (int): Number of times to initalize the kernel function (returns the best model)</span>
+<span class="sd">        hidden_sizes (list): Number of hidden units in each MLP layer. Length of the list determines the number of layers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">data_input_to_tensor</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Initializing neural spectral kernel...&#39;</span><span class="p">)</span>
+    <span class="n">best_loglik</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">best_m</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">N</span><span class="p">,</span> <span class="n">input_dim</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_inits</span><span class="p">):</span>
+        <span class="c1"># gpflow.reset_default_graph_and_session()</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">NeuralSpectralKernel</span><span class="p">(</span><span class="n">input_dim</span><span class="o">=</span><span class="n">input_dim</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="n">Q</span><span class="p">,</span> 
+                                    <span class="n">hidden_sizes</span><span class="o">=</span><span class="n">hidden_sizes</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">SGPR</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">inducing_variable</span><span class="o">=</span><span class="n">inducing_variable</span><span class="p">,</span> 
+                        <span class="n">kernel</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">loglik</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">elbo</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">loglik</span> <span class="o">&gt;</span> <span class="n">best_loglik</span><span class="p">:</span>
+            <span class="n">best_loglik</span> <span class="o">=</span> <span class="n">loglik</span>
+            <span class="n">best_m</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">del</span> <span class="n">model</span>
+        <span class="n">gc</span><span class="o">.</span><span class="n">collect</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best init: </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">best_loglik</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">best_m</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-class">
 
