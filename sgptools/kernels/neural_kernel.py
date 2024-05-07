@@ -28,21 +28,24 @@ gpflow.config.set_default_float(np.float32)
 float_type = default_float()
 
 
-'''
-Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
-Based on the implementation from the following repo
-https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file
-
-'''
 class NeuralSpectralKernel(gpflow.kernels.Kernel):
-    def __init__(self, input_dim, active_dims=None, Q=1, hidden_sizes=None):
+    """Neural Spectral Kernel function (non-stationary kernel function). 
+    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
+
+    Refer to the following papers for more details:
+        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
+
+    Args:
+        input_dim (int): Number of data dimensions
+        active_dims (int): Number of data dimensions that are used for computing the covariances
+        Q (int): Number of MLP mixture components used in the kernel function
+        hidden_sizes (list): Number of hidden units in each MLP layer. Length of the list determines the number of layers.
+    """
+    def __init__(self, input_dim, active_dims=None, Q=1, hidden_sizes=[32, 32]):
         super().__init__(active_dims=active_dims)
 
         self.input_dim = input_dim
         self.Q = Q
-
-        if hidden_sizes is None:
-            hidden_sizes = (32, 32)
         self.num_hidden = len(hidden_sizes)
 
         self.freq = []
@@ -60,6 +63,16 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
             self.var.append(var)
         
     def K(self, X, X2=None):
+        """Computes the covariances between/amongst the input variables
+
+        Args:
+            X (ndarray): Variables to compute the covariance matrix
+            X2 (ndarray): If passed, the covariance between X and X2 is computed. Otherwise, 
+                          the covariance between X and X is computed.
+
+        Returns:
+            cov (ndarray): covariance matrix
+        """
         if X2 is None:
             X2 = X
             equal = True
@@ -114,10 +127,21 @@ def robust_kernel(kern, shape_X):
     jitter = 1e-3
     return kern + jitter * tf.eye(shape_X, dtype=float_type)
 
-'''
-Initializer for Neural Spectral kernel
-'''
 def init_neural(x, y, inducing_variable, Q, n_inits=1, hidden_sizes=None):
+    """Helper function to initialize a Neural Spectral Kernel function (non-stationary kernel function). 
+    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
+
+    Refer to the following papers for more details:
+        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
+
+    Args:
+        x (ndarray): (n, d); Input training set points
+        y (ndarray): (n, 1); Training set labels
+        inducing_variable (ndarray): (m, d); Initial inducing points
+        Q (int): Number of MLP mixture components used in the kernel function
+        n_inits (int): Number of times to initalize the kernel function (returns the best model)
+        hidden_sizes (list): Number of hidden units in each MLP layer. Length of the list determines the number of layers.
+    """
     x, y = data_input_to_tensor((x, y))
 
     print('Initializing neural spectral kernel...')

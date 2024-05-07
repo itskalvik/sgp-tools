@@ -1,3 +1,6 @@
+::: sgptools.kernels.neural_kernel.NeuralSpectralKernel
+::: sgptools.kernels.neural_kernel.init_neural
+
 ::: sgptools.models.core.augmented_gpr.AugmentedGPR
 ::: sgptools.models.core.augmented_sgpr.AugmentedSGPR
 ::: sgptools.models.core.osgpr.OSGPR_VFE 
