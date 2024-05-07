@@ -5,6 +5,8 @@ theme:
   logo: assets/SGP-Tools.png
   palette:
     primary: custom
+    accent: custom
+
   icon:
     repo: fontawesome/brands/github
 

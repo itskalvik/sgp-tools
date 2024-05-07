@@ -1,7 +1,11 @@
 ::: sgptools.models.core.augmented_gpr.AugmentedGPR
 ::: sgptools.models.core.augmented_sgpr.AugmentedSGPR
 ::: sgptools.models.core.osgpr.OSGPR_VFE 
+
 ::: sgptools.models.core.transformations.Transform 
+::: sgptools.models.core.transformations.IPPTransform
+::: sgptools.models.core.transformations.SquareTransform
+::: sgptools.models.core.transformations.SquareHeightTransform
 
 ::: sgptools.models.continuous_sgp.continuous_sgp
 ::: sgptools.models.continuous_sgp.init_osgpr

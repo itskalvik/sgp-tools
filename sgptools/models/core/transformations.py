@@ -56,9 +56,9 @@ class Transform:
         """Applies the aggregation transform to kernel matrices
 
         Args:
-            k (tensor): (ms, ms)/(ms, n); Kernel matrix. 
+            k (tensor): (mp, mp)/(mp, n); Kernel matrix. 
                         `m` is the number of inducing points,
-                        `s` is the number of points each inducing point is mapped,
+                        `p` is the number of points each inducing point is mapped,
                         `n` is the number of training data points.
 
         Returns:
@@ -109,17 +109,14 @@ class Transform:
         return dist
     
 
-'''
-Non-point Transform to model a square FoV. Only works for single robot cases. 
-ToDo: update expand function to handle multi-robot case
-'''
 class SquareTransform(Transform):
+    """Non-point Transform to model a square FoV. Only works for single robot cases. 
+    ToDo: update expand function to handle multi-robot case.
 
-    '''
     Args:
-        length: - length of the square FoV
-        num_side: [s] - number of points along each side of the FoV
-    '''
+        length (float): Length of the square FoV
+        num_side (int): Number of points along each side of the FoV
+    """
     def __init__(self, length, num_side, **kwargs):
         super().__init__(**kwargs)
         self.length = length
@@ -132,20 +129,19 @@ class SquareTransform(Transform):
         elif self.aggregation_size is None:
             self.aggregation_size = num_side**2
 
-    '''
-    Applies the expansion transformation to the inducing points.
-
-    Args:
-        Xu: [1, m, 3] - Inducing points in the position and orientation space.
-                        m is the number of inducing points,
-                        3 is the dimension of the space (x, y, angle in radians)
-                     
-    Returns:
-        Xu: [mp, 2] - Inducing points in input space.
-                      p is the number of points each inducing point is mapped 
-                      to in order to form the FoV.
-    '''
     def expand(self, Xu):
+        """Applies the expansion transformation to the inducing points
+
+        Args:
+            Xu (ndarray): (1, m, 3); Inducing points in the position and orientation space.
+                            `m` is the number of inducing points,
+                            `3` is the dimension of the space (x, y, angle in radians)
+                        
+        Returns:
+            Xu (ndarray): (mp, 2); Inducing points in input space.
+                        `p` is the number of points each inducing point is mapped 
+                         to in order to form the FoV.
+        """
         x, y, theta = tf.split(Xu, num_or_size_splits=3, axis=2)
         x = tf.squeeze(x)
         y = tf.squeeze(y)
@@ -164,37 +160,39 @@ class SquareTransform(Transform):
         xy = self._reshape(xy, tf.shape(Xu)[1])
         return xy
     
-    '''
-    Reorder the inducing points to be in the correct order for aggregation with square FoV.
-
-    Args:
-        X: [mp, 2] - Inducing points in input space. p is the number of points each 
-                     inducing point is mapped to in order to form the FoV.
-    '''
     def _reshape(self, X, num_inducing):
+        """Reorder the inducing points to be in the correct order for aggregation with square FoV.
+
+        Args:
+            X (ndarray): (mp, 2); Inducing points in input space. `p` is the number of points each 
+                        inducing point is mapped to in order to form the FoV.
+                            
+        Returns:
+            Xu (ndarray): (mp, 2); Reorder inducing points
+        """
         X = tf.reshape(X, (num_inducing, -1, self.num_side, self.num_side, 2))
         X = tf.transpose(X, (0, 2, 1, 3, 4))
         X = tf.reshape(X, (-1, 2))
         return X
 
-'''
-Transform to model IPP problems. 
--For point sensing, set sampling_rate=2
--For continuous sensing, set sampling_rate>2 (approx the data collected along the path)
--For multi-robot case, set num_robots>1
--For onlineIPP use update_fixed to freeze the visited waypoints
-'''
 class IPPTransform(Transform):
-    '''
+    """Transform to model IPP problems
+
+    Usage details: 
+        * For point sensing, set `sampling_rate = 2`
+        * For continuous sensing, set `sampling_rate > 2` (approx the data collected along the path)
+        * For multi-robot case, set `num_robots > 1`
+        * For onlineIPP use `update_fixed` to freeze the visited waypoints
+
     Args:
-        sampling_rate: [s] - number of points to sample between each pair of inducing points
-        distance_budget: [b] - distance budget for the path
-        num_robots: [n] - number of robots
-        Xu_fixed: (num_robots, num_visited, num_dim) - visited waypoints that don't need to be optimized
-        num_dim: [d] - dimension of the data collection environment
-        sensor_model: [Transform] - Transform object to expand each inducing point to p points 
-                                      approximating each sensor's FoV.
-    '''
+        sampling_rate (int): Number of points to sample between each pair of inducing points
+        distance_budget (float): Distance budget for the path
+        num_robots (int): Number of robots
+        Xu_fixed (ndarray): (num_robots, num_visited, num_dim); Visited waypoints that don't need to be optimized
+        num_dim (int): Dimension of the data collection environment
+        sensor_model (Transform): Transform object to expand each inducing point to `p` points 
+                                  approximating each sensor's FoV
+    """
     def __init__(self, 
                  sampling_rate=2, 
                  distance_budget=None, 
@@ -229,12 +227,12 @@ class IPPTransform(Transform):
         else:
             self.Xu_fixed = None
 
-    '''
-    Function to store visited waypoints
-    Args:
-        Xu_fixed: numpy array (num_robots, num_waypoints, num_dim)
-    '''
     def update_Xu_fixed(self, Xu_fixed):
+        """Function to update the visited waypoints
+
+        Args:
+            Xu_fixed (ndarray): numpy array (num_robots, num_visited_waypoints, num_dim)
+        """
         self.num_fixed = Xu_fixed.shape[1]
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(Xu_fixed)
@@ -243,14 +241,17 @@ class IPPTransform(Transform):
                                         shape=tf.TensorShape(None), 
                                         trainable=False)
 
-    '''
-    Sample points between each pair of inducing points to form the path
-    Args:
-        Xu: numpy array [num_robots x num_inducing, num_dim] - Inducing points in the num_dim position space.
-        expand_sensor_model: Bool - Only add the fixed inducing points without other sensor/path transforms, 
-                             used for online IPP. 
-    '''
     def expand(self, Xu, expand_sensor_model=True):
+        """Sample points between each pair of inducing points to form the path
+
+        Args:
+            Xu (ndarray): (num_robots x num_inducing, num_dim); Inducing points in the num_dim dimensional space
+            expand_sensor_model (bool): Only add the fixed inducing points without other sensor/path transforms, 
+                                        used for online IPP
+
+        Returns:
+            Xu (ndarray): Expansion transformed inducing points
+        """
         # If using single-robot offline IPP with point sensing, return inducing points as is.
         if self.sampling_rate == 2 and self.Xu_fixed is None and self.sensor_model is None:
             return Xu
@@ -279,15 +280,33 @@ class IPPTransform(Transform):
         return Xu
     
     def aggregate(self, k):
+        """Applies the aggregation transform to kernel matrices. Checks `sensor_model` 
+           and uses the appropriate aggregation transform. 
+
+        Args:
+            k (tensor): (mp, mp)/(mp, n); Kernel matrix. 
+                        `m` is the number of inducing points,
+                        `p` is the number of points each inducing point is mapped,
+                        `n` is the number of training data points.
+
+        Returns:
+            k (tensor): (m, m)/(m, n); Aggregated kernel matrix
+        """
         if self.sensor_model is not None:
             return self.sensor_model.aggregate(k)
         else:
             return super().aggregate(k)
         
-    '''
-    Applies a distance constraint to the inducing points.
-    '''
     def constraints(self, Xu):
+        """Computes the distance constraint term that is added to the SGP's optimization function.
+        Each robot can be assigned a different distance budget.
+
+        Args:
+            Xu (ndarray): Inducing points from which to compute the distance constraints
+
+        Returns:
+            loss (float): distance constraint term
+        """
         if self.distance_budget is None:
             return 0.
         else:
@@ -297,34 +316,32 @@ class IPPTransform(Transform):
             loss = -dist*self.constraint_weight
             return loss
 
-    '''
-    Args:
-        Xu: [m, d] - Inducing points in the 3D position space.
-                     m is the number of inducing points,
-                     d is the dimension of the space
-    ToDo: Change distance from 2d to nd. Currently limited to 2d 
-          to ensure the rotation angle is not included when using
-          a square FoV sensor.
-    '''
     def distance(self, Xu):
+        """Computes the distance incured by sequentially visiting the inducing points
+        ToDo: Change distance from 2d to nd. Currently limited to 2d 
+            to ensure the rotation angle is not included when using
+            a square FoV sensor.
+
+        Args:
+            Xu (ndarray): Inducing points from which to compute the path lengths
+
+        Returns:
+            dist (float): path lengths
+        """
         Xu = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
         dist = tf.norm(Xu[:, 1:, :2] - Xu[:, :-1, :2], axis=-1)
         dist = tf.reduce_sum(dist, axis=1)
         return dist
     
 
-'''
-Applies a mask to the inducing points. 
-The mask maps the compact inducing points parametrization to individual points. 
-ToDo:
-Convert from single to multi-robot setup and make it compatible with IPPTransform
-'''
 class SquareHeightTransform(Transform):
-    
-    '''
+    """Non-point Transform to model a height-dependent square FoV. Only works for single robot cases. 
+    ToDo: Convert from single to multi-robot setup and make it compatible with IPPTransform
+
     Args:
-        num_points: [s] - number of points along each side of the FoV
-    '''
+        num_points (int): Number of points along each side of the FoV
+        distance_budget (float): Distance budget for the path
+    """
     def __init__(self, num_points, distance_budget=None, **kwargs):
         super().__init__(**kwargs)
         self.num_points = num_points
@@ -335,20 +352,20 @@ class SquareHeightTransform(Transform):
         elif self.aggregation_size is None:
             self.aggregation_size = num_points**2
 
-    '''
-    Applies the expansion transformation to the inducing points.
-
-    Args:
-        Xu: [m, 3] - Inducing points in the 3D position space.
-                     m is the number of inducing points,
-                     3 is the dimension of the space (x, y, z)
-                     
-    Returns:
-        Xu: [ms, 2] - Inducing points in input space.
-                      s is the number of points each inducing point is mapped 
-                      to in order to form the FoV.
-    '''
     def expand(self, Xu):     
+        """
+        Applies the expansion transform to the inducing points
+
+        Args:
+            Xu (ndarray): (m, 3); Inducing points in the 3D position space.
+                        `m` is the number of inducing points,
+                        `3` is the dimension of the space (x, y, z)
+                        
+        Returns:
+            Xu (ndarray): (mp, 2); Inducing points in input space.
+                        `p` is the number of points each inducing point is mapped 
+                        to in order to form the FoV.
+        """
         x, y, h = tf.split(Xu, num_or_size_splits=3, axis=1)
         x = tf.squeeze(x)
         y = tf.squeeze(y)
@@ -368,14 +385,16 @@ class SquareHeightTransform(Transform):
         xy = self._reshape(xy, tf.shape(Xu)[0])
         return xy
 
-    '''
-    Reorder the inducing points to be in the correct order for aggregation with square FoV.
-
-    Args:
-        X: [ms, 2] - Inducing points in input space. s is the number of points each 
-                     inducing point is mapped to in order to form the FoV.
-    '''
     def _reshape(self, X, num_inducing):
+        """Reorder the inducing points to be in the correct order for aggregation with square height FoV
+
+        Args:
+            X (ndarray): (mp, 2); Inducing points in input space. `p` is the number of points each 
+                        inducing point is mapped to in order to form the FoV.
+                            
+        Returns:
+            Xu (ndarray): (mp, 2); Reorder inducing points
+        """
         X = tf.reshape(X, (num_inducing, -1, self.num_points, self.num_points, 2))
         X = tf.transpose(X, (0, 2, 1, 3, 4))
         X = tf.reshape(X, (-1, 2))
