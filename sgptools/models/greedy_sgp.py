@@ -17,23 +17,23 @@ from apricot import CustomSelection
 import numpy as np
 
 
-'''
-SGP-based sensor placement approach. Uses a greedy algorithm to 
-select sensor placements from a given discrete set of candidates.
-
-Refer to the following paper for more details:
-Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-
-Args:
-    num_inducing: number of inducing points
-    S: Candidate sensor locations
-    V: Environmental data locations
-    noise_variance: data variance
-    kernel: kernel function
-    Xu_fixed: fixed inducing points
-    transform: (optional) Transform object
-'''
 class GreedySGP:
+    """Helper class to compute SGP's ELBO/optimization bound for a given set of sensor locations.
+    Used by `get_greedy_sgp_sol` function to compute the solution sensor placements using the Greedy-SGP method.
+
+    Refer to the following papers for more details:
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
+
+    Args:
+        num_inducing (int): Number of inducing points
+        S (ndarray): (n, d); Candidate sensor placement locations
+        V (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
+                                    added to the inducing points set during loss function computation
+        transform (Transform): Transform object
+    """
     def __init__(self, num_inducing, S, V, noise_variance, kernel, 
                  Xu_fixed=None, 
                  transform=None):
@@ -48,6 +48,14 @@ class GreedySGP:
         self.inducing_dim = S.shape[1]
 
     def bound(self, x):
+        """Computes the SGP's optimization bound using the inducing points `x` 
+
+        Args:
+            x (ndarray): (n, d); Inducing points
+
+        Returns:
+            elbo (float): Evidence lower bound/SGP's optimization bound value
+        """
         x = np.array(x).reshape(-1).astype(int)
         Xu = np.ones((self.num_inducing, self.inducing_dim), dtype=np.float32)
         Xu *= self.locs[x][0]
@@ -59,11 +67,26 @@ class GreedySGP:
         self.gp.inducing_variable.Z.assign(Xu)
         return self.gp.elbo().numpy()
 
-'''
-Get sensor placement solution using the Greedy VFE-SGP method
-'''
+
 def get_greedy_sgp_sol(num_sensors, candidates, X_train, noise_variance, kernel, 
                        transform=None):
+    """Get sensor placement solutions using the Greedy-SGP method. Uses a greedy algorithm to 
+    select sensor placements from a given discrete set of candidates locations.
+
+    Refer to the following papers for more details:
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
+
+    Args:
+        num_sensors (int): Number of sensor locations to optimize
+        candidates (ndarray): (n, d); Candidate sensor placement locations
+        X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        transform (Transform): Transform object
+
+    Returns:
+        Xu (ndarray): (m, d); Solution sensor placement locations
+    """
     sgp_model = GreedySGP(num_sensors, candidates, X_train, 
                           noise_variance, kernel, transform=transform)
     model = CustomSelection(num_sensors,

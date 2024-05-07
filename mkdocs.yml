@@ -4,10 +4,17 @@ theme:
   name: "material"
   logo: assets/SGP-Tools.png
   palette:
-    primary: white
+    primary: custom
+  icon:
+    repo: fontawesome/brands/github
 
 plugins:
   - mkdocstrings
 
 nav:
   - index.md
+
+extra_css:
+  - stylesheets/extra.css
+
+repo_url: https://github.com/itskalvik/SGP-Tools

@@ -3,3 +3,4 @@ __pycache__/
 datasets/
 sgptools.egg-info/
 outcmaes/
+site/

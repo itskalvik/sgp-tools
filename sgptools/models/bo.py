@@ -18,22 +18,18 @@ from ..utils.data import get_inducing_pts
 from bayes_opt import BayesianOptimization
 
 
-'''
-Class for optimizing sensor placements using Bayesian Optimization
-
-Refer to the following papers for more details:
-UAV route planning for active disease classification [Vivaldini et al., 2019]
-Occupancy map building through Bayesian exploration [Francis et al., 2019]
-
-Args:
-    X_train: Numpy array (n ,d) with n d-dimensional data points
-    noise_variance: data variance
-    kernel: kernel function
-'''
 class BayesianOpt:
-    '''
-    Class for optimizing sensor placements with Bayesian Optimization
-    '''
+    """Class for optimizing sensor placements using Bayesian Optimization
+
+    Refer to the following papers for more details:
+        - UAV route planning for active disease classification [Vivaldini et al., 2019]
+        - Occupancy map building through Bayesian exploration [Francis et al., 2019]
+
+    Args:
+        X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+    """
     def __init__(self, X_train, noise_variance, kernel):
         self.X_train = X_train
         self.noise_variance = noise_variance
@@ -44,25 +40,33 @@ class BayesianOpt:
         self.pbounds_dim = []
         for i in range(self.num_dim):
             self.pbounds_dim.append((np.min(X_train[:, i]), np.max(X_train[:, i])))
-            
-    '''
-    Objective function for the problem (Mutual Information)
-    '''
+
     def objective(self, **kwargs):
+        """Computes the objective function (mutual information) for the sensor placement problem
+        """
         X = []
         for i in range(len(kwargs)):
             X.append(kwargs['x{}'.format(i)])
         X = np.array(X).reshape(-1, self.num_dim)
         return -get_mi(X, self.noise_variance, self.kernel, self.X_train)
     
-    '''
-    Optimizes the SP objective function with BO without any constraints
-    '''
     def optimize(self, 
                  num_sensors=10, 
                  max_steps=100,  
                  X_init=None,
                  init_points=10):
+        """Optimizes the sensor placements using Bayesian Optimization without any constraints
+
+        Args:
+            num_sensors (int): Number of sensor locations to optimize
+            max_steps (int): Maximum number of optimization steps 
+            Xu_init (ndarray): (m, d); Initial inducing points
+            init_points (int): How many steps of random exploration you want to perform. 
+                               Random exploration can help by diversifying the exploration space. 
+
+        Returns:
+            Xu (ndarray): (m, d); Solution sensor placement locations
+        """
         if X_init is None:
             X_init = get_inducing_pts(self.X_train, num_sensors, random=True)
         X_init = X_init.reshape(-1)

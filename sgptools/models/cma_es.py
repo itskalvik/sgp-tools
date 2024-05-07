@@ -19,21 +19,21 @@ from ..utils.metrics import get_mi
 from ..utils.data import get_inducing_pts
 
 
-'''
-Class for optimizing sensor placements using CMA-ES (a genetic algorithm)
-
-Refer to the following paper for more details:
-Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
-
-Args:
-    X_train: Numpy array (n ,d) with n d-dimensional data points
-    noise_variance: data variance
-    kernel: kernel function
-    distance_budget: (optional, float) distaance budget
-    num_robots: (optional, int) number of robots, used when 
-                modeling multi-robot IPP with a distance budget
-'''
 class CMA_ES:
+    """Class for optimizing sensor placements using CMA-ES (a genetic algorithm)
+
+    Refer to the following paper for more details:
+        - Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
+
+    Args:
+        X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        distance_budget (float): Distance budget for when treating the inducing points 
+                                 as waypoints of a path
+        num_robots (int): Number of robots, used when modeling 
+                          multi-robot IPP with a distance budget
+    """
     def __init__(self, X_train, noise_variance, kernel,
                  distance_budget=None,
                  num_robots=1):
@@ -46,20 +46,34 @@ class CMA_ES:
         self.num_robots = num_robots
 
     def update(self, noise_variance, kernel):
+        """Update GP noise variance and kernel function
+
+        Args:
+            noise_variance (float): data variance
+            kernel (gpflow.kernels.Kernel): gpflow kernel function
+        """
         self.noise_variance = noise_variance
         self.kernel = kernel
 
-    '''
-    Constraint function for the problem (Boundary of the region)
-    Does not work well with CMA-ES as it is step function and not continuous
-    '''
     def constraint(self, X):
+        """Constraint function for the optimization problem (constraint to limit the boundary of the region)
+        Does not work well with CMA-ES as it is a step function and is not continuous
+
+        Args:
+            X (ndarray): (n, d); Current sensor placement locations
+        """
         X = np.array(X).reshape(-1, self.num_dim)
         lagrangian = [self.boundaries.contains(geometry.Point(x[0], x[1])) for x in X]
         lagrangian = np.logical_not(lagrangian).astype(float)
         return lagrangian
     
     def distance_constraint(self, X):
+        """Constraint function for the optimization problem (constraint to limit the total travel distance)
+        Does not work well with CMA-ES as it is a step function and is not continuous
+
+        Args:
+            X (ndarray): (n, d); Current sensor placement locations
+        """
         X = np.array(X).reshape(self.num_robots, -1, self.num_dim)
         dists = np.linalg.norm(X[:, 1:] - X[:, :-1], axis=-1)
         lagrangian = dists - self.distance_budget
@@ -68,15 +82,14 @@ class CMA_ES:
         lagrangian = np.sum(lagrangian)
         return lagrangian
     
-    '''
-    Objective function (GP-based Mutual Information)
-
-    Args:
-        X       : Solution sensing locations
-        X_fixed : Sensing locations that are not optimized, but included when
-                  computing the objective function. Used for online IPP (optional)
-    '''
     def objective(self, X, X_fixed=None):
+        """Objective function (GP-based Mutual Information)
+
+        Args:
+            X (ndarray): (n, d); Initial sensor placement locations
+            Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
+                                added to the inducing points set during loss function computation
+        """
         # Append fixed path to current solution path
         if X_fixed is not None:
             X = np.array(X).reshape(self.num_robots, -1, self.num_dim)
@@ -90,20 +103,21 @@ class CMA_ES:
             mi = 0.0 # if the cholskey decomposition fails
         return mi
     
-    '''
-    Optimizes the SP objective function with CMA-ES without any constraints
-
-    Args:
-        num_sensors: Number of sensing locations to optimize
-                     (ignored when X_init is not None)
-        max_steps  : Maximum number of optimization steps
-        tol        : Convergence tolerence threshold (i.e., when to stop optimizing)
-        X_init     : Initial sensing locations (optional)
-        X_fixed    : Sensing locations that are not optimized, but included when
-                     computing the objective function. Used for online IPP (optional)
-    '''
     def optimize(self, num_sensors=10, max_steps=100, tol=1e-2, 
                  X_init=None, X_fixed=None):
+        """Optimizes the SP objective function using CMA-ES without any constraints
+
+        Args:
+            num_sensors (int): Number of sensor locations to optimize
+            max_steps (int): Maximum number of optimization steps
+            tol (float): Convergence tolerance to decide when to stop optimization
+            Xu_init (ndarray): (m, d); Initial inducing points
+            Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
+                                added to the inducing points set during loss function computation
+
+        Returns:
+            Xu (ndarray): (m, d); Solution sensor placement locations
+        """
         sigma0 = 1.0
         
         if X_init is None:
@@ -125,11 +139,17 @@ class CMA_ES:
 
         return xopt.reshape(-1, self.num_dim)
     
-    '''
-    Optimizes the objective function with CMA-ES along with the constraints
-    to ensure that path length is within the distance budget
-    '''
-    def coptimize(self, num_sensors=10, num_steps=100, tol=1e-2):
+    def doptimize(self, num_sensors=10, num_steps=100, tol=1e-2):
+        """Optimizes the SP objective function using CMA-ES with a distance budget constraint
+
+        Args:
+            num_sensors (int): Number of sensor locations to optimize
+            max_steps (int): Maximum number of optimization steps
+            tol (float): Convergence tolerance to decide when to stop optimization
+
+        Returns:
+            Xu (ndarray): (m, d); Solution sensor placement locations
+        """
         sigma0 = 1.0
         idx = np.random.randint(len(self.X_train), size=num_sensors)
         x_init = self.X_train[idx].reshape(-1)
@@ -141,11 +161,18 @@ class CMA_ES:
                             callback=cfun.update)
         return xopt.reshape(-1, self.num_dim)
 
-    '''
-    Optimizes the objective function with CMA-ES along with the constraints
-    to ensure that the sensors are placed within the boundaries of the region
-    '''
-    def doptimize(self, num_sensors=10, num_steps=100, tol=1e-2):
+    def coptimize(self, num_sensors=10, num_steps=100, tol=1e-2):
+        """Optimizes the SP objective function using CMA-ES with the constraints
+        to ensure that the sensors are placed within the boundaries of the region
+
+        Args:
+            num_sensors (int): Number of sensor locations to optimize
+            max_steps (int): Maximum number of optimization steps
+            tol (float): Convergence tolerance to decide when to stop optimization
+
+        Returns:
+            Xu (ndarray): (m, d); Solution sensor placement locations
+        """
         sigma0 = 1.0
         idx = np.random.randint(len(self.X_train), size=num_sensors*self.num_robots)
         x_init = self.X_train[idx].reshape(-1)

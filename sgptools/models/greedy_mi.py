@@ -17,21 +17,21 @@ from apricot import CustomSelection
 import numpy as np
 
 
-'''
-GP-based mutual information for sensor placement approach (submodular objective function)
-
-Refer to the following papers for more details:
-Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
-Data-driven learning and planning for environmental sampling [Ma et al., 2018]
-
-Args:
-    S: Candidate sensor locations
-    V: Environmental data locations
-    noise_variance: data variance
-    kernel: kernel function
-    transform: (optional) Transform object
-'''
 class GreedyMI:
+    """Helper class to compute mutual information using a Gaussian process for a given set of sensor locations.
+    Used by `get_greedy_mi_sol` function to compute the solution sensor placements using the Greedy-MI method.
+
+    Refer to the following papers for more details:
+        - Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
+        - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
+
+    Args:
+        S (ndarray): (n, d); Candidate sensor placement locations
+        V (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        transform (Transform): Transform object
+    """
     def __init__(self, S, V, noise_variance, kernel, transform=None):
         self.S = S
         self.V = V
@@ -74,11 +74,28 @@ class GreedyMI:
 
         return (sigma_a/sigma_v).numpy().squeeze()
 
-'''
-Get sensor placement solution using the Mutual information method
-'''
+
 def get_greedy_mi_sol(num_sensors, candidates, X_train, noise_variance, kernel, 
                       transform=None, optimizer='naive'):
+    """Get sensor placement solutions using the GP-based mutual information approach (submodular objective function). 
+    Uses a greedy algorithm to select sensor placements from a given discrete set of candidates locations.
+
+    Refer to the following papers for more details:
+        - Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
+        - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
+
+    Args:
+        num_sensors (int): Number of sensor locations to optimize
+        candidates (ndarray): (n, d); Candidate sensor placement locations
+        X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
+        noise_variance (float): data variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        transform (Transform): Transform object
+        optimizer (str): Name of an optimizer available in the apricot library
+
+    Returns:
+        Xu (ndarray): (m, d); Solution sensor placement locations
+    """
     mi_model = GreedyMI(candidates, X_train, noise_variance, kernel, transform)
     model = CustomSelection(num_sensors,
                             mi_model.mutual_info,
