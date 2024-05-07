@@ -23,24 +23,22 @@ from gpflow import covariances
 
 
 class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
-    """
-    Online Sparse Variational GP regression.
-    
-    Streaming Gaussian process approximations
-    Thang D. Bui, Cuong V. Nguyen, Richard E. Turner
-    NIPS 2017
-    """
+    """Online Sparse Variational GP regression model from [streaming_sparse_gp](https://github.com/thangbui/streaming_sparse_gp/tree/master)
 
+    Refer to the following paper for more details:
+        - Streaming Gaussian process approximations [Bui et al., 2017]
+
+    Args:
+        data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        mu_old (ndarray): mean of old `q(u)`; here `u` are the latents corresponding to the inducing points `Z_old`
+        Su_old (ndarray): posterior covariance of old `q(u)`
+        Kaa_old (ndarray): prior covariance of old `q(u)`
+        Z_old (ndarray): (m_old, d): Old initial inducing points
+        Z (ndarray): (m_new, d): New initial inducing points
+        mean_function (function): GP mean function
+    """
     def __init__(self, data, kernel, mu_old, Su_old, Kaa_old, Z_old, Z, mean_function=None):
-        """
-        X is a data matrix, size N x D
-        Y is a data matrix, size N x R
-        Z is a matrix of pseudo inputs, size M x D
-        kern, mean_function are appropriate gpflow objects
-        mu_old, Su_old are mean and covariance of old q(u)
-        Z_old is the old inducing inputs
-        This method only works with a Gaussian likelihood.
-        """
         self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
         likelihood = gpflow.likelihoods.Gaussian()
         num_latent_gps = GPModel.calc_num_latent_gps_from_data(data, kernel, likelihood)
@@ -56,6 +54,11 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         self.Z_old = tf.Variable(Z_old, shape=tf.TensorShape(None), trainable=False)
 
     def update(self, data):
+        """Train the OSGPR to adapt to the new batch of data
+
+        Args:
+            data (tuple): (X, y) ndarrays with new batch of inputs (n, d) and labels (n, 1)
+        """
         self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
         self.num_data = self.X.shape[0]
 

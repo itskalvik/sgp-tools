@@ -26,23 +26,26 @@ from gpflow.models.util import inducingpoint_wrapper
 from .transformations import Transform
 
 
-'''
-SGPR model from the GPFlow library augmented to use a transform object's
-expand and aggregate functions on the inducing points where necessary. The object
-has an additional update function to update the kernel and noise variance parameters 
-(currently, the online updates part works only with RBF kernels).  
-
-Refer to the following papers for more details:
-Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
-
-Args:
-    transform: transform object from sgp-tools
-    inducing_variable_time: Temporal dimensions of the inducing points 
-                            to model spatio-temporal IPP (Defaults: None)
-'''
 class AugmentedSGPR(SGPR):
+    """SGPR model from the GPFlow library augmented to use a transform object's
+    expand and aggregate functions on the inducing points where necessary. The object
+    has an additional update function to update the kernel and noise variance parameters 
+    (currently, the online updates part works only with RBF kernels).  
 
+
+    Refer to the following papers for more details:
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
+    Args:
+        data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        noise_variance (float): data variance
+        inducing_variable (ndarray): (m, d); Initial inducing points
+        transform (Transform): Transform object
+        inducing_variable_time (ndarray): (m, d); Temporal dimensions of the inducing points, 
+                                            used when modeling spatio-temporal IPP
+    """
     def __init__(
         self,
         *args,
@@ -50,19 +53,6 @@ class AugmentedSGPR(SGPR):
         inducing_variable_time=None,
         **kwargs
     ):
-        """
-        This method only works with a Gaussian likelihood, its variance is
-        initialized to `noise_variance`.
-        :param data: a tuple of (X, Y), where the inputs X has shape [N, D]
-            and the outputs Y has shape [N, R].
-        :param inducing_variable:  an InducingPoints instance or a matrix of
-            the pseudo inputs Z, of shape [M, D].
-        :param kernel: An appropriate GPflow kernel object.
-        :param mean_function: An appropriate GPflow mean function object.
-        :param aggregate: Whether to aggregate the inducing points
-        :param transform: A transform object that transforms the inducing points 
-            (expansion and aggregation)
-        """
         super().__init__(
             *args,
             **kwargs
@@ -79,6 +69,12 @@ class AugmentedSGPR(SGPR):
             self.inducing_variable_time = None
 
     def update(self, noise_variance, kernel):
+        """Update SGP noise variance and kernel function parameters
+
+        Args:
+            noise_variance (float): data variance
+            kernel (gpflow.kernels.Kernel): gpflow kernel function
+        """
         self.likelihood.variance.assign(noise_variance)
         self.kernel.lengthscales.assign(kernel.lengthscales)
         self.kernel.variance.assign(kernel.variance)

@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-'''
-Refer to the following papers for more details:
-Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
-'''
 
 try:
     from tensorflow_graphics.math.interpolation import bspline
@@ -30,10 +25,18 @@ from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import pairwise_distances
 
 
-'''
-Base class for transformations of the inducing points.
-'''
 class Transform:
+    """Base class for transformations of the inducing points, including expansion and aggregation transforms.
+
+    Refer to the following papers for more details:
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
+    Args:
+        aggregation_size (int): Number of consecutive inducing points to aggregate
+        constraint_weight (float): Weight term that controls the importance of the 
+                                   constraint terms in the SGP's optimization objective 
+    """
     def __init__(self, 
                  aggregation_size=None, 
                  constraint_weight=1.0,
@@ -41,24 +44,26 @@ class Transform:
         self.aggregation_size = aggregation_size
         self.constraint_weight = constraint_weight
 
-    '''
-    Expands the inducing points to the desired FoV.
-    '''
     def expand(self, Xu):
+        """Applies the expansion transform to the inducing points
+
+        Args:
+            Xu (ndarray): Expansion transformed inducing points
+        """
         return Xu
 
-    '''
-    Applies the aggregation transformation to kernel matrices.
-
-    Args:
-        k: [ms, ms]/[ms, n] - Kernel matrix. m is the number of inducing points,
-                              s is the number of points each inducing point is mapped,
-                              n is the number of training data points.
-
-    Returns:
-        k: [m, m]/[m, n] - Aggregated kernel matrix.
-    '''
     def aggregate(self, k):
+        """Applies the aggregation transform to kernel matrices
+
+        Args:
+            k (tensor): (ms, ms)/(ms, n); Kernel matrix. 
+                        `m` is the number of inducing points,
+                        `s` is the number of points each inducing point is mapped,
+                        `n` is the number of training data points.
+
+        Returns:
+            k (tensor): (m, m)/(m, n); Aggregated kernel matrix
+        """
         if self.aggregation_size is None:
             return k
 
@@ -80,16 +85,26 @@ class Transform:
             k = tf.squeeze(k, axis=[0])
         return k
 
-    '''
-    Returns the constraint terms that are added to the elbo.
-    '''
     def constraints(self, Xu):
+        """Computes the constraint terms that are added to the SGP's optimization function
+
+        Args:
+            Xu (ndarray): Inducing points from which to compute the constraints
+
+        Returns:
+            c (float): constraint terms (eg., distance constraint)
+        """
         return 0.
 
-    '''
-    Computes the distance incured by sequentially visiting the inducing points.
-    '''
     def distance(self, Xu):
+        """Computes the distance incured by sequentially visiting the inducing points
+
+        Args:
+            Xu (ndarray): Inducing points from which to compute the path length
+
+        Returns:
+            dist (float): path length
+        """
         dist = tf.math.reduce_sum(tf.norm(Xu[1:]-Xu[:-1], axis=1))
         return dist
     

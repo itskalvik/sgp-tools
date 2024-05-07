@@ -60,7 +60,7 @@ class BayesianOpt:
         Args:
             num_sensors (int): Number of sensor locations to optimize
             max_steps (int): Maximum number of optimization steps 
-            Xu_init (ndarray): (m, d); Initial inducing points
+            X_init (ndarray): (m, d); Initial inducing points
             init_points (int): How many steps of random exploration you want to perform. 
                                Random exploration can help by diversifying the exploration space. 
 

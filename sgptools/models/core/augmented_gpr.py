@@ -23,18 +23,20 @@ from gpflow.utilities import add_likelihood_noise_cov, assert_params_false
 from .transformations import Transform
 
 
-'''
-GPR model from the GPFlow library augmented to use a transform object's
-expand and aggregate functions on the data points where necessary.  
-
-Refer to the following papers for more details:
-Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
-
-Args:
-    transform: transform object from sgp-tools
-'''
 class AugmentedGPR(GPR):
+    """GPR model from the GPFlow library augmented to use a transform object's
+    expand and aggregate functions on the data points where necessary.  
+
+    Refer to the following papers for more details:
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
+        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+
+    Args:
+        data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+        noise_variance (float): data variance
+        transform (Transform): Transform object
+    """
     def __init__(
         self,
         *args,
