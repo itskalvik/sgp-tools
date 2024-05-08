@@ -11,6 +11,14 @@ Software suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) 
   <img alt="Dark" src="static/non-point_sensing.gif" width="45%">
 </p>
 
+## Installation
+Run the following commands to install the package
+
+```
+sudo apt-get install libhdf5-dev python3-pip -y
+python3 -m pip install sgptools
+```
+
 ## Method Summary
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
 
@@ -47,17 +55,6 @@ Software suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) 
 * The Precipitation dataset can be downloaded from [here](http://research.jisao.washington.edu/data_sets/widmann/)
 * The US soil moisture dataset can be downloaded from [here](https://www.drought.gov/data-maps-tools/nasa-sport-lis-soil-moisture-products)
 * The US elevation dataset can be downloaded from [here](https://coast.noaa.gov/digitalcoast/)
-
-## Installation
-Run the following commands to install the package
-
-```
-sudo apt-get install libhdf5-dev netcdf-bin libnetcdf-dev python3-pip -y
-git clone https://github.com/itskalvik/sgp_tools.git
-cd sgp_tools
-python3 -m pip install -r requirements.txt
-python3 -m pip install -e .
-```
 
 ## About SGP-Tools
 Please consider citing the following papers if you use SGP-Tools in your academic work :smile:
