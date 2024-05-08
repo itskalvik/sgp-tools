@@ -33,6 +33,7 @@ plugins:
 
 nav:
   - index.md
+  - API-reference.md
 
 extra_css:
   - stylesheets/extra.css
