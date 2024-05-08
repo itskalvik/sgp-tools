@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Provides a neural spectral kernel function along with an initialization function
+"""
+
 import numpy as np
 import gc
 
@@ -127,7 +130,7 @@ def robust_kernel(kern, shape_X):
     jitter = 1e-3
     return kern + jitter * tf.eye(shape_X, dtype=float_type)
 
-def init_neural(x, y, inducing_variable, Q, n_inits=1, hidden_sizes=None):
+def init_neural_kernel(x, y, inducing_variable, Q, n_inits=1, hidden_sizes=None):
     """Helper function to initialize a Neural Spectral Kernel function (non-stationary kernel function). 
     Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
 

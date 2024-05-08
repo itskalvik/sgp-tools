@@ -14,6 +14,9 @@
 
 # Original SGP code from GPflow library (https://github.com/GPflow/GPflow)
 
+"""Provides a sparse Gaussian process model with update, expand, and aggregate functions
+"""
+
 import numpy as np
 import tensorflow as tf
 from gpflow.models import SGPR

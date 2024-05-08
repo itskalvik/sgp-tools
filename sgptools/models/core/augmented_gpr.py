@@ -14,6 +14,9 @@
 
 # Original GP code from GPflow library (https://github.com/GPflow/GPflow)
 
+"""Provides a Gaussian process model with expand and aggregate functions
+"""
+
 import gpflow
 from gpflow.models import GPR
 import tensorflow as tf
@@ -21,7 +24,6 @@ import tensorflow as tf
 from gpflow.base import InputData, MeanAndVariance
 from gpflow.utilities import add_likelihood_noise_cov, assert_params_false
 from .transformations import Transform
-
 
 class AugmentedGPR(GPR):
     """GPR model from the GPFlow library augmented to use a transform object's
