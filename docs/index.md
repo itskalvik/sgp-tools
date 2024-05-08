@@ -1,4 +1,4 @@
-SGP-Tools is a software suite for SGP-based [Sensor Placement](https://itskalvik.com/publication/sgp-sp) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp).
+SGP-Tools is a software suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp).
 
 ## Method Demos
 <p align="center"><img src="assets/point_sensing.gif"><img src="assets/non-point_sensing.gif"></p>
