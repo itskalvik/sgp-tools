@@ -8,19 +8,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-'''
-Selects a subset of the data points to be used as inducing points.
-
-Args:
-    data: [n, 2] - data points to select inducing points from 
-    num_inducing: [m] - number of inducing points
-
-Returns:
-    Xu: [m, 3] - Inducing points in the position and orientation space.
-                 m is the number of inducing points,
-                 3 is the dimension of the space (x, y, angle in radians)
-'''
 def get_inducing_pts(data, num_inducing, orientation=False, random=False):
+    """Selects a subset of the data points to be used as inducing points. 
+    The default approach uses kmeans to select the subset. 
+
+    Args:
+        data (ndarray): (n, 2); Data points to select the inducing points from 
+        num_inducing (int): Number of inducing points
+        orientation (bool): If True, add an additional dimension to model the sensor 
+                            FoV rotation angle
+        random (bool): If True, the subset of inducing points are selected randomly 
+                       instead of using kmeans
+
+    Returns:
+        Xu (ndarray): (m, d); Inducing points in the position and orientation space.
+                        `m` is the number of inducing points, 
+                        `d` is the dimension of the space (x, y, optional - angle in radians)
+    """
     if random:
         idx = np.random.randint(len(data), size=num_inducing)
         Xu = data[idx]
@@ -31,10 +35,20 @@ def get_inducing_pts(data, num_inducing, orientation=False, random=False):
         Xu = np.concatenate([Xu, thetas], axis=1)
     return Xu
 
-'''
-Convert SGP continuous solution to discrete solution
-'''
 def cont2disc(Xu, candidates, candidate_labels=None):
+    """Map continuous space locations to a discrete set of candidate location
+
+    Args:
+        Xu (ndarray): (m, 2); Continuous space points
+        candidates (ndarray): (n, 2); Discrete set of candidate locations
+        candidate_labels (ndarray): (n, 1); Labels corresponding to the discrete set of candidate locations
+
+    Returns:
+        Xu_x (ndarray): Discrete space points' locations 
+        Xu_y (ndarray): Labels of the discrete space points. Returned only if `candidate_labels`
+                        was passed to the function
+
+    """
     # Sanity check to ensure that there are candidates to match
     if len(candidates)==0:
         return []
@@ -47,10 +61,14 @@ def cont2disc(Xu, candidates, candidate_labels=None):
     else:
         return Xu_X
 
-'''
-Function to plot IPP solution paths
-'''
 def plot_paths(paths, candidates=None, title=None):
+    """Function to plot the IPP solution paths
+
+    Args:
+        paths (ndarray): (r, m, 2); `r` paths with `m` waypoints each
+        candidates (ndarray): (n, 2); Candidate unlabeled locations used in the SGP-based sensor placement approach
+        title (str): Title of the plot
+    """
     plt.figure()
     for i, path in enumerate(paths):
         plt.plot(path[:, 0], path[:, 1], 
@@ -67,14 +85,16 @@ def plot_paths(paths, candidates=None, title=None):
     plt.xlabel('X')
     plt.ylabel('Y')
 
-'''
-Interpolate additional points between the given waypoints
-
-Args:
-    waypoints: locations between which 
-    sampling_rate: distance between a pair of interpolated points
-'''
 def interpolate_path(waypoints, sampling_rate=0.05):
+    """Interpolate additional points between the given waypoints to simulate continuous sensing robots
+
+    Args:
+        waypoints (n, d): Waypoints of the robot's path
+        sampling_rate (float): Distance between each pair of interpolated points
+
+    Returns:
+        path (ndarray): (p, d) Interpolated path, `p` depends on the sampling_rate rate
+    """
     interpolated_path = []
     for i in range(2, len(waypoints)+1):
         dist = get_distance(waypoints[i-2:i])

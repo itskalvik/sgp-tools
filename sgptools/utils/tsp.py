@@ -19,18 +19,22 @@ from shapely.geometry import LineString
 import numpy as np
 
 
-'''
-Method to run TSP/VRP with arbitrary start and end nodes, 
-and without any distance constraint
-Args:
-    nodes: (# nodes, n_dim) - numpy array containing the n_dim nodes to visit 
-    num_vehicles: int - number of robots/vehicles
-    max_dist: float - maximum distance allowed for each path when handling mutli-robot case
-    depth: int - internal parameter used to track re-try recursion depth
-    resample: int (optional) - Each solution path will be resampled to have
-                               resample number of points
-'''
 def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
+    """Method to run TSP/VRP with arbitrary start and end nodes, 
+    and without any distance constraint
+    
+    Args:
+        nodes (ndarray): (# nodes, n_dim); Nodes to visit 
+        num_vehicles (int): Number of robots/vehicles
+        max_dist (float): Maximum distance allowed for each path when handling mutli-robot case
+        depth (int): Internal parameter used to track re-try recursion depth
+        resample (int): Each solution path will be resampled to have
+                        `resample` number of points
+
+    Returns:
+        paths (ndarray): Solution paths
+        distances (list): List of path lengths
+    """
     if depth > 5:
         print('Warning: Max depth reached')
         return None, None
@@ -123,15 +127,17 @@ def get_routes(manager, routing, solution, num_vehicles):
         paths.append(np.array(path)[1:-1]-1)
     return paths, distances
 
-'''
-Function to map path with arbitrary number of waypoints to 
-inducing points path with fixed number of waypoints
-
-Args:
-    waypoints: Numpy array (num_waypoints, n_dim) waypoints of path from vrp solver
-    num_inducing: Number of inducing points (waypoints) in the returned path
-'''
 def resample_path(waypoints, num_inducing=10):
+    """Function to map path with arbitrary number of waypoints to 
+    inducing points path with fixed number of waypoints
+
+    Args:
+        waypoints (ndarray): (num_waypoints, n_dim); waypoints of path from vrp solver
+        num_inducing (int): Number of inducing points (waypoints) in the returned path
+        
+    Returns:
+        points (ndarray): (num_inducing, n_dim); Resampled path
+    """
     line = LineString(waypoints)
     distances = np.linspace(0, line.length, num_inducing)
     points = [line.interpolate(distance) for distance in distances]

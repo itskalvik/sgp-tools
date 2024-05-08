@@ -28,7 +28,7 @@ class GreedySGP:
         num_inducing (int): Number of inducing points
         S (ndarray): (n, d); Candidate sensor placement locations
         V (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
-        noise_variance (float): data variance
+        noise_variance (float): Data noise variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
         Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
                                     added to the inducing points set during loss function computation

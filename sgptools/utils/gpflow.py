@@ -21,10 +21,13 @@ import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 
 
-'''
-Helper function to plot the training loss
-'''
 def plot_loss(losses, save_file=None):
+    """Helper function to plot the training loss
+
+    Args:
+        losses (list): list of loss values
+        save_file (str): If passed, the loss plot will be saved to the `save_file`
+    """
     plt.plot(losses)
     plt.title('Log Likelihood')
     plt.xlabel('Iteration')
@@ -38,9 +41,6 @@ def plot_loss(losses, save_file=None):
     else:
         plt.show()
 
-'''
-Train a GP to get the kernel parameters
-'''
 def get_model_params(X_train, y_train, 
                      max_steps=1500, 
                      lr=1e-2, 
@@ -50,6 +50,25 @@ def get_model_params(X_train, y_train,
                      noise_variance=0.1,
                      kernel=None,
                      **kwargs):
+    """Train a GP on the given training set
+
+    Args:
+        X_train (ndarray): (n, d); Training set inputs
+        y_train (ndarray): (n, 1); Training set labels
+        max_steps (int): Maximum number of optimization steps
+        lr (float): Optimization learning rate
+        print_params (bool): If True, prints the optimized GP parameters
+        lengthscales (float or list): Kernel lengthscale(s), if passed as a list, 
+                                each element corresponds to each data dimension
+        variance (float): Kernel variance
+        noise_variance (float): Data noise variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
+
+    Returns:
+        loss (list): Loss values obtained during training
+        variance (float): Optimized data noise variance
+        kernel (gpflow.kernels.Kernel): Optimized gpflow kernel function
+    """
     if kernel is None:
         kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales, 
                                                    variance=variance)
@@ -68,22 +87,6 @@ def get_model_params(X_train, y_train,
     
     return loss, gpr_gt.likelihood.variance, kernel
 
-'''
-Trains a GP/SGP model for given number of steps.
-
-Args:
-    model: GPflow GP/SGP model to train
-    max_steps: Maximum number of training steps
-    kernel_grad: whether to train the kernel parameters or not
-    lr: learning rate
-    optimizer: optimizer to use ('scipy' or 'tf')
-    verbose: whether to print training progress
-    trace_fn: function to trace metrics during training
-              - if None, trace the loss
-              - if 'traceXu', trace the inducing points
-    convergence_criterion: It True, enables early stopping on loss plateau
-    trainable_variables: 
-'''
 def optimize_model(model, 
                    max_steps=2000, 
                    kernel_grad=True, 
@@ -94,6 +97,24 @@ def optimize_model(model,
                    convergence_criterion=True,
                    trainable_variables=None,
                    tol=None):
+    """
+    Trains a GP/SGP model
+
+    Args:
+        model (gpflow.models): GPflow GP/SGP model to train
+        max_steps (int): Maximum number of training steps
+        kernel_grad (bool): If False, the kernel parameters will not be optimized
+        lr (float): Optimization learning rate
+        optimizer (str): Optimizer to use for training (`scipy` or `tf`)
+        verbose (bool): If true, the training progress will be printed
+        trace_fn (str): Function to trace metrics during training. 
+                        If `None`, the loss values are traced;
+                        if `traceXu`, it the inducing points states at each optimization step are traced
+        convergence_criterion (bool): It True, enables early stopping when the loss plateaus
+        trainable_variables (list): List of model variables to train 
+                                    (can be used to limit training to a subset of variables)
+        tol (float): Convergence tolerance to decide when to stop optimization
+    """
     # Train all variables if trainable_variables are not provided
     # If kernel_gradient is False, disable the kernel parameter gradient updates
     if trainable_variables is None and kernel_grad:
