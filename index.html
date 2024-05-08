@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-skip">
+        <a href="#sgptools.utils.tsp.run_tsp" class="md-skip">
           Skip to content
         </a>
       
@@ -348,6 +348,150 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.tsp.run_tsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      run_tsp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.tsp.resample_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      resample_path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.get_inducing_pts" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_inducing_pts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.cont2disc" class="md-nav__link">
+    <span class="md-ellipsis">
+      cont2disc
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.plot_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.interpolate_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      interpolate_path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.gaussian_entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      gaussian_entropy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_mi" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_mi
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_elbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_elbo
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_kl
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_rmse" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_rmse
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_reconstruction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_distance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_distance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.plot_loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_loss
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.get_model_params" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_model_params
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.optimize_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      optimize_model
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-nav__link">
@@ -787,6 +931,150 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#sgptools.utils.tsp.run_tsp" class="md-nav__link">
+    <span class="md-ellipsis">
+      run_tsp
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.tsp.resample_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      resample_path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.get_inducing_pts" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_inducing_pts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.cont2disc" class="md-nav__link">
+    <span class="md-ellipsis">
+      cont2disc
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.plot_paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.misc.interpolate_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      interpolate_path
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.gaussian_entropy" class="md-nav__link">
+    <span class="md-ellipsis">
+      gaussian_entropy
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_mi" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_mi
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_elbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_elbo
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_kl" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_kl
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_rmse" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_rmse
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_reconstruction" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_reconstruction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.metrics.get_distance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_distance
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.plot_loss" class="md-nav__link">
+    <span class="md-ellipsis">
+      plot_loss
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.get_model_params" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_model_params
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.utils.gpflow.optimize_model" class="md-nav__link">
+    <span class="md-ellipsis">
+      optimize_model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#sgptools.kernels.neural_kernel.NeuralSpectralKernel" class="md-nav__link">
     <span class="md-ellipsis">
       NeuralSpectralKernel
@@ -1210,6 +1498,2711 @@
 
 
   <h1>Home</h1>
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.tsp.run_tsp"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Method to run TSP/VRP with arbitrary start and end nodes, 
+and without any distance constraint</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>nodes</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(# nodes, n_dim); Nodes to visit </p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>num_vehicles</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of robots/vehicles</p>
+            </div>
+          </td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>max_dist</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum distance allowed for each path when handling mutli-robot case</p>
+            </div>
+          </td>
+          <td>
+                <code>25</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>depth</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Internal parameter used to track re-try recursion depth</p>
+            </div>
+          </td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>resample</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Each solution path will be resampled to have
+            <code>resample</code> number of points</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>paths</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Solution paths</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>distances</code></td>          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of path lengths</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/tsp.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 22</span>
+<span class="normal"> 23</span>
+<span class="normal"> 24</span>
+<span class="normal"> 25</span>
+<span class="normal"> 26</span>
+<span class="normal"> 27</span>
+<span class="normal"> 28</span>
+<span class="normal"> 29</span>
+<span class="normal"> 30</span>
+<span class="normal"> 31</span>
+<span class="normal"> 32</span>
+<span class="normal"> 33</span>
+<span class="normal"> 34</span>
+<span class="normal"> 35</span>
+<span class="normal"> 36</span>
+<span class="normal"> 37</span>
+<span class="normal"> 38</span>
+<span class="normal"> 39</span>
+<span class="normal"> 40</span>
+<span class="normal"> 41</span>
+<span class="normal"> 42</span>
+<span class="normal"> 43</span>
+<span class="normal"> 44</span>
+<span class="normal"> 45</span>
+<span class="normal"> 46</span>
+<span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
+<span class="normal"> 50</span>
+<span class="normal"> 51</span>
+<span class="normal"> 52</span>
+<span class="normal"> 53</span>
+<span class="normal"> 54</span>
+<span class="normal"> 55</span>
+<span class="normal"> 56</span>
+<span class="normal"> 57</span>
+<span class="normal"> 58</span>
+<span class="normal"> 59</span>
+<span class="normal"> 60</span>
+<span class="normal"> 61</span>
+<span class="normal"> 62</span>
+<span class="normal"> 63</span>
+<span class="normal"> 64</span>
+<span class="normal"> 65</span>
+<span class="normal"> 66</span>
+<span class="normal"> 67</span>
+<span class="normal"> 68</span>
+<span class="normal"> 69</span>
+<span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">run_tsp</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">num_vehicles</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_dist</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">resample</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Method to run TSP/VRP with arbitrary start and end nodes, </span>
+<span class="sd">    and without any distance constraint</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nodes (ndarray): (# nodes, n_dim); Nodes to visit </span>
+<span class="sd">        num_vehicles (int): Number of robots/vehicles</span>
+<span class="sd">        max_dist (float): Maximum distance allowed for each path when handling mutli-robot case</span>
+<span class="sd">        depth (int): Internal parameter used to track re-try recursion depth</span>
+<span class="sd">        resample (int): Each solution path will be resampled to have</span>
+<span class="sd">                        `resample` number of points</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        paths (ndarray): Solution paths</span>
+<span class="sd">        distances (list): List of path lengths</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Warning: Max depth reached&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1"># Add dummy 0 location to get arbitrary start and end node sols</span>
+    <span class="n">distance_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">distance_mat</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">pairwise_distances</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span><span class="o">*</span><span class="mf">1e4</span>
+    <span class="n">distance_mat</span> <span class="o">=</span> <span class="n">distance_mat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">max_dist</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_dist</span><span class="o">*</span><span class="mf">1e4</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">distance_callback</span><span class="p">(</span><span class="n">from_index</span><span class="p">,</span> <span class="n">to_index</span><span class="p">):</span>
+        <span class="n">from_node</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">IndexToNode</span><span class="p">(</span><span class="n">from_index</span><span class="p">)</span>
+        <span class="n">to_node</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">IndexToNode</span><span class="p">(</span><span class="n">to_index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">distance_mat</span><span class="p">[</span><span class="n">from_node</span><span class="p">][</span><span class="n">to_node</span><span class="p">]</span>
+
+    <span class="c1"># num_locations, num vehicles, start, end</span>
+    <span class="n">manager</span> <span class="o">=</span> <span class="n">pywrapcp</span><span class="o">.</span><span class="n">RoutingIndexManager</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">distance_mat</span><span class="p">),</span> 
+                                           <span class="n">num_vehicles</span><span class="p">,</span> 
+                                           <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">num_vehicles</span><span class="p">,</span> 
+                                           <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">num_vehicles</span><span class="p">)</span>
+    <span class="n">routing</span> <span class="o">=</span> <span class="n">pywrapcp</span><span class="o">.</span><span class="n">RoutingModel</span><span class="p">(</span><span class="n">manager</span><span class="p">)</span>
+    <span class="n">transit_callback_index</span> <span class="o">=</span> <span class="n">routing</span><span class="o">.</span><span class="n">RegisterTransitCallback</span><span class="p">(</span><span class="n">distance_callback</span><span class="p">)</span>
+    <span class="n">routing</span><span class="o">.</span><span class="n">SetArcCostEvaluatorOfAllVehicles</span><span class="p">(</span><span class="n">transit_callback_index</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">num_vehicles</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Dummy distaance constraint to ensure all paths have similar length</span>
+        <span class="n">dimension_name</span> <span class="o">=</span> <span class="s2">&quot;Distance&quot;</span>
+        <span class="n">routing</span><span class="o">.</span><span class="n">AddDimension</span><span class="p">(</span>
+            <span class="n">transit_callback_index</span><span class="p">,</span>
+            <span class="mi">0</span><span class="p">,</span>  <span class="c1"># no slack</span>
+            <span class="n">max_dist</span><span class="p">,</span>  <span class="c1"># vehicle maximum travel distance</span>
+            <span class="kc">True</span><span class="p">,</span>  <span class="c1"># start cumul to zero</span>
+            <span class="n">dimension_name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">distance_dimension</span> <span class="o">=</span> <span class="n">routing</span><span class="o">.</span><span class="n">GetDimensionOrDie</span><span class="p">(</span><span class="n">dimension_name</span><span class="p">)</span>
+        <span class="n">distance_dimension</span><span class="o">.</span><span class="n">SetGlobalSpanCostCoefficient</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="n">search_parameters</span> <span class="o">=</span> <span class="n">pywrapcp</span><span class="o">.</span><span class="n">DefaultRoutingSearchParameters</span><span class="p">()</span>
+    <span class="n">search_parameters</span><span class="o">.</span><span class="n">first_solution_strategy</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">routing_enums_pb2</span><span class="o">.</span><span class="n">FirstSolutionStrategy</span><span class="o">.</span><span class="n">PATH_CHEAPEST_ARC</span>
+    <span class="p">)</span>
+    <span class="n">search_parameters</span><span class="o">.</span><span class="n">local_search_metaheuristic</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">routing_enums_pb2</span><span class="o">.</span><span class="n">LocalSearchMetaheuristic</span><span class="o">.</span><span class="n">GUIDED_LOCAL_SEARCH</span>
+    <span class="p">)</span>
+    <span class="n">search_parameters</span><span class="o">.</span><span class="n">time_limit</span><span class="o">.</span><span class="n">seconds</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">routing</span><span class="o">.</span><span class="n">SolveWithParameters</span><span class="p">(</span><span class="n">search_parameters</span><span class="p">)</span>
+
+    <span class="n">paths</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">solution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">paths</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="n">get_routes</span><span class="p">(</span><span class="n">manager</span><span class="p">,</span> <span class="n">routing</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">num_vehicles</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TSP Warning: Empty path detected&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">run_tsp</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">num_vehicles</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mf">1.5</span><span class="o">/</span><span class="n">depth</span><span class="p">)),</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TSP Warning: No solution found&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">run_tsp</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">num_vehicles</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_dist</span><span class="o">*</span><span class="mf">1.5</span><span class="p">),</span> <span class="n">depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Map paths from node indices to node locations</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">nodes</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">]</span>
+
+    <span class="c1"># Resample each solution path to have resample number of points</span>
+    <span class="k">if</span> <span class="n">resample</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">resample_path</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">resample</span><span class="p">)</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">])</span>
+
+    <span class="c1"># Convert distances back to floats in the original scale of the nodes</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span><span class="o">/</span><span class="mf">1e4</span>
+    <span class="k">return</span> <span class="n">paths</span><span class="p">,</span> <span class="n">distances</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.tsp.resample_path"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Function to map path with arbitrary number of waypoints to 
+inducing points path with fixed number of waypoints</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>waypoints</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(num_waypoints, n_dim); waypoints of path from vrp solver</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>num_inducing</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of inducing points (waypoints) in the returned path</p>
+            </div>
+          </td>
+          <td>
+                <code>10</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>points</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(num_inducing, n_dim); Resampled path</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/tsp.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">resample_path</span><span class="p">(</span><span class="n">waypoints</span><span class="p">,</span> <span class="n">num_inducing</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function to map path with arbitrary number of waypoints to </span>
+<span class="sd">    inducing points path with fixed number of waypoints</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        waypoints (ndarray): (num_waypoints, n_dim); waypoints of path from vrp solver</span>
+<span class="sd">        num_inducing (int): Number of inducing points (waypoints) in the returned path</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        points (ndarray): (num_inducing, n_dim); Resampled path</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">(</span><span class="n">waypoints</span><span class="p">)</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span> <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">distances</span><span class="p">]</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">p</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">y</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">points</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">points</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.misc.get_inducing_pts"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Selects a subset of the data points to be used as inducing points. 
+The default approach uses kmeans to select the subset. </p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>data</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 2); Data points to select the inducing points from </p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>num_inducing</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of inducing points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>orientation</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, add an additional dimension to model the sensor 
+                FoV rotation angle</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>random</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, the subset of inducing points are selected randomly 
+           instead of using kmeans</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>Xu</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Inducing points in the position and orientation space.
+            <code>m</code> is the number of inducing points, 
+            <code>d</code> is the dimension of the space (x, y, optional - angle in radians)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/misc.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_inducing_pts</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">random</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Selects a subset of the data points to be used as inducing points. </span>
+<span class="sd">    The default approach uses kmeans to select the subset. </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (ndarray): (n, 2); Data points to select the inducing points from </span>
+<span class="sd">        num_inducing (int): Number of inducing points</span>
+<span class="sd">        orientation (bool): If True, add an additional dimension to model the sensor </span>
+<span class="sd">                            FoV rotation angle</span>
+<span class="sd">        random (bool): If True, the subset of inducing points are selected randomly </span>
+<span class="sd">                       instead of using kmeans</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Xu (ndarray): (m, d); Inducing points in the position and orientation space.</span>
+<span class="sd">                        `m` is the number of inducing points, </span>
+<span class="sd">                        `d` is the dimension of the space (x, y, optional - angle in radians)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">random</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">num_inducing</span><span class="p">)</span>
+        <span class="n">Xu</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Xu</span> <span class="o">=</span> <span class="n">kmeans2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_inducing</span><span class="p">,</span> <span class="n">minit</span><span class="o">=</span><span class="s2">&quot;points&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">orientation</span><span class="p">:</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">Xu</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">Xu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">Xu</span><span class="p">,</span> <span class="n">thetas</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Xu</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.misc.cont2disc"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Map continuous space locations to a discrete set of candidate location</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>Xu</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, 2); Continuous space points</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>candidates</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 2); Discrete set of candidate locations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>candidate_labels</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Labels corresponding to the discrete set of candidate locations</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>Xu_x</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Discrete space points' locations </p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>Xu_y</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Labels of the discrete space points. Returned only if <code>candidate_labels</code>
+            was passed to the function</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/misc.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">cont2disc</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">candidate_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map continuous space locations to a discrete set of candidate location</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Xu (ndarray): (m, 2); Continuous space points</span>
+<span class="sd">        candidates (ndarray): (n, 2); Discrete set of candidate locations</span>
+<span class="sd">        candidate_labels (ndarray): (n, 1); Labels corresponding to the discrete set of candidate locations</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Xu_x (ndarray): Discrete space points&#39; locations </span>
+<span class="sd">        Xu_y (ndarray): Labels of the discrete space points. Returned only if `candidate_labels`</span>
+<span class="sd">                        was passed to the function</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Sanity check to ensure that there are candidates to match</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="n">pairwise_distances</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">Y</span><span class="o">=</span><span class="n">Xu</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+    <span class="n">row_ind</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="n">dists</span><span class="p">)</span>
+    <span class="n">Xu_X</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">row_ind</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">candidate_labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">Xu_y</span> <span class="o">=</span> <span class="n">candidate_labels</span><span class="p">[</span><span class="n">row_ind</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Xu_X</span><span class="p">,</span> <span class="n">Xu_y</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Xu_X</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.misc.plot_paths"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Function to plot the IPP solution paths</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>paths</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(r, m, 2); <code>r</code> paths with <code>m</code> waypoints each</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>candidates</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 2); Candidate unlabeled locations used in the SGP-based sensor placement approach</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>title</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Title of the plot</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/misc.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">plot_paths</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">candidates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Function to plot the IPP solution paths</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        paths (ndarray): (r, m, 2); `r` paths with `m` waypoints each</span>
+<span class="sd">        candidates (ndarray): (n, 2); Candidate unlabeled locations used in the SGP-based sensor placement approach</span>
+<span class="sd">        title (str): Title of the plot</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">path</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">path</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> 
+                    <span class="n">c</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Path&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> 
+                    <span class="n">c</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Start&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">candidates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">candidates</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">candidates</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> 
+                        <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Unlabeled Train-Set Points&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;X&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.misc.interpolate_path"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Interpolate additional points between the given waypoints to simulate continuous sensing robots</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>waypoints</code></td>
+          <td>
+                <code>(n, d)</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Waypoints of the robot's path</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>sampling_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Distance between each pair of interpolated points</p>
+            </div>
+          </td>
+          <td>
+                <code>0.05</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>path</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(p, d) Interpolated path, <code>p</code> depends on the sampling_rate rate</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/misc.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">interpolate_path</span><span class="p">(</span><span class="n">waypoints</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interpolate additional points between the given waypoints to simulate continuous sensing robots</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        waypoints (n, d): Waypoints of the robot&#39;s path</span>
+<span class="sd">        sampling_rate (float): Distance between each pair of interpolated points</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        path (ndarray): (p, d) Interpolated path, `p` depends on the sampling_rate rate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">interpolated_path</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">waypoints</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">get_distance</span><span class="p">(</span><span class="n">waypoints</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">num_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dist</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">waypoints</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">waypoints</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">num_samples</span><span class="p">)</span>
+        <span class="n">interpolated_path</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">interpolated_path</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.gaussian_entropy"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes GP-based entropy from a kernel matrix</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>K</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, n); kernel matrix</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>entropy</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Entropy computed from the kernel matrix</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gaussian_entropy</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes GP-based entropy from a kernel matrix</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        K (ndarray): (n, n); kernel matrix</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        entropy (float): Entropy computed from the kernel matrix</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">multivariate_normal</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cov</span><span class="o">=</span><span class="n">K</span><span class="p">,</span> <span class="n">allow_singular</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">entropy</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_mi"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes mutual information between the sensing locations and the candidate locations</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>Xu</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Sensing locations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>candidate_locs</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Candidate sensing locations </p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>data variance</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>mi</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Mutual information computed using a GP</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_mi</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">candidate_locs</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes mutual information between the sensing locations and the candidate locations</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Xu (ndarray): (m, d); Sensing locations</span>
+<span class="sd">        candidate_locs (ndarray): (n, d); Candidate sensing locations </span>
+<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        mi (float): Mutual information computed using a GP</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Xu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Xu</span><span class="p">)</span>
+    <span class="n">candidate_locs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">candidate_locs</span><span class="p">)</span>
+
+    <span class="n">gp</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GPR</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">Xu</span><span class="p">),</span> <span class="mi">1</span><span class="p">))),</span>
+                           <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+                           <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">sigma_a</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">candidate_locs</span><span class="p">,</span> <span class="n">full_cov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">sigma_a</span> <span class="o">=</span> <span class="n">sigma_a</span><span class="o">.</span><span class="n">numpy</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">cond_entropy</span> <span class="o">=</span> <span class="n">gaussian_entropy</span><span class="p">(</span><span class="n">sigma_a</span><span class="p">)</span>
+
+    <span class="n">K</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">(</span><span class="n">candidate_locs</span><span class="p">,</span> <span class="n">full_cov</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="n">K</span> <span class="o">+=</span> <span class="n">noise_variance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">candidate_locs</span><span class="p">))</span>
+    <span class="n">entropy</span> <span class="o">=</span> <span class="n">gaussian_entropy</span><span class="p">(</span><span class="n">K</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">entropy</span> <span class="o">-</span> <span class="n">cond_entropy</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_elbo"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes the ELBO of the SGP, corrected to be positive</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>Xu</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Sensing locations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>X_env</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Data points used to approximate the bounds of the environment</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>data variance</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>baseline</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, the ELBO is adjusted to be positive</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>elbo</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>ELBO of the SGP</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_elbo</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">X_env</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">baseline</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the ELBO of the SGP, corrected to be positive</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Xu (ndarray): (m, d); Sensing locations</span>
+<span class="sd">        X_env (ndarray): (n, d); Data points used to approximate the bounds of the environment</span>
+<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+<span class="sd">        baseline (bool): If True, the ELBO is adjusted to be positive</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        elbo (float): ELBO of the SGP</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">baseline</span><span class="p">:</span>
+        <span class="n">sgpr</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SGPR</span><span class="p">(</span><span class="n">X_env</span><span class="p">,</span>
+                                  <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+                                  <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+                                  <span class="n">inducing_variable</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="n">sgpr</span><span class="o">.</span><span class="n">elbo</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">baseline</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">sgpr</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SGPR</span><span class="p">(</span><span class="n">X_env</span><span class="p">,</span>
+                              <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+                              <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span> 
+                              <span class="n">inducing_variable</span><span class="o">=</span><span class="n">Xu</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">sgpr</span><span class="o">.</span><span class="n">elbo</span><span class="p">()</span> <span class="o">-</span> <span class="n">baseline</span><span class="p">)</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_kl"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes the KL divergence between the SGP and the GP</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>Xu</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Sensing locations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>X_env</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Data points used to approximate the bounds of the environment</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>data variance</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>kl</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>KL divergence between the SGP and the GP</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_kl</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">X_env</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the KL divergence between the SGP and the GP</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Xu (ndarray): (m, d); Sensing locations</span>
+<span class="sd">        X_env (ndarray): (n, d); Data points used to approximate the bounds of the environment</span>
+<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        kl (float): KL divergence between the SGP and the GP</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sgpr</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">SGPR</span><span class="p">(</span><span class="n">X_env</span><span class="p">,</span>
+                              <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+                              <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+                              <span class="n">inducing_variable</span><span class="o">=</span><span class="n">Xu</span><span class="p">)</span>
+
+    <span class="n">common</span> <span class="o">=</span> <span class="n">sgpr</span><span class="o">.</span><span class="n">_common_calculation</span><span class="p">()</span>
+    <span class="n">sigma_sq</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">sigma_sq</span>
+    <span class="n">AAT</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">AAT</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sgpr</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">kdiag</span> <span class="o">=</span> <span class="n">sgpr</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">full_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># tr(K) / σ²</span>
+    <span class="n">trace_k</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">kdiag</span> <span class="o">/</span> <span class="n">sigma_sq</span><span class="p">)</span>
+    <span class="c1"># tr(Q) / σ²</span>
+    <span class="n">trace_q</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">AAT</span><span class="p">))</span>
+    <span class="c1"># tr(K - Q) / σ²</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="n">trace_k</span> <span class="o">-</span> <span class="n">trace_q</span>
+    <span class="n">trace</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">trace</span>
+
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_rmse"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes the root-mean-square error between <code>y_pred</code> and <code>y_test</code></p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>y_pred</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Predicted data field estimate</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>y_test</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Ground truth data field </p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>rmse</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Computed RMSE</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_rmse</span><span class="p">(</span><span class="n">y_pred</span><span class="p">,</span> <span class="n">y_test</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the root-mean-square error between `y_pred` and `y_test`</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        y_pred (ndarray): (n, 1); Predicted data field estimate</span>
+<span class="sd">        y_test (ndarray): (n, 1); Ground truth data field </span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        rmse (float): Computed RMSE</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_pred</span> <span class="o">-</span> <span class="n">y_test</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_reconstruction"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Computes the GP-based data field estimates with the solution placements as the training set</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>Xu</code></td>
+          <td>
+                <code>tuple</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(ndarray (m, d); ndarray (m, 1)); Sensing locations' input 
+        and corresponding ground truth labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>X_test</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Testing data input locations</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>data variance</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>y_pred</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Predicted data field estimates</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>y_var</code></td>          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Prediction variance at each location in the data field</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_reconstruction</span><span class="p">(</span><span class="n">Xu</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the GP-based data field estimates with the solution placements as the training set</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Xu (tuple): (ndarray (m, d); ndarray (m, 1)); Sensing locations&#39; input </span>
+<span class="sd">                    and corresponding ground truth labels</span>
+<span class="sd">        X_test (ndarray): (n, d); Testing data input locations</span>
+<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        y_pred (ndarray): (n, 1); Predicted data field estimates</span>
+<span class="sd">        y_var (ndarray): (n, 1); Prediction variance at each location in the data field</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Xu_X</span><span class="p">,</span> <span class="n">Xu_y</span> <span class="o">=</span> <span class="n">Xu</span>
+
+    <span class="c1"># Get the GP predictions</span>
+    <span class="n">gpr</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GPR</span><span class="p">((</span><span class="n">Xu_X</span><span class="p">,</span> <span class="n">Xu_y</span><span class="p">),</span>
+                            <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+                            <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">)</span>
+    <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_var</span> <span class="o">=</span> <span class="n">gpr</span><span class="o">.</span><span class="n">predict_f</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="n">y_pred</span> <span class="o">=</span> <span class="n">y_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">y_pred</span><span class="p">,</span> <span class="n">y_var</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.metrics.get_distance"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Compute the length of a path (L2-norm)</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>X</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(m, d); Waypoints of a path</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>dist</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Total path length</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/metrics.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_distance</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the length of a path (L2-norm)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X (ndarray): (m, d); Waypoints of a path</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dist (float): Total path length</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">X</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dist</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dist</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.gpflow.plot_loss"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Helper function to plot the training loss</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>losses</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of loss values</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>save_file</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If passed, the loss plot will be saved to the <code>save_file</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/gpflow.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">plot_loss</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span> <span class="n">save_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function to plot the training loss</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        losses (list): list of loss values</span>
+<span class="sd">        save_file (str): If passed, the loss plot will be saved to the `save_file`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Log Likelihood&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Iteration&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Log Likelihood&#39;</span><span class="p">)</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">ticklabel_format</span><span class="p">(</span><span class="n">useOffset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">save_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">save_file</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.gpflow.get_model_params"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Train a GP on the given training set</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>X_train</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, d); Training set inputs</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>y_train</code></td>
+          <td>
+                <code>ndarray</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(n, 1); Training set labels</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>max_steps</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of optimization steps</p>
+            </div>
+          </td>
+          <td>
+                <code>1500</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>lr</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimization learning rate</p>
+            </div>
+          </td>
+          <td>
+                <code>0.01</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>print_params</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, prints the optimized GP parameters</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>lengthscales</code></td>
+          <td>
+                <code>float or list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Kernel lengthscale(s), if passed as a list, 
+                    each element corresponds to each data dimension</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Kernel variance</p>
+            </div>
+          </td>
+          <td>
+                <code>1.0</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>noise_variance</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Data noise variance</p>
+            </div>
+          </td>
+          <td>
+                <code>0.1</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel</code></td>
+          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>gpflow kernel function</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><span class="doc-section-title">Returns:</span></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+<td><code>loss</code></td>          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Loss values obtained during training</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>variance</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimized data noise variance</p>
+            </div>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+<td><code>kernel</code></td>          <td>
+                <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimized gpflow kernel function</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/gpflow.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_model_params</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> 
+                     <span class="n">max_steps</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> 
+                     <span class="n">lr</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> 
+                     <span class="n">print_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                     <span class="n">lengthscales</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+                     <span class="n">variance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+                     <span class="n">noise_variance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                     <span class="n">kernel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Train a GP on the given training set</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        X_train (ndarray): (n, d); Training set inputs</span>
+<span class="sd">        y_train (ndarray): (n, 1); Training set labels</span>
+<span class="sd">        max_steps (int): Maximum number of optimization steps</span>
+<span class="sd">        lr (float): Optimization learning rate</span>
+<span class="sd">        print_params (bool): If True, prints the optimized GP parameters</span>
+<span class="sd">        lengthscales (float or list): Kernel lengthscale(s), if passed as a list, </span>
+<span class="sd">                                each element corresponds to each data dimension</span>
+<span class="sd">        variance (float): Kernel variance</span>
+<span class="sd">        noise_variance (float): Data noise variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        loss (list): Loss values obtained during training</span>
+<span class="sd">        variance (float): Optimized data noise variance</span>
+<span class="sd">        kernel (gpflow.kernels.Kernel): Optimized gpflow kernel function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kernel</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">SquaredExponential</span><span class="p">(</span><span class="n">lengthscales</span><span class="o">=</span><span class="n">lengthscales</span><span class="p">,</span> 
+                                                   <span class="n">variance</span><span class="o">=</span><span class="n">variance</span><span class="p">)</span>
+
+    <span class="n">gpr_gt</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">GPR</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">),</span> 
+                               <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+                               <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">max_steps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">optimize_model</span><span class="p">(</span><span class="n">gpr_gt</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="n">lr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">print_params</span><span class="p">:</span>
+        <span class="n">print_summary</span><span class="p">(</span><span class="n">gpr_gt</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">gpr_gt</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variance</span><span class="p">,</span> <span class="n">kernel</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<a id="sgptools.utils.gpflow.optimize_model"></a>
+  <div class="doc doc-contents first">
+  
+      <p>Trains a GP/SGP model</p>
+
+
+
+  <p><span class="doc-section-title">Parameters:</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr class="doc-section-item">
+          <td><code>model</code></td>
+          <td>
+                <code><span title="gpflow.models">models</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>GPflow GP/SGP model to train</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>max_steps</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of training steps</p>
+            </div>
+          </td>
+          <td>
+                <code>2000</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>kernel_grad</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If False, the kernel parameters will not be optimized</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>lr</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimization learning rate</p>
+            </div>
+          </td>
+          <td>
+                <code>0.01</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>optimizer</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Optimizer to use for training (<code>scipy</code> or <code>tf</code>)</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;tf&#39;</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>verbose</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If true, the training progress will be printed</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>trace_fn</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Function to trace metrics during training. 
+            If <code>None</code>, the loss values are traced;
+            if <code>traceXu</code>, it the inducing points states at each optimization step are traced</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>convergence_criterion</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>It True, enables early stopping when the loss plateaus</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>trainable_variables</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of model variables to train 
+                        (can be used to limit training to a subset of variables)</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr class="doc-section-item">
+          <td><code>tol</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Convergence tolerance to decide when to stop optimization</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>sgptools/utils/gpflow.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">optimize_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> 
+                   <span class="n">max_steps</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span> 
+                   <span class="n">kernel_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                   <span class="n">lr</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> 
+                   <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;tf&#39;</span><span class="p">,</span> 
+                   <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                   <span class="n">trace_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">convergence_criterion</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                   <span class="n">trainable_variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">tol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Trains a GP/SGP model</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (gpflow.models): GPflow GP/SGP model to train</span>
+<span class="sd">        max_steps (int): Maximum number of training steps</span>
+<span class="sd">        kernel_grad (bool): If False, the kernel parameters will not be optimized</span>
+<span class="sd">        lr (float): Optimization learning rate</span>
+<span class="sd">        optimizer (str): Optimizer to use for training (`scipy` or `tf`)</span>
+<span class="sd">        verbose (bool): If true, the training progress will be printed</span>
+<span class="sd">        trace_fn (str): Function to trace metrics during training. </span>
+<span class="sd">                        If `None`, the loss values are traced;</span>
+<span class="sd">                        if `traceXu`, it the inducing points states at each optimization step are traced</span>
+<span class="sd">        convergence_criterion (bool): It True, enables early stopping when the loss plateaus</span>
+<span class="sd">        trainable_variables (list): List of model variables to train </span>
+<span class="sd">                                    (can be used to limit training to a subset of variables)</span>
+<span class="sd">        tol (float): Convergence tolerance to decide when to stop optimization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Train all variables if trainable_variables are not provided</span>
+    <span class="c1"># If kernel_gradient is False, disable the kernel parameter gradient updates</span>
+    <span class="k">if</span> <span class="n">trainable_variables</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kernel_grad</span><span class="p">:</span>
+        <span class="n">trainable_variables</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">trainable_variables</span>
+    <span class="k">elif</span> <span class="n">trainable_variables</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">kernel_grad</span><span class="p">:</span>
+        <span class="n">trainable_variables</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">optimizer</span> <span class="o">==</span> <span class="s1">&#39;scipy&#39;</span><span class="p">:</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Scipy</span><span class="p">()</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">training_loss</span><span class="p">,</span>
+                              <span class="n">trainable_variables</span><span class="p">,</span>
+                              <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">disp</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="n">max_steps</span><span class="p">),</span>
+                              <span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">losses</span><span class="o">.</span><span class="n">fun</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">trace_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">trace_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">loss</span>
+        <span class="k">elif</span> <span class="n">trace_fn</span> <span class="o">==</span> <span class="s1">&#39;traceXu&#39;</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">trace_fn</span><span class="p">(</span><span class="n">traceable_quantities</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">inducing_variable</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span><span class="p">)</span>
+        <span class="n">loss_fn</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">training_loss</span>
+        <span class="k">if</span> <span class="n">convergence_criterion</span><span class="p">:</span>
+            <span class="n">convergence_criterion</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">convergence_criteria</span><span class="o">.</span><span class="n">LossNotDecreasing</span><span class="p">(</span>
+                                            <span class="n">atol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> 
+                                            <span class="n">window_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                                            <span class="n">min_num_steps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">max_steps</span><span class="o">*</span><span class="mf">0.1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">convergence_criterion</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">tfp</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">minimize</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">,</span>
+                                   <span class="n">trainable_variables</span><span class="o">=</span><span class="n">trainable_variables</span><span class="p">,</span>
+                                   <span class="n">num_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+                                   <span class="n">optimizer</span><span class="o">=</span><span class="n">opt</span><span class="p">,</span>
+                                   <span class="n">convergence_criterion</span><span class="o">=</span><span class="n">convergence_criterion</span><span class="p">,</span>
+                                   <span class="n">trace_fn</span><span class="o">=</span><span class="n">trace_fn</span><span class="p">)</span>
+        <span class="n">losses</span> <span class="o">=</span> <span class="n">losses</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">losses</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
 
 <div class="doc doc-object doc-class">
 
@@ -6712,7 +9705,7 @@ Used by <code>get_greedy_sgp_sol</code> function to compute the solution sensor 
           </td>
           <td>
             <div class="doc-md-description">
-              <p>data variance</p>
+              <p>Data noise variance</p>
             </div>
           </td>
           <td>
@@ -6826,7 +9819,7 @@ Used by <code>get_greedy_sgp_sol</code> function to compute the solution sensor 
 <span class="sd">        num_inducing (int): Number of inducing points</span>
 <span class="sd">        S (ndarray): (n, d); Candidate sensor placement locations</span>
 <span class="sd">        V (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions</span>
-<span class="sd">        noise_variance (float): data variance</span>
+<span class="sd">        noise_variance (float): Data noise variance</span>
 <span class="sd">        kernel (gpflow.kernels.Kernel): gpflow kernel function</span>
 <span class="sd">        Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always </span>
 <span class="sd">                                    added to the inducing points set during loss function computation</span>
