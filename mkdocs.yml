@@ -49,4 +49,9 @@ nav:
 extra_css:
   - stylesheets/extra.css
 
+extra:
+  analytics:
+    provider: google
+    property: G-Z2TVV3MF1S
+
 repo_url: https://github.com/itskalvik/SGP-Tools
