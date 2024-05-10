@@ -3,7 +3,7 @@
 </div>
 
 # SGP-based Optimization Tools
-Software suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) (SP) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) (IPP)
+Software Suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) (SP) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) (IPP)
 
 <p align="center">
   <img alt="Light" src="static/point_sensing.gif" width="45%">

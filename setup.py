@@ -11,5 +11,5 @@ setup(
     license='Apache-2.0',
     author_email='itskalvik@gmail.com',
     author='Kalvik Jakkala',
-    description='Software suite for Sensor Placement and Informative Path Planning',
+    description='Software Suite for Sensor Placement and Informative Path Planning',
 )
