@@ -18,11 +18,19 @@ The library includes python code for the following:
 </p>
 
 ## Installation
-Run the following commands to install the package:
+The library is available as a ```pip``` package. To install the package, run the following command:
 
 ```
 sudo apt-get install libhdf5-dev python3-pip -y
 python3 -m pip install sgptools
+```
+
+Installation from source:
+
+```
+sudo apt-get install libhdf5-dev python3-pip -y
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
 ```
 
 ## Quick Start
