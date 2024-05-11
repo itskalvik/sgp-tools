@@ -1,5 +1,5 @@
 <div style="text-align:left">
-<img width="472" src="static/SGP-Tools.png">
+<img width="472" src="docs/assets/SGP-Tools.png">
 </div>
 
 # SGP-based Optimization Tools
@@ -12,9 +12,9 @@ The library includes python code for the following:
 - Sparse Gaussian process (SGP)-based approaches
 
 <p align="center">
-  <img alt="Light" src="static/point_sensing.gif" width="45%">
+  <img alt="Light" src="docs/assets/point_sensing.gif" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="static/non-point_sensing.gif" width="45%">
+  <img alt="Dark" src="docs/assets/non-point_sensing.gif" width="45%">
 </p>
 
 ## Installation
