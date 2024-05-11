@@ -3,7 +3,13 @@
 </div>
 
 # SGP-based Optimization Tools
-Software Suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) (SP) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) (IPP)
+Software Suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) (SP) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp) (IPP). 
+
+The library includes python code for the following:
+- Greedy algorithm-based approaches
+- Bayesian optimization-based approaches
+- Genetic algorithm-based approaches
+- Sparse Gaussian process (SGP)-based approaches
 
 <p align="center">
   <img alt="Light" src="static/point_sensing.gif" width="45%">
@@ -12,12 +18,15 @@ Software Suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) 
 </p>
 
 ## Installation
-Run the following commands to install the package
+Run the following commands to install the package:
 
 ```
 sudo apt-get install libhdf5-dev python3-pip -y
 python3 -m pip install sgptools
 ```
+
+## Quick Start
+Please refer to the [demos](https://github.com/itskalvik/sgp-tools/tree/master/demos) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
 
 ## Method Summary
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")

@@ -36,6 +36,8 @@ theme:
     - toc.integrate 
     - toc.follow
     - navigation.top
+    - navigation.tabs.sticky
+    - navigation.tabs
 
 plugins:
   - mkdocstrings
@@ -55,3 +57,8 @@ extra:
     property: G-Z2TVV3MF1S
 
 repo_url: https://github.com/itskalvik/SGP-Tools
+
+markdown_extensions:
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
