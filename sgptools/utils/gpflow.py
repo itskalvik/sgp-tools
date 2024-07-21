@@ -92,6 +92,7 @@ def optimize_model(model,
                    kernel_grad=True, 
                    lr=1e-2, 
                    optimizer='tf', 
+                   method=None,
                    verbose=False, 
                    trace_fn=None,
                    convergence_criterion=True,
@@ -106,6 +107,7 @@ def optimize_model(model,
         kernel_grad (bool): If False, the kernel parameters will not be optimized
         lr (float): Optimization learning rate
         optimizer (str): Optimizer to use for training (`scipy` or `tf`)
+        method (str): Optimization method refer to scipy minimize and tf optimizers for full list
         verbose (bool): If true, the training progress will be printed
         trace_fn (str): Function to trace metrics during training. 
                         If `None`, the loss values are traced;
@@ -123,9 +125,12 @@ def optimize_model(model,
         trainable_variables=model.trainable_variables[:1]
         
     if optimizer == 'scipy':
+        if method is None:
+            method = 'L-BFGS-B'
         opt = gpflow.optimizers.Scipy()
         losses = opt.minimize(model.training_loss,
                               trainable_variables,
+                              method=method,
                               options=dict(disp=verbose, maxiter=max_steps),
                               tol=tol)
         losses = losses.fun
@@ -136,7 +141,10 @@ def optimize_model(model,
             def trace_fn(traceable_quantities):
                 return model.inducing_variable.Z.numpy()
 
-        opt = tf.keras.optimizers.Adam(lr)
+        if method is None:
+            method = 'adam'
+        opt = tf.keras.optimizers.get(method)
+        opt.learning_rate = lr
         loss_fn = model.training_loss
         if convergence_criterion:
             convergence_criterion = tfp.optimizer.convergence_criteria.LossNotDecreasing(

@@ -19,7 +19,13 @@ from shapely.geometry import LineString
 import numpy as np
 
 
-def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
+def run_tsp(nodes, 
+            num_vehicles=1, 
+            max_dist=25, 
+            depth=1, 
+            resample=None, 
+            start_idx=None,
+            end_idx=None):
     """Method to run TSP/VRP with arbitrary start and end nodes, 
     and without any distance constraint
     
@@ -30,6 +36,8 @@ def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
         depth (int): Internal parameter used to track re-try recursion depth
         resample (int): Each solution path will be resampled to have
                         `resample` number of points
+        start_idx (list): Optionl list of start node indices from which to start the solution path 
+        end_idx (list): Optionl list of end node indices from which to start the solution path 
 
     Returns:
         paths (ndarray): Solution paths
@@ -38,12 +46,27 @@ def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
     if depth > 5:
         print('Warning: Max depth reached')
         return None, None
-
+        
     # Add dummy 0 location to get arbitrary start and end node sols
-    distance_mat = np.zeros((len(nodes)+1, len(nodes)+1))
-    distance_mat[1:, 1:] = pairwise_distances(nodes, nodes)*1e4
+    if start_idx is None or end_idx is None:
+        distance_mat = np.zeros((len(nodes)+1, len(nodes)+1))
+        distance_mat[1:, 1:] = pairwise_distances(nodes, nodes)*1e4
+        trim_paths = True
+    else:
+        distance_mat = pairwise_distances(nodes, nodes)*1e4
+        trim_paths = False
     distance_mat = distance_mat.astype(int)
     max_dist = int(max_dist*1e4)
+
+    if start_idx is None:
+        start_idx = [0]*num_vehicles
+    elif trim_paths:
+        start_idx = [i+1 for i in start_idx]
+
+    if end_idx is None:
+        end_idx = [0]*num_vehicles
+    elif trim_paths:
+        end_idx = [i+1 for i in end_idx]
 
     def distance_callback(from_index, to_index):
         from_node = manager.IndexToNode(from_index)
@@ -53,8 +76,8 @@ def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
     # num_locations, num vehicles, start, end
     manager = pywrapcp.RoutingIndexManager(len(distance_mat), 
                                            num_vehicles, 
-                                           [0]*num_vehicles, 
-                                           [0]*num_vehicles)
+                                           start_idx,
+                                           end_idx)
     routing = pywrapcp.RoutingModel(manager)
     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
@@ -79,12 +102,14 @@ def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     )
-    search_parameters.time_limit.seconds = 5
+    search_parameters.time_limit.seconds = 10
     solution = routing.SolveWithParameters(search_parameters)
        
     paths = None
     if solution is not None:
-        paths, distances = get_routes(manager, routing, solution, num_vehicles)
+        paths, distances = get_routes(manager, routing, 
+                                      solution, num_vehicles, 
+                                      start_idx, end_idx, trim_paths)
         for path in paths:
             if len(path) < 2:
                 print('TSP Warning: Empty path detected')
@@ -107,7 +132,7 @@ def run_tsp(nodes, num_vehicles=1, max_dist=25, depth=1, resample=None):
 '''
 Method to extract route from or-tools solution
 '''
-def get_routes(manager, routing, solution, num_vehicles):
+def get_routes(manager, routing, solution, num_vehicles, start_idx, end_idx, trim_paths):
     paths = []
     distances = []
     for vehicle_id in range(num_vehicles):
@@ -124,7 +149,13 @@ def get_routes(manager, routing, solution, num_vehicles):
         path.append(manager.IndexToNode(index))
         distances.append(route_distance)
         # remove dummy start/end point
-        paths.append(np.array(path)[1:-1]-1)
+        if trim_paths:
+            path = np.array(path)-1
+            if start_idx[vehicle_id] == 0:
+                path = path[1:]
+            if end_idx[vehicle_id] == 0:
+                path = path[:-1]
+        paths.append(path)
     return paths, distances
 
 def resample_path(waypoints, num_inducing=10):
