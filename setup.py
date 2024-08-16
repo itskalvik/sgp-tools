@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 setup(
     name='sgptools',
@@ -12,20 +12,22 @@ setup(
     author_email='itskalvik@gmail.com',
     author='Kalvik',
     description='Software Suite for Sensor Placement and Informative Path Planning',
-    install_requires=['apricot-select==0.6.0',
-                      'matplotlib==3.5.2',
-                      'pandas==1.4.3',
-                      'scikit-learn==1.1.1',
-                      'scipy==1.8.1',
-                      'tensorflow==2.13.0',
-                      'tensorflow_probability==0.21.0',
-                      'gpflow==2.7.0',
-                      'numpy==1.23.5',
-                      'ortools==9.2.9972',
+    install_requires=['apricot-select',
+                      'matplotlib',
+                      'pandas',
+                      'scikit-learn',
+                      'scipy',
+                      'numpy',
+                      'ortools',
                       'scikit-image',
                       'shapely',
                       'cma',
                       'bayesian-optimization',
-                      'pillow',
-                      'hkb_diamondsquare']
+                      'hkb_diamondsquare',
+                      'tensorflow-probability[tf]>=0.21.0',
+                      'tensorflow>=2.13.0; platform_machine!="arm64"',
+                      'tensorflow-aarch64>=2.13.0; platform_machine=="arm64"',
+                      'typing_extensions',
+                      'gpflow>=2.7.0'
+                     ]
 )
