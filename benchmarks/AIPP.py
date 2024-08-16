@@ -82,13 +82,15 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
         end_time = time()
         total_time_param += end_time - start_time
 
+        '''
         plt.figure()
         plt.scatter(X_train[:, 0], X_train[:, 1])
         for i in range(num_robots):
             plt.scatter(X_new[:, 0], X_new[:, 1])
         plt.savefig(f'test-{time_step}.png')
         plt.close()
-        
+        '''
+
         # SGP-IPP update
         Xu_visited = curr_sol.copy()[:, :time_step]
         ipp_model.transform.update_Xu_fixed(Xu_visited)
@@ -303,7 +305,7 @@ def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
         results_mc[num_waypoints] = {'RMSE': results_rmse,
                                      'Param-Time': results_param_time,
                                      'IPP-Time': results_ipp_time}
-        with open(f'AIPP_{num_robots}R_{dataset}.json', 'w', encoding='utf-8') as f:
+        with open(f'AIPP_{num_robots}R_{dataset}_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
             json.dump(results_mc, f, ensure_ascii=False, indent=4)
 
 
@@ -313,6 +315,6 @@ if __name__=='__main__':
     num_mc = 1
     num_robots = 1
     max_dist = 100
-    sampling_rate = 5
+    sampling_rate = 2
     
     main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate)

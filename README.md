@@ -21,7 +21,7 @@ The library includes python code for the following:
 The library is available as a ```pip``` package. To install the package, run the following command:
 
 ```
-sudo apt-get install libhdf5-dev python3-pip -y
+sudo apt-get install python3-pip libgdal-dev gdal-bin -y
 python3 -m pip install sgptools
 ```
 
@@ -32,6 +32,8 @@ sudo apt-get install libhdf5-dev python3-pip -y
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
+
+Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
 
 ## Quick Start
 Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/master/examples) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
@@ -67,11 +69,7 @@ Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/maste
         - `tsp.py`: TSP solver
 
 ## Datasets
-* The Intel lab temperature dataset can be downloaded from [here](http://db.csail.mit.edu/labdata/labdata.html)
-* The ROMS ocean salinity dataset can be downloaded from [here](https://oceanmodeling.ucsc.edu/ccsnrt/#txtOverview)
-* The Precipitation dataset can be downloaded from [here](http://research.jisao.washington.edu/data_sets/widmann/)
-* The US soil moisture dataset can be downloaded from [here](https://www.drought.gov/data-maps-tools/nasa-sport-lis-soil-moisture-products)
-* The US elevation dataset can be downloaded from [here](https://coast.noaa.gov/digitalcoast/)
+* The US elevation datasets can be downloaded from [here](https://coast.noaa.gov/digitalcoast/)
 
 ## About SGP-Tools
 Please consider citing the following papers if you use SGP-Tools in your academic work :smile:
