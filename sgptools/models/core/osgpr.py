@@ -58,7 +58,8 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         self.Z_old = tf.Variable(Z_old, shape=tf.TensorShape(None), trainable=False)
 
     def update(self, data):
-        """Train the OSGPR to adapt to the new batch of data
+        """Configure the OSGPR to adapt to a new batch of data. 
+        Note: The OSGPR needs to be trained using gradient-based approaches after update.
 
         Args:
             data (tuple): (X, y) ndarrays with new batch of inputs (n, d) and labels (n, 1)

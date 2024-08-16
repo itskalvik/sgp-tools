@@ -102,3 +102,18 @@ def interpolate_path(waypoints, sampling_rate=0.05):
         points = np.linspace(waypoints[i-1], waypoints[i-2], num_samples)
         interpolated_path.extend(points)
     return np.array(interpolated_path)
+
+# Reorder the waypoints to match the order of the points in the path
+# The waypoints are mathched to the closest points in the path 
+def reoder_path(path, waypoints):
+    dists = pairwise_distances(path, Y=waypoints, metric='euclidean')
+    _, col_ind = linear_sum_assignment(dists)
+    Xu = waypoints[col_ind].copy()
+    return Xu
+
+# Project the waypoints back to the candidate set while retaining the 
+# waypoint visitation order
+def project_waypoints(waypoints, candidates):
+    waypoints_disc = cont2disc(waypoints, candidates)
+    waypoints_valid = reoder_path(waypoints, waypoints_disc)
+    return waypoints_valid

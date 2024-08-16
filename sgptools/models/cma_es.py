@@ -36,7 +36,8 @@ class CMA_ES:
     """
     def __init__(self, X_train, noise_variance, kernel,
                  distance_budget=None,
-                 num_robots=1):
+                 num_robots=1,
+                 transform=None):
         self.boundaries = geometry.MultiPoint([[p[0], p[1]] for p in X_train]).convex_hull
         self.X_train = X_train
         self.noise_variance = noise_variance
@@ -44,6 +45,7 @@ class CMA_ES:
         self.num_dim = X_train.shape[-1]
         self.distance_budget = distance_budget
         self.num_robots = num_robots
+        self.transform = transform
 
     def update(self, noise_variance, kernel):
         """Update GP noise variance and kernel function parameters
@@ -82,29 +84,29 @@ class CMA_ES:
         lagrangian = np.sum(lagrangian)
         return lagrangian
     
-    def objective(self, X, X_fixed=None):
+    def objective(self, X):
         """Objective function (GP-based Mutual Information)
 
         Args:
             X (ndarray): (n, d); Initial sensor placement locations
-            X_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
-                                added to the inducing points set during loss function computation
         """
-        # Append fixed path to current solution path
-        if X_fixed is not None:
-            X = np.array(X).reshape(self.num_robots, -1, self.num_dim)
-            X = np.concatenate([X_fixed, X], axis=1)
-
         # MI does not depend on waypoint order (reshape to -1, num_dim)
         X = np.array(X).reshape(-1, self.num_dim)
+        if self.transform is not None:
+            X = self.transform.expand(X, 
+                                      expand_sensor_model=False).numpy()
+
         try:
             mi = -get_mi(X, self.noise_variance, self.kernel, self.X_train)
         except:
             mi = 0.0 # if the cholskey decomposition fails
         return mi
     
-    def optimize(self, num_sensors=10, max_steps=100, tol=1e-2, 
-                 X_init=None, X_fixed=None):
+    def optimize(self, 
+                 num_sensors=10, 
+                 max_steps=5000, 
+                 tol=1e-11, 
+                 X_init=None):
         """Optimizes the SP objective function using CMA-ES without any constraints
 
         Args:
@@ -112,8 +114,6 @@ class CMA_ES:
             max_steps (int): Maximum number of optimization steps
             tol (float): Convergence tolerance to decide when to stop optimization
             X_init (ndarray): (m, d); Initial inducing points
-            X_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
-                                added to the inducing points set during loss function computation
 
         Returns:
             Xu (ndarray): (m, d); Solution sensor placement locations
@@ -124,22 +124,21 @@ class CMA_ES:
             X_init = get_inducing_pts(self.X_train, num_sensors, random=True)
         X_init = X_init.reshape(-1)
 
-        if X_fixed is not None:
-            X_fixed = np.array(X_fixed).reshape(self.num_robots, -1, self.num_dim)
-
         xopt, _ = cma.fmin2(self.objective, X_init, sigma0, 
                             options={'maxfevals': max_steps,
                                      'verb_disp': 0,
-                                     'tolfun': tol},
-                            args=(X_fixed,))
+                                     'tolfun': tol,
+                                     'seed': 1234},
+                            restarts=5)
         
-        if X_fixed is not None:
-            xopt = np.array(xopt).reshape(self.num_robots, -1, self.num_dim)
-            xopt = np.concatenate([X_fixed, xopt], axis=1)
+        xopt = np.array(xopt).reshape(-1, self.num_dim)
+        if self.transform is not None:
+            xopt = self.transform.expand(xopt, 
+                                         expand_sensor_model=False).numpy()
 
         return xopt.reshape(-1, self.num_dim)
     
-    def doptimize(self, num_sensors=10, max_steps=100, tol=1e-2):
+    def doptimize(self, num_sensors=10, max_steps=100, tol=1e-11):
         """Optimizes the SP objective function using CMA-ES with a distance budget constraint
 
         Args:
@@ -155,13 +154,15 @@ class CMA_ES:
         x_init = self.X_train[idx].reshape(-1)
         cfun = cma.ConstrainedFitnessAL(self.objective, self.distance_constraint)
         xopt, _ = cma.fmin2(cfun, x_init, sigma0, 
-                            options={'maxfevals': max_steps, 
+                            options={'maxfevals': max_steps,
                                      'verb_disp': 0,
-                                     'tolfun': tol},
-                            callback=cfun.update)
+                                     'tolfun': tol,
+                                     'seed': 1234},
+                            callback=cfun.update,
+                            restarts=5)
         return xopt.reshape(-1, self.num_dim)
 
-    def coptimize(self, num_sensors=10, max_steps=100, tol=1e-2):
+    def coptimize(self, num_sensors=10, max_steps=100, tol=1e-11):
         """Optimizes the SP objective function using CMA-ES with the constraints
         to ensure that the sensors are placed within the boundaries of the region
 
@@ -178,8 +179,10 @@ class CMA_ES:
         x_init = self.X_train[idx].reshape(-1)
         cfun = cma.ConstrainedFitnessAL(self.objective, self.constraint)
         xopt, _ = cma.fmin2(cfun, x_init, sigma0, 
-                            options={'maxfevals': max_steps, 
+                            options={'maxfevals': max_steps,
                                      'verb_disp': 0,
-                                     'tolfun': tol},
-                            callback=cfun.update)
+                                     'tolfun': tol,
+                                     'seed': 1234},
+                            callback=cfun.update,
+                            restarts=5)
         return xopt.reshape(-1, self.num_dim)
