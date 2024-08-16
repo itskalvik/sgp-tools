@@ -34,13 +34,13 @@ python3 -m pip install -e .
 ```
 
 ## Quick Start
-Please refer to the [demos](https://github.com/itskalvik/sgp-tools/tree/master/demos) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
+Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/master/examples) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
 
 ## Method Summary
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
 
 ## Codemap
-- `demos/`: Jupyter notebooks with code to demonstrate each method in the library
+- `examples/`: Jupyter notebooks with code to demonstrate each method in the library
     - `IPP.ipynb`: SGP-based IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
     - `IPPBaselines.ipynb`: SGP-based IPP approach and baseline methods
     - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)

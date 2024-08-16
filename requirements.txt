@@ -14,3 +14,4 @@ cma
 bayesian-optimization
 pillow
 hkb_diamondsquare
+typing_extensions==4.12
