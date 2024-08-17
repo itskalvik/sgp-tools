@@ -24,9 +24,8 @@ setup(
                       'cma',
                       'bayesian-optimization',
                       'hkb_diamondsquare',
-                      'tensorflow-probability[tf]>=0.21.0',
-                      'tensorflow>=2.13.0; platform_machine!="arm64"',
-                      'tensorflow-aarch64>=2.13.0; platform_machine=="arm64"',
+                      'tensorflow-probability>=0.21.0',
+                      'tensorflow>=2.13.0',
                       'typing_extensions',
                       'gpflow>=2.7.0'
                      ]
