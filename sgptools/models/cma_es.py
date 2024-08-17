@@ -33,6 +33,7 @@ class CMA_ES:
                                  as waypoints of a path
         num_robots (int): Number of robots, used when modeling 
                           multi-robot IPP with a distance budget
+        transform (Transform): Transform object
     """
     def __init__(self, X_train, noise_variance, kernel,
                  distance_budget=None,

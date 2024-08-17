@@ -103,17 +103,33 @@ def interpolate_path(waypoints, sampling_rate=0.05):
         interpolated_path.extend(points)
     return np.array(interpolated_path)
 
-# Reorder the waypoints to match the order of the points in the path
-# The waypoints are mathched to the closest points in the path 
-def reoder_path(path, waypoints):
+def _reoder_path(path, waypoints):
+    """Reorder the waypoints to match the order of the points in the path.
+    The waypoints are mathched to the closest points in the path. Used by project_waypoints.
+
+    Args:
+        path (n, d): Robot path, i.e., waypoints in the path traversal order
+        waypoints (n, d): Waypoints that need to be reordered to match the target path
+
+    Returns:
+        waypoints (n, d): Reordered waypoints of the robot's path
+    """
     dists = pairwise_distances(path, Y=waypoints, metric='euclidean')
     _, col_ind = linear_sum_assignment(dists)
     Xu = waypoints[col_ind].copy()
     return Xu
 
-# Project the waypoints back to the candidate set while retaining the 
-# waypoint visitation order
 def project_waypoints(waypoints, candidates):
+    """Project the waypoints back to the candidate set while retaining the 
+    waypoint visitation order.
+
+    Args:
+        waypoints (n, d): Waypoints of the robot's path
+        candidates (ndarray): (n, 2); Discrete set of candidate locations
+
+    Returns:
+        waypoints (n, d): Projected waypoints of the robot's path
+    """
     waypoints_disc = cont2disc(waypoints, candidates)
-    waypoints_valid = reoder_path(waypoints, waypoints_disc)
+    waypoints_valid = _reoder_path(waypoints, waypoints_disc)
     return waypoints_valid
