@@ -13,6 +13,7 @@ from sgptools.utils.tsp import run_tsp
 from sgptools.utils.gpflow import get_model_params
 
 from sgptools.models.cma_es import *
+from sgptools.models.core.osgpr import *
 from sgptools.models.continuous_sgp import *
 from sgptools.models.core.augmented_gpr import *
 from sgptools.models.core.transformations import *
@@ -30,8 +31,10 @@ Args:
     ipp_model:  CMA_ES or SGPR model from sgp-tools
     Xu_init: numpy array (num_robots, num_waypoints, 2) Current/Initial Solution
     path2data: Function that takes the path and returns the data from the path
-    continuous_ipp: bool, if True, model continuous sensing robots
-    method: str, 'SGP' or 'CMA', IPP method used for online IPP
+    continuous_ipp: bool, If True, model continuous sensing robots
+    ipp_method: str, 'SGP' or 'CMA', method used for IPP
+    param_method: str, 'GP' or 'SSGP', method used for parameter updates
+    plot: bool, If True, all intermediate IPP solutions are plotted and saved to disk
 
 Returns:
     sol_data_X: Locations X where the robot traversed
@@ -44,7 +47,10 @@ Returns:
                      data collected along the solution paths.
 '''
 def online_ipp(X_train, ipp_model, Xu_init, path2data, 
-               continuous_ipp=False, method='SGP'):
+               continuous_ipp=False, 
+               ipp_method='SGP', 
+               param_method='GP',
+               plot=False):
     total_time_param = 0
     total_time_ipp = 0
     num_robots = Xu_init.shape[0]
@@ -56,47 +62,65 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
     else:
         offset = 1
 
+    if param_method=='SSGP':
+        param_model = init_osgpr(X_train, 
+                                 num_inducing=40, 
+                                 lengthscales=1.0,
+                                 variance=1.0,
+                                 noise_variance=1e-4)
+
     sol_data_X = []
     sol_data_y = []
     for time_step in range(offset, num_waypoints+1):
         # Get the new data
         last_visited = curr_sol.copy()[:, time_step-offset:time_step]
+        data_X_batch = []
+        data_y_batch = []
         for r in range(num_robots):
             X_new, y_new = path2data(last_visited[r])
+            data_X_batch.extend(X_new)
+            data_y_batch.extend(y_new)            
             sol_data_X.extend(X_new)
             sol_data_y.extend(y_new)
 
         if time_step == num_waypoints:
             break # Skip param update for the last waypoint
 
-        # Init/update parameter GP
-        # Starting from initial params ensures recovery from bad params
+        # Init/update parameter model
         start_time = time()
-        _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
-                                                     np.array(sol_data_y),
-                                                     lengthscales=1.0,
-                                                     variance=1.0,
-                                                     noise_variance=1e-4,
-                                                     print_params=False,
-                                                     optimizer='scipy')
+        if param_method=='GP':
+            # Starting from initial params ensures recovery from bad params
+            _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
+                                                         np.array(sol_data_y),
+                                                         lengthscales=1.0,
+                                                         variance=1.0,
+                                                         noise_variance=1e-4,
+                                                         print_params=False,
+                                                         optimizer='scipy')
+        elif param_method=='SSGP':
+            param_model.update((np.array(data_X_batch), 
+                                np.array(data_y_batch)))
+            optimize_model(param_model, 
+                           optimizer='scipy')
+            noise_variance = param_model.likelihood.variance
+            kernel = param_model.kernel
         end_time = time()
         total_time_param += end_time - start_time
 
-        '''
-        plt.figure()
-        plt.scatter(X_train[:, 0], X_train[:, 1])
-        for i in range(num_robots):
-            plt.scatter(X_new[:, 0], X_new[:, 1])
-        plt.savefig(f'test-{time_step}.png')
-        plt.close()
-        '''
+        if plot:
+            plt.figure()
+            plt.scatter(X_train[:, 0], X_train[:, 1])
+            for i in range(num_robots):
+                plt.scatter(X_new[:, 0], X_new[:, 1])
+            plt.savefig(f'{ipp_method}-{time_step}.png')
+            plt.close()
 
         # SGP-IPP update
         Xu_visited = curr_sol.copy()[:, :time_step]
         ipp_model.transform.update_Xu_fixed(Xu_visited)
         ipp_model.update(noise_variance, kernel)
         start_time = time()
-        if method == 'SGP':
+        if ipp_method == 'SGP':
             _ = optimize_model(ipp_model,
                                kernel_grad=False, 
                                method='CG',
@@ -104,8 +128,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
-            curr_sol = project_waypoints(curr_sol, X_train)
-        elif method == 'CMA':
+        elif ipp_method == 'CMA':
             curr_sol = ipp_model.optimize(X_init=curr_sol,
                                           max_steps=5000)
         curr_sol = curr_sol.reshape(num_robots, num_waypoints, 2)
@@ -143,170 +166,169 @@ def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
     gp_time = end_time - start_time
     print(f'GP Training Time: {gp_time:.2f}')
 
-    results_mc = dict()
+    # Get initial hyperparameters
+    _, noise_variance, kernel = get_model_params(X_train, y_train, 
+                                                lengthscales=1.0,
+                                                variance=1.0,
+                                                noise_variance=1e-4,
+                                                max_steps=0,
+                                                print_params=False)
+
+    results = dict()
     for num_waypoints in range(5, 101, 5):
-        print(f'\nNum Waypoints: {num_waypoints}')
+        results[num_waypoints] = {'RMSE': defaultdict(list),
+                                  'ParamTime': defaultdict(list),
+                                  'IPPTime': defaultdict(list)}
         
-        # Get random hyperparameters
-        _, noise_variance, kernel = get_model_params(X_train, y_train, 
-                                                     lengthscales=1.0,
-                                                     variance=1.0,
-                                                     noise_variance=1e-4,
-                                                     max_steps=0,
-                                                     print_params=False)
+    for mc in range(num_mc):
+        for num_waypoints in range(5, 101, 5):
+            print(f'\nNum Waypoints: {num_waypoints}')
 
-        # Generate initial paths
-        Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
-        Xu_init, _ = run_tsp(Xu_init, 
-                             num_vehicles=num_robots, 
-                             max_dist=max_dist, 
-                             resample=num_waypoints)
+            # Generate initial paths
+            Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
+            Xu_init, _ = run_tsp(Xu_init, 
+                                num_vehicles=num_robots, 
+                                max_dist=max_dist, 
+                                resample=num_waypoints)
+            
+            # Setup the IPP Transform
+            transform = IPPTransform(num_robots=num_robots,
+                                    sampling_rate=sampling_rate)
         
-        # Setup the IPP Transform
-        transform = IPPTransform(num_robots=num_robots,
-                                 sampling_rate=sampling_rate)
-        
-        results_param_time = defaultdict(list)
-        results_ipp_time = defaultdict(list)
-        results_rmse = defaultdict(list)
+            # ---------------------------------------------------------------------------------
 
-        # ---------------------------------------------------------------------------------
+            # Online Continuous SGP
+            ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                        X_train, 
+                                        noise_variance, 
+                                        kernel,
+                                        transform,
+                                        Xu_init=Xu_init.reshape(-1, 2), 
+                                        max_steps=0)
+            online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
+                                                                  ipp_sgpr, 
+                                                                  Xu_init,
+                                                                  path2data,
+                                                                  continuous_ipp,
+                                                                  'SGP',
+                                                                  'SSGP' if continuous_ipp else 'GP')
+            # Get RMSE from oracle hyperparameters
+            y_pred, _ = get_reconstruction((online_X, online_y), 
+                                        X_test, 
+                                        noise_variance_opt, 
+                                        kernel_opt)
+            rmse = get_rmse(y_pred, y_test)
 
-        # Online Continuous SGP
-        ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                     X_train, 
-                                     noise_variance, 
-                                     kernel,
-                                     transform,
-                                     Xu_init=Xu_init.reshape(-1, 2), 
-                                     max_steps=0)
-        online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
-                                                              ipp_sgpr, 
-                                                              Xu_init,
-                                                              path2data,
-                                                              continuous_ipp,
-                                                              'SGP')
-        # Get RMSE from oracle hyperparameters
-        y_pred, _ = get_reconstruction((online_X, online_y), 
-                                       X_test, 
-                                       noise_variance_opt, 
-                                       kernel_opt)
-        online_sgp_rmse = get_rmse(y_pred, y_test)
+            print(f'\nOnline SGP Param Time: {param_time:.4f}')
+            print(f'Online SGP IPP Time: {ipp_time:.4f}')
+            print(f'Online SGP RMSE: {rmse:.4f}')
+            results[num_waypoints]['ParamTime']['online_sgp'].append(param_time)
+            results[num_waypoints]['IPPTime']['online_sgp'].append(ipp_time)
+            results[num_waypoints]['RMSE']['online_sgp'].append(rmse)
 
-        print(f'\nOnline SGP Param Time: {param_time:.4f}')
-        print(f'Online SGP IPP Time: {ipp_time:.4f}')
-        print(f'Online SGP RMSE: {online_sgp_rmse:.4f}')
-        results_param_time['online_sgp'].append(param_time)
-        results_ipp_time['online_sgp'].append(ipp_time)
-        results_rmse['online_sgp'].append(online_sgp_rmse)
+            # ---------------------------------------------------------------------------------
 
-        # ---------------------------------------------------------------------------------
+            # Online Param CMA_ES
+            cma_es = CMA_ES(candidates, noise_variance, kernel, 
+                            num_robots=num_robots,
+                            transform=transform)
+            online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
+                                                                  cma_es, 
+                                                                  Xu_init,
+                                                                  path2data,
+                                                                  continuous_ipp,
+                                                                  'CMA')
+            # Get RMSE from oracle hyperparameters
+            y_pred, _ = get_reconstruction((online_X, online_y), 
+                                        X_test, 
+                                        noise_variance_opt, 
+                                        kernel_opt)
+            rmse = get_rmse(y_pred, y_test)
 
-        # Online Param CMA_ES
-        cma_es = CMA_ES(candidates, noise_variance, kernel, 
-                        num_robots=num_robots,
-                        transform=transform)
-        online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
-                                                              cma_es, 
-                                                              Xu_init,
-                                                              path2data,
-                                                              continuous_ipp,
-                                                              'CMA')
-        # Get RMSE from oracle hyperparameters
-        y_pred, _ = get_reconstruction((online_X, online_y), 
-                                       X_test, 
-                                       noise_variance_opt, 
-                                       kernel_opt)
-        online_cma_rmse = get_rmse(y_pred, y_test)
+            print(f'\nOnline CMA Param Time: {param_time:.4f}')
+            print(f'Online CMA IPP Time: {ipp_time:.4f}')
+            print(f'Online CMA RMSE: {rmse:.4f}')
+            results[num_waypoints]['ParamTime']['online_cma'].append(param_time)
+            results[num_waypoints]['IPPTime']['online_cma'].append(ipp_time)
+            results[num_waypoints]['RMSE']['online_cma'].append(rmse)
+            
+            # ---------------------------------------------------------------------------------
 
-        print(f'\nOnline CMA Param Time: {param_time:.4f}')
-        print(f'Online CMA IPP Time: {ipp_time:.4f}')
-        print(f'Online CMA RMSE: {online_cma_rmse:.4f}')
-        results_param_time['online_cma'].append(param_time)
-        results_ipp_time['online_cma'].append(ipp_time)
-        results_rmse['online_cma'].append(online_cma_rmse)
-        
-        # ---------------------------------------------------------------------------------
+            # Oracle Offline Continuous SGP
+            start_time = time()
+            ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                        X_train, 
+                                        noise_variance_opt, 
+                                        kernel_opt,
+                                        transform,
+                                        Xu_init=Xu_init.reshape(-1, 2), 
+                                        optimizer='scipy',
+                                        method='CG')
+            offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
+            offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
+            end_time = time()
+            ipp_time = end_time-start_time
 
-        # Oracle Offline Continuous SGP
-        start_time = time()
-        ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                     X_train, 
-                                     noise_variance_opt, 
-                                     kernel_opt,
-                                     transform,
-                                     Xu_init=Xu_init.reshape(-1, 2), 
-                                     optimizer='scipy',
-                                     method='CG')
-        offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
-        offline_sgp_sol = project_waypoints(offline_sgp_sol, X_train)
-        offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
-        end_time = time()
-        offline_sgp_time = end_time-start_time
+            # Get RMSE from oracle hyperparameters
+            offline_X, offline_y = [], []
+            for r in range(num_robots):
+                X_new, y_new = path2data(offline_sgp_sol[r])
+                offline_X.extend(X_new)
+                offline_y.extend(y_new)
+            offline_X = np.array(offline_X)
+            offline_y = np.array(offline_y)
+            y_pred, _ = get_reconstruction((offline_X, offline_y), 
+                                        X_test, 
+                                        noise_variance_opt, 
+                                        kernel_opt)
+            rmse = get_rmse(y_pred, y_test)
 
-        # Get RMSE from oracle hyperparameters
-        offline_X, offline_y = [], []
-        for r in range(num_robots):
-            X_new, y_new = path2data(offline_sgp_sol[r])
-            offline_X.extend(X_new)
-            offline_y.extend(y_new)
-        offline_X = np.array(offline_X)
-        offline_y = np.array(offline_y)
-        y_pred, _ = get_reconstruction((offline_X, offline_y), 
-                                    X_test, 
-                                    noise_variance_opt, 
-                                    kernel_opt)
-        offline_sgp_rmse = get_rmse(y_pred, y_test)
+            print(f'\nOracle Offline SGP Time: {ipp_time:.4f}')
+            print(f'Oracle Offline SGP RMSE: {rmse:.4f}')
+            results[num_waypoints]['ParamTime']['offline_sgp'].append(gp_time)
+            results[num_waypoints]['IPPTime']['offline_sgp'].append(ipp_time)
+            results[num_waypoints]['RMSE']['offline_sgp'].append(rmse)
 
-        print(f'\nOracle Offline SGP Time: {offline_sgp_time:.4f}')
-        print(f'Oracle Offline SGP RMSE: {offline_sgp_rmse:.4f}')
-        results_param_time['oracle_offline_sgp'].append(gp_time)
-        results_ipp_time['oracle_offline_sgp'].append(offline_sgp_time)
-        results_rmse['oracle_offline_sgp'].append(offline_sgp_rmse)
+            # ---------------------------------------------------------------------------------
 
-        # ---------------------------------------------------------------------------------
+            # Oracle Offline CMA_ES
+            start_time = time()
+            cma_es = CMA_ES(candidates, 
+                            noise_variance_opt,
+                            kernel_opt, 
+                            num_robots=num_robots,
+                            transform=transform)
+            cma_sol = cma_es.optimize(X_init=Xu_init, 
+                                    max_steps=5000)
+            cma_sol = cma_sol.reshape(num_robots, num_waypoints, 2)
+            end_time = time()
+            ipp_time = end_time-start_time
 
-        # Oracle Offline CMA_ES
-        start_time = time()
-        cma_es = CMA_ES(candidates, 
-                        noise_variance_opt,
-                        kernel_opt, 
-                        num_robots=num_robots,
-                        transform=transform)
-        cma_sol = cma_es.optimize(X_init=Xu_init, 
-                                  max_steps=5000)
-        cma_sol = cma_sol.reshape(num_robots, num_waypoints, 2)
-        end_time = time()
-        cma_time = end_time-start_time
+            # Get RMSE from oracle hyperparameters
+            cma_X, cma_y = [], []
+            for r in range(num_robots):
+                X_new, y_new = path2data(cma_sol[r])
+                cma_X.extend(X_new)
+                cma_y.extend(y_new)
+            cma_X = np.array(cma_X)
+            cma_y = np.array(cma_y)
+            y_pred, _ = get_reconstruction((cma_X, cma_y), 
+                                        X_test, 
+                                        noise_variance_opt, 
+                                        kernel_opt)
+            rmse = get_rmse(y_pred, y_test)
 
-        # Get RMSE from oracle hyperparameters
-        cma_X, cma_y = [], []
-        for r in range(num_robots):
-            X_new, y_new = path2data(cma_sol[r])
-            cma_X.extend(X_new)
-            cma_y.extend(y_new)
-        cma_X = np.array(cma_X)
-        cma_y = np.array(cma_y)
-        y_pred, _ = get_reconstruction((cma_X, cma_y), 
-                                    X_test, 
-                                    noise_variance_opt, 
-                                    kernel_opt)
-        cma_rmse = get_rmse(y_pred, y_test)
-
-        print(f'\nOracle Offline CMA Time: {cma_time:.4f}')
-        print(f'Oracle Offline CMA RMSE: {cma_rmse:.4f}')
-        results_param_time['oracle_offline_cma'].append(gp_time)
-        results_ipp_time['oracle_offline_cma'].append(cma_time)
-        results_rmse['oracle_offline_cma'].append(cma_rmse)
+            print(f'\nOracle Offline CMA Time: {ipp_time:.4f}')
+            print(f'Oracle Offline CMA RMSE: {rmse:.4f}')
+            results[num_waypoints]['ParamTime']['offline_cma'].append(gp_time)
+            results[num_waypoints]['IPPTime']['offline_cma'].append(ipp_time)
+            results[num_waypoints]['RMSE']['offline_cma'].append(rmse)
 
         # ---------------------------------------------------------------------------------
 
         # Dump the results to a json file
-        results_mc[num_waypoints] = {'RMSE': results_rmse,
-                                     'Param-Time': results_param_time,
-                                     'IPP-Time': results_ipp_time}
         with open(f'AIPP_{num_robots}R_{dataset}_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
-            json.dump(results_mc, f, ensure_ascii=False, indent=4)
+            json.dump(results, f, ensure_ascii=False, indent=4)
 
 
 if __name__=='__main__':
@@ -315,6 +337,6 @@ if __name__=='__main__':
     num_mc = 1
     num_robots = 1
     max_dist = 100
-    sampling_rate = 2
+    sampling_rate = 5
     
     main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate)
