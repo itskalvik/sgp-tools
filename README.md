@@ -18,17 +18,17 @@ The library includes python code for the following:
 </p>
 
 ## Installation
-The library is available as a ```pip``` package. To install the package, run the following commands:
+The library is available as a ```pip``` package. To install the package, run the following command:
 
 ```
-sudo apt-get install python3-pip libgdal-dev gdal-bin -y
 python3 -m pip install sgptools
 ```
 
 Installation from source:
 
 ```
-sudo apt-get install libhdf5-dev python3-pip -y
+git clone https://github.com/itskalvik/sgp-tools.git
+cd sgp-tools/
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
@@ -56,6 +56,7 @@ Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/
             - `augmented_gpr.py`: GPflow's GP that supports transforms (expansion and aggregation)
             - `augmented_sgpr.py`: GPflow's SGP that supports transforms (expansion and aggregation)
             - `transformations.py`: Expansion and aggregation transforms for IPP
+            - `osgpr.py`: Thang Bui's implementation of online sparse variational GP used for online/adaptive IPP
         - `bo.py`: Bayesian optimization-based sensor placement method that maximizes mutual information
         - `cma_es.py`: Genetic algorithm-based sensor placement method that maximizes mutual information
         - `continuous_sgp.py`: Continuous SGP-based sensor placement method
@@ -69,7 +70,7 @@ Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/
         - `tsp.py`: TSP solver
 
 ## Datasets
-* The US elevation datasets can be downloaded from [here](https://coast.noaa.gov/digitalcoast/)
+* High-resolution topography and bathymetry datasets can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/digitalcoast/).
 
 ## About SGP-Tools
 Please consider citing the following papers if you use SGP-Tools in your academic work :smile:

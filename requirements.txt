@@ -13,4 +13,4 @@ cma==3.4.0
 bayesian-optimization==1.5.1
 hkb-diamondsquare==1.0.2
 typing_extensions==4.12.2
-GDAL==3.4.1
+pillow==10.4.0

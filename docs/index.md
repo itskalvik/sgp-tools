@@ -13,22 +13,22 @@ The library includes python code for the following:
 <p align="center"><img src="assets/point_sensing.gif"><img src="assets/non-point_sensing.gif"></p>
 
 ## Installation
-The library is available as a ```pip``` package. To install the package, run the following commands:
+The library is available as a ```pip``` package. To install the package, run the following command:
 
 ```
-sudo apt-get install python3-pip libgdal-dev gdal-bin -y
 python3 -m pip install sgptools
 ```
 
 Installation from source:
 
 ```
-sudo apt-get install libhdf5-dev python3-pip -y
+git clone https://github.com/itskalvik/sgp-tools.git
+cd sgp-tools/
 python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
-Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
+Note: The requirements.txt file contains packages and their latest versions that were last verified to be working without any issues.
 
 ## Quick Start
 Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/examples) folder for Jupyter notebooks demonstrating all the methods included in the library 😄

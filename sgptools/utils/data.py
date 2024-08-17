@@ -18,12 +18,8 @@ from .misc import get_inducing_pts, cont2disc
 from sklearn.preprocessing import StandardScaler
 from hkb_diamondsquare.DiamondSquare import diamond_square
 
-# Load optional dependency  
-try:
-    from osgeo import gdal
-except:
-    pass
-
+import PIL
+PIL.Image.MAX_IMAGE_PIXELS = 317500000
 
 ####################################################
 # Utils used to prepare synthetic datasets  
@@ -98,16 +94,23 @@ def prep_tif_dataset(dataset_path):
        X: (n, d); Dataset input features
        y: (n, 1); Dataset labels
     '''
-    ds = gdal.Open(dataset_path)
-    cols = ds.RasterXSize
-    rows = ds.RasterYSize
-    band = ds.GetRasterBand(1)
-    data = band.ReadAsArray(0, 0, cols, rows)
-    data[np.where(data==-999999.0)] = np.nan
+    data = PIL.Image.open(dataset_path)
+    data = np.array(data)
 
-    x1, x2 = np.where(np.isfinite(data))
-    X = np.vstack([x1, x2]).T
-    y = data[x1, x2].reshape(-1, 1)
+    # create x and y coordinates from the extent
+    x_coords = np.arange(0, data.shape[1])/10
+    y_coords = np.arange(data.shape[0], 0, -1)/10
+    xx, yy = np.meshgrid(x_coords, y_coords)
+    X = np.c_[xx.ravel(), yy.ravel()]
+    y = data.ravel()
+
+    # Remove invalid labels
+    y[np.where(y==-999999.0)] = np.nan
+    X = X[~np.isnan(y)]
+    y = y[~np.isnan(y)]
+
+    X = X.reshape(-1, 2)
+    y = y.reshape(-1, 1)
 
     return X.astype(float), y.astype(float)
 

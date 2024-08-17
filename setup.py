@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 setup(
     name='sgptools',
@@ -29,6 +29,7 @@ setup(
                       'tensorflow>=2.13.0; platform_machine!="arm64"',
                       'tensorflow-aarch64>=2.13.0; platform_machine=="arm64"',
                       'typing_extensions',
-                      'gpflow>=2.7.0'
+                      'gpflow>=2.7.0',
+                      'pillow'
                      ]
 )
