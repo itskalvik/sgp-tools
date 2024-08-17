@@ -239,6 +239,7 @@ class IPPTransform(Transform):
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(Xu_fixed)
         else:
+            # ToDo: Use binary mask of fixed size to avoid retracing
             self.Xu_fixed = tf.Variable(Xu_fixed, 
                                         shape=tf.TensorShape(None), 
                                         trainable=False)

@@ -138,7 +138,8 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
     return np.array(sol_data_X), np.array(sol_data_y), total_time_param, total_time_ipp 
 
 
-def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
+def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate, xrange):
+    dataset = dataset_path.split('/')[-2]
     print(f'Dataset: {dataset}')
     print(f'Num MC: {num_mc}')
     print(f'Num Robots: {num_robots}')
@@ -153,7 +154,8 @@ def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
         path2data = lambda x : cont2disc(x, X, y)
 
     # Get the data
-    X_train, y_train, X_test, y_test, candidates, X, y = get_dataset(dataset, dataset_path,
+    X_train, y_train, X_test, y_test, candidates, X, y = get_dataset(dataset_type,
+                                                                     dataset_path,
                                                                      num_train=1000)
     
     # Get oracle hyperparameters to benchmark rmse
@@ -175,13 +177,13 @@ def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
                                                 print_params=False)
 
     results = dict()
-    for num_waypoints in range(5, 101, 5):
+    for num_waypoints in xrange:
         results[num_waypoints] = {'RMSE': defaultdict(list),
                                   'ParamTime': defaultdict(list),
                                   'IPPTime': defaultdict(list)}
         
     for mc in range(num_mc):
-        for num_waypoints in range(5, 101, 5):
+        for num_waypoints in xrange:
             print(f'\nNum Waypoints: {num_waypoints}')
 
             # Generate initial paths
@@ -326,17 +328,21 @@ def main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate):
 
         # ---------------------------------------------------------------------------------
 
-        # Dump the results to a json file
-        with open(f'AIPP_{num_robots}R_{dataset}_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
-            json.dump(results, f, ensure_ascii=False, indent=4)
+            # Dump the results to a json file
+            with open(f'AIPP_{num_robots}R_{dataset}_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
+                json.dump(results, f, ensure_ascii=False, indent=4)
 
 
 if __name__=='__main__':
-    dataset = 'tif'
-    dataset_path = 'datasets/elevation/ak2023_wrangell_dem_J1054332_001_000-1.tif'
-    num_mc = 1
-    num_robots = 1
     max_dist = 100
-    sampling_rate = 5
+    dataset_type = 'tif'
+
+    num_mc = 10
+    dataset_path = 'datasets/elevation/ak2023_wrangell_dem_J1054332_001_000-1.tif'
+    num_robots = 1
+    sampling_rate = 2
+    xrange = range(5, 101, 5)
     
-    main(dataset, dataset_path, num_mc, num_robots, max_dist, sampling_rate)
+    main(dataset_type, dataset_path, 
+         num_mc, num_robots, 
+         max_dist, sampling_rate, xrange)
