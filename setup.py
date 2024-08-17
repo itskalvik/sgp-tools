@@ -12,6 +12,7 @@ setup(
     author_email='itskalvik@gmail.com',
     author='Kalvik',
     description='Software Suite for Sensor Placement and Informative Path Planning',
+    long_description='Software Suite for Sensor Placement and Informative Path Planning',
     install_requires=['apricot-select',
                       'matplotlib',
                       'pandas',
@@ -24,8 +25,9 @@ setup(
                       'cma',
                       'bayesian-optimization',
                       'hkb_diamondsquare',
-                      'tensorflow-probability>=0.21.0',
-                      'tensorflow>=2.13.0',
+                      'tensorflow-probability[tf]>=0.21.0',
+                      'tensorflow>=2.13.0; platform_machine!="arm64"',
+                      'tensorflow-aarch64>=2.13.0; platform_machine=="arm64"',
                       'typing_extensions',
                       'gpflow>=2.7.0'
                      ]
