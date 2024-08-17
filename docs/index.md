@@ -13,7 +13,7 @@ The library includes python code for the following:
 <p align="center"><img src="assets/point_sensing.gif"><img src="assets/non-point_sensing.gif"></p>
 
 ## Installation
-The library is available as a ```pip``` package. To install the package, run the following command:
+The library is available as a ```pip``` package. To install the package, run the following commands:
 
 ```
 sudo apt-get install python3-pip libgdal-dev gdal-bin -y
@@ -31,7 +31,7 @@ python3 -m pip install -e .
 Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
 
 ## Quick Start
-Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/master/examples) folder for Jupyter notebooks demonstrating all the methods included in the library 😄
+Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/examples) folder for Jupyter notebooks demonstrating all the methods included in the library 😄
 
 ## Method Summary
 <p align="center"><div class="video-con"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></p>

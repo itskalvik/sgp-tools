@@ -18,7 +18,7 @@ The library includes python code for the following:
 </p>
 
 ## Installation
-The library is available as a ```pip``` package. To install the package, run the following command:
+The library is available as a ```pip``` package. To install the package, run the following commands:
 
 ```
 sudo apt-get install python3-pip libgdal-dev gdal-bin -y
@@ -36,7 +36,7 @@ python3 -m pip install -e .
 Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
 
 ## Quick Start
-Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/master/examples) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
+Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/examples) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
 
 ## Method Summary
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
