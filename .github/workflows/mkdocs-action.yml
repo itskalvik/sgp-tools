@@ -1,8 +1,9 @@
 name: Update mkdocs website
+
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [released]
+
 permissions:
   contents: write
 jobs:

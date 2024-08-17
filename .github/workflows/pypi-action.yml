@@ -1,9 +1,8 @@
-name: Publish Python Package
+name: Publish python package
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [released]
 
 jobs:
   build:
