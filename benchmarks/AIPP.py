@@ -2,6 +2,7 @@ import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 import json
+import argparse
 import numpy as np
 from time import time
 from collections import defaultdict
@@ -139,11 +140,13 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
 
 
 def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate, xrange):
-    dataset = dataset_path.split('/')[-2]
+    dataset = dataset_path.split('/')[-1][:-4]
     print(f'Dataset: {dataset}')
     print(f'Num MC: {num_mc}')
     print(f'Num Robots: {num_robots}')
     print(f'Sampling Rate: {sampling_rate}')
+    print(f'Dataset Path: {dataset_path}')
+    print(f'Range: {xrange}')
 
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
@@ -192,6 +195,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                 num_vehicles=num_robots, 
                                 max_dist=max_dist, 
                                 resample=num_waypoints)
+            Xu_init += np.random.normal(size=Xu_init.shape)
             
             # Setup the IPP Transform
             transform = IPPTransform(num_robots=num_robots,
@@ -239,7 +243,8 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                                                   Xu_init,
                                                                   path2data,
                                                                   continuous_ipp,
-                                                                  'CMA')
+                                                                  'CMA',
+                                                                  'SSGP' if continuous_ipp else 'GP')
             # Get RMSE from oracle hyperparameters
             y_pred, _ = get_reconstruction((online_X, online_y), 
                                         X_test, 
@@ -334,15 +339,22 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
 
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser(description="AIPP benchmark")
+    parser.add_argument("--num_mc", type=int, default=10)
+    parser.add_argument("--num_robots", type=int, default=1)
+    parser.add_argument("--sampling_rate", type=int, default=2)
+    parser.add_argument("--max_range", type=int, default=101)
+    parser.add_argument("--dataset_path", type=str, 
+                        default='datasets/elevation/elevation-1.tif')
+    args=parser.parse_args()
+
     max_dist = 100
     dataset_type = 'tif'
-
-    num_mc = 10
-    dataset_path = 'datasets/elevation/ak2023_wrangell_dem_J1054332_001_000-1.tif'
-    num_robots = 1
-    sampling_rate = 2
-    xrange = range(5, 101, 5)
-    
-    main(dataset_type, dataset_path, 
-         num_mc, num_robots, 
-         max_dist, sampling_rate, xrange)
+    xrange = range(5, args.max_range, 5)
+    main(dataset_type, 
+         args.dataset_path, 
+         args.num_mc, 
+         args.num_robots, 
+         max_dist, 
+         args.sampling_rate, 
+         xrange)

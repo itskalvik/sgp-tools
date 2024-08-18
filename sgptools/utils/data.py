@@ -50,7 +50,7 @@ def remove_circle_patches(X, Y, circle_patches):
     Args:
         X  (ndarray): (N,); array of x-coordinate
         Y  (ndarray): (N,); array of y-coordinate
-        polygons (list of matplotlib circle patches): Circle patches to remove from the X, Y points
+        circle_patches (list of matplotlib circle patches): Circle patches to remove from the X, Y points
 
     Returns:
         X  (ndarray): (N,); array of x-coordinate
@@ -164,8 +164,8 @@ def get_dataset(dataset_type, dataset_path=None,
        X_test (ndarray): (n, d); Testing set inputs
        y_test (ndarray): (n, 1); Testing set labels
        candidates (ndarray): (n, d); Candidate sensor placement locations
-       X: (n, d); Full dataset inputs
-       y: (n, 1); Full dataset labels
+       X (ndarray): (n, d); Full dataset inputs
+       y (ndarray): (n, 1); Full dataset labels
     """
     # Load the data
     if dataset_type == 'tif':

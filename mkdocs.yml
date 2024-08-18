@@ -38,6 +38,8 @@ theme:
     - navigation.top
     - navigation.tabs.sticky
     - navigation.tabs
+    - navigation.sections
+    - navigation.indexes 
 
 plugins:
   - mkdocstrings
@@ -46,7 +48,30 @@ plugins:
 
 nav:
   - index.md
-  - API-reference.md
+  - API Documentation:
+    - models:    
+      - "": api/models/index.md 
+      - api/models/Bayesian-Optimization.md
+      - api/models/Genetic-Algorithm.md
+      - api/models/Continuous-SGP.md
+      - api/models/Greedy-MI.md
+      - api/models/Greedy-SGP.md
+    - models.core:
+      - "": api/models/core/index.md
+      - api/models/core/AugmentedGPR.md
+      - api/models/core/AugmentedSGPR.md
+      - api/models/core/OSGPR.md
+      - api/models/core/Transformations.md
+    - kernels: 
+      - "": api/kernels/index.md
+      - api/kernels/Neural-Kernel.md
+    - utils:
+      - "": api/utils/index.md
+      - api/utils/Data.md
+      - api/utils/GPflow.md
+      - api/utils/Metrics.md
+      - api/utils//Misc.md
+      - api/utils/TSP.md
 
 extra_css:
   - stylesheets/extra.css
