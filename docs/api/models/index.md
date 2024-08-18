@@ -2,3 +2,6 @@
 ![Image title](../../assets/logo_dark.png#only-dark)
 
 ::: sgptools.models
+    options:
+      show_root_heading: true
+      show_source: true
