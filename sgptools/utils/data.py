@@ -118,7 +118,9 @@ def prep_tif_dataset(dataset_path):
 
 def prep_synthetic_dataset():
     '''Generates a 50x50 grid of synthetic elevation data using the diamond square algorithm.
-    ```https://github.com/buckinha/DiamondSquare```
+    
+    Refer to the following repo for more details:
+        - [https://github.com/buckinha/DiamondSquare](https://github.com/buckinha/DiamondSquare)
     
     Args:
 

@@ -36,7 +36,7 @@ python3 -m pip install -e .
 Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
 
 ## Quick Start
-Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/examples) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
+Please refer to [examples](https://www.itskalvik.com/sgp-tools/examples/IPP.html) for Jupyter notebooks demonstrating all the methods included in the library :smile:
 
 ## Method Summary
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
@@ -70,7 +70,8 @@ Please refer to the [examples](https://github.com/itskalvik/sgp-tools/tree/main/
         - `tsp.py`: TSP solver
 
 ## Datasets
-* High-resolution topography and bathymetry datasets can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/digitalcoast/).
+* High-resolution topography data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:ID=10046/details/10046)
+* High-resolution bathymetry data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:id=2475/details/2475)
 
 ## About SGP-Tools
 Please consider citing the following papers if you use SGP-Tools in your academic work :smile:
