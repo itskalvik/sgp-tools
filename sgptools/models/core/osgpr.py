@@ -227,7 +227,8 @@ def init_osgpr(X_train,
                num_inducing=10, 
                lengthscales=1.0, 
                variance=1.0,
-               noise_variance=0.001):
+               noise_variance=0.001,
+               kernel=None):
     """Initialize a VFE OSGPR model with an RBF kernel with 
     unit variance and lengthcales, and 0.001 noise variance.
     Used in the Online Continuous SGP approach. 
@@ -237,19 +238,24 @@ def init_osgpr(X_train,
                         They only effect the initial inducing point locations, 
                         i.e., limits them to the bounds of the data
         num_inducing (int): Number of inducing points
-        lengthscales (ndarray or list): Kernel lengthscale of each dimension of the data
+        lengthscales (float or list): Kernel lengthscale(s), if passed as a list, 
+                                each element corresponds to each data dimension
         variance (float): Kernel variance
-        noise_variance (float): Data variance
+        noise_variance (float): Data noise variance
+        kernel (gpflow.kernels.Kernel): gpflow kernel function
 
     Returns:
         online_param (OSGPR_VFE): Initialized online sparse Gaussian process model
     """
 
+    if kernel is None:
+        kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales, 
+                                                   variance=variance)
+        
     y_train = np.zeros((len(X_train), 1), dtype=X_train.dtype)
     Z_init = get_inducing_pts(X_train, num_inducing)
     init_param = gpflow.models.SGPR((X_train, y_train),
-                                    gpflow.kernels.RBF(variance=variance, 
-                                                       lengthscales=lengthscales), 
+                                    kernel, 
                                     inducing_variable=Z_init, 
                                     noise_variance=noise_variance)
     
