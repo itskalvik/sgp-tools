@@ -182,7 +182,8 @@ class IPPTransform(Transform):
 
     Usage details: 
         * For point sensing, set `sampling_rate = 2`
-        * For continuous sensing, set `sampling_rate > 2` (approx the data collected along the path)
+        * For continuous sensing, set `sampling_rate > 2` (account for the information along the path)
+        * For continuous sensing with aggregation, set `sampling_rate > 2` and `aggregate_fov = True` (faster but solution quality is a bit diminished)
         * For multi-robot case, set `num_robots > 1`
         * For onlineIPP use `update_fixed` to freeze the visited waypoints
 
@@ -194,6 +195,9 @@ class IPPTransform(Transform):
         num_dim (int): Dimension of the data collection environment
         sensor_model (Transform): Transform object to expand each inducing point to `p` points 
                                   approximating each sensor's FoV
+        aggregate_fov (bool): Used only when sampling_rate > 2, i.e., when using a continuous sensing model. 
+                              If `True`, covariances corresponding to interpolated inducing points along each edge
+                              of the path are aggregated to reduce the matrix inversion cost.
     """
     def __init__(self, 
                  sampling_rate=2, 
@@ -202,6 +206,7 @@ class IPPTransform(Transform):
                  Xu_fixed=None,
                  num_dim=2,
                  sensor_model=None,
+                 aggregate_fov=False,
                  **kwargs):
         super().__init__(**kwargs)
         if sampling_rate < 2:
@@ -213,12 +218,9 @@ class IPPTransform(Transform):
         self.num_dim = num_dim
         self.sensor_model = sensor_model
 
-        # Disable aggregation if aggregation size was explicitly set to 0
-        if self.aggregation_size == 0:
-            self.aggregation_size = None
-        # Set aggregation size to sampling rate if aggregation size was not set
+        # Set aggregation size to sampling rate if aggregate_fov is True
         # and sampling rate is enabled (greater than 2)
-        elif self.aggregation_size is None and sampling_rate > 2:
+        if aggregate_fov and sampling_rate > 2:
             self.aggregation_size = sampling_rate
     
         # Initilize variable to store visited waypoints for onlineIPP

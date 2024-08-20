@@ -219,8 +219,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                         
             # Setup the IPP Transform
             transform = IPPTransform(num_robots=num_robots,
-                                     sampling_rate=sampling_rate,
-                                     aggregation_size=0)
+                                     sampling_rate=sampling_rate)
         
             # ---------------------------------------------------------------------------------
 
@@ -262,7 +261,8 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                              noise_variance, 
                                              kernel,
                                              IPPTransform(num_robots=num_robots,
-                                                          sampling_rate=sampling_rate),
+                                                          sampling_rate=sampling_rate,
+                                                          aggregate_fov=True),
                                              Xu_init=Xu_init.reshape(-1, 2), 
                                              max_steps=0)
                 online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
@@ -361,7 +361,8 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                              noise_variance_opt, 
                                              kernel_opt,
                                              IPPTransform(num_robots=num_robots,
-                                                          sampling_rate=sampling_rate),
+                                                          sampling_rate=sampling_rate,
+                                                          aggregate_fov=True),
                                              Xu_init=Xu_init.reshape(-1, 2), 
                                              optimizer='scipy')
                 offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
