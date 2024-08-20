@@ -91,7 +91,7 @@ def optimize_model(model,
                    max_steps=2000, 
                    kernel_grad=True, 
                    lr=1e-2, 
-                   optimizer='tf', 
+                   optimizer='scipy', 
                    method=None,
                    verbose=False, 
                    trace_fn=None,
@@ -107,7 +107,8 @@ def optimize_model(model,
         kernel_grad (bool): If False, the kernel parameters will not be optimized
         lr (float): Optimization learning rate
         optimizer (str): Optimizer to use for training (`scipy` or `tf`)
-        method (str): Optimization method refer to scipy minimize and tf optimizers for full list
+        method (str): Optimization method refer to [scipy minimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize) 
+                      and [tf optimizers](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers) for full list
         verbose (bool): If true, the training progress will be printed
         trace_fn (str): Function to trace metrics during training. 
                         If `None`, the loss values are traced;

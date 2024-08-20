@@ -5,7 +5,9 @@ import json
 import argparse
 import numpy as np
 from time import time
+from copy import deepcopy
 from collections import defaultdict
+import tensorflow_probability as tfp
 
 from sgptools.utils.data import *
 from sgptools.utils.misc import *
@@ -19,8 +21,10 @@ from sgptools.models.continuous_sgp import *
 from sgptools.models.core.augmented_gpr import *
 from sgptools.models.core.transformations import *
 
-np.random.seed(10)
-tf.random.set_seed(10)
+gpflow.config.set_default_likelihood_positive_minimum(1e-4)
+
+np.random.seed(1234)
+tf.random.set_seed(1234)
 
 
 '''
@@ -63,13 +67,18 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
     else:
         offset = 1
 
+    init_kernel = deepcopy(ipp_model.kernel)
+    try: # SGP
+        init_noise_variance = ipp_model.likelihood.variance
+    except: # CMA
+        init_noise_variance = ipp_model.noise_variance
+
     if param_method=='SSGP':
         param_model = init_osgpr(X_train, 
                                  num_inducing=40, 
-                                 lengthscales=1.0,
-                                 variance=1.0,
-                                 noise_variance=1e-4)
-
+                                 kernel=init_kernel,
+                                 noise_variance=init_noise_variance)
+        
     sol_data_X = []
     sol_data_y = []
     for time_step in range(offset, num_waypoints+1):
@@ -93,10 +102,9 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             # Starting from initial params ensures recovery from bad params
             _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
                                                          np.array(sol_data_y),
-                                                         lengthscales=1.0,
-                                                         variance=1.0,
-                                                         noise_variance=1e-4,
-                                                         print_params=False,
+                                                         kernel=init_kernel,
+                                                         noise_variance=init_noise_variance,
+                                                         print_params=True,
                                                          optimizer='scipy')
         elif param_method=='SSGP':
             param_model.update((np.array(data_X_batch), 
@@ -124,7 +132,6 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
         if ipp_method == 'SGP':
             _ = optimize_model(ipp_model,
                                kernel_grad=False, 
-                               method='CG',
                                optimizer='scipy')
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
@@ -165,30 +172,41 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
     start_time = time()
     _, noise_variance_opt, kernel_opt = get_model_params(X_train, y_train, 
                                                          print_params=True,
-                                                         optimizer='scipy',
-                                                         method='CG')
+                                                         optimizer='scipy')
     end_time = time()
     gp_time = end_time - start_time
     print(f'GP Training Time: {gp_time:.2f}')
 
-    # Get initial hyperparameters
-    _, noise_variance, kernel = get_model_params(X_train, y_train, 
-                                                 lengthscales=1.0,
-                                                 variance=1.0,
-                                                 noise_variance=1e-4,
-                                                 max_steps=0,
-                                                 print_params=False)
-
     results = dict()
     for num_waypoints in xrange:
-        results[num_waypoints] = {'online_sgp': defaultdict(list),
-                                  'online_cma': defaultdict(list),
+        results[num_waypoints] = {'online_sgp':  defaultdict(list),
+                                  'online_cma':  defaultdict(list),
                                   'offline_sgp': defaultdict(list),
                                   'offline_cma': defaultdict(list)}
         
     for mc in range(num_mc):
         for num_waypoints in xrange:
             print(f'\nNum Waypoints: {num_waypoints}', flush=True)
+
+            # Get random hyperparameters
+            _, noise_variance, kernel = get_model_params(X_train, y_train, 
+                                                         max_steps=0,
+                                                         print_params=False)
+            # Set lower and upper limits on the hyperparameters
+            kernel.variance = gpflow.Parameter(
+                np.random.normal(1.0, 0.01),
+                transform=tfp.bijectors.SoftClip(
+                    gpflow.utilities.to_default_float(0.1),
+                    gpflow.utilities.to_default_float(50.0),
+                ),
+            )
+            kernel.lengthscales = gpflow.Parameter(
+                np.random.normal(1.0, 0.01),
+                transform=tfp.bijectors.SoftClip(
+                    gpflow.utilities.to_default_float(0.1),
+                    gpflow.utilities.to_default_float(50.0),
+                ),
+            )
 
             # Generate initial paths
             Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
@@ -206,12 +224,12 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
 
             # Online Continuous SGP
             ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                        X_train, 
-                                        noise_variance, 
-                                        kernel,
-                                        transform,
-                                        Xu_init=Xu_init.reshape(-1, 2), 
-                                        max_steps=0)
+                                         X_train, 
+                                         noise_variance, 
+                                         kernel,
+                                         transform,
+                                         Xu_init=Xu_init.reshape(-1, 2), 
+                                         max_steps=0)
             online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
                                                                   ipp_sgpr, 
                                                                   Xu_init,
@@ -236,7 +254,9 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             # ---------------------------------------------------------------------------------
 
             # Online Param CMA_ES
-            cma_es = CMA_ES(candidates, noise_variance, kernel, 
+            cma_es = CMA_ES(candidates, 
+                            noise_variance, 
+                            kernel,
                             num_robots=num_robots,
                             transform=transform)
             online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
@@ -270,8 +290,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                          kernel_opt,
                                          transform,
                                          Xu_init=Xu_init.reshape(-1, 2), 
-                                         optimizer='scipy',
-                                         method='CG')
+                                         optimizer='scipy')
             offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
             offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
             end_time = time()
@@ -344,14 +363,15 @@ if __name__=='__main__':
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
-    parser.add_argument("--max_range", type=int, default=101)
     parser.add_argument("--dataset_path", type=str, 
-                        default='datasets/elevation/elevation-1.tif')
+                        default='datasets/bathymetry/bathymetry.tif')
     args=parser.parse_args()
 
-    max_dist = 200
+    max_dist = 250
     dataset_type = 'tif'
-    xrange = range(5, args.max_range, 5)
+    max_range = 101 if args.num_robots==1 else 51
+    max_range = 101 if args.sampling_rate==2 else 51
+    xrange = range(5, max_range, 5)
     main(dataset_type, 
          args.dataset_path, 
          args.num_mc, 
