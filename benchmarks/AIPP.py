@@ -104,7 +104,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
                                                          np.array(sol_data_y),
                                                          kernel=init_kernel,
                                                          noise_variance=init_noise_variance,
-                                                         print_params=True,
+                                                         print_params=False,
                                                          optimizer='scipy')
         elif param_method=='SSGP':
             param_model.update((np.array(data_X_batch), 
@@ -179,10 +179,12 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
 
     results = dict()
     for num_waypoints in xrange:
-        results[num_waypoints] = {'online_sgp':  defaultdict(list),
-                                  'online_cma':  defaultdict(list),
-                                  'offline_sgp': defaultdict(list),
-                                  'offline_cma': defaultdict(list)}
+        results[num_waypoints] = {'online_sgp':      defaultdict(list),
+                                  'online_sgp_cov':  defaultdict(list),
+                                  'online_cma':      defaultdict(list),
+                                  'offline_sgp':     defaultdict(list),
+                                  'offline_sgp_cov': defaultdict(list),
+                                  'offline_cma':     defaultdict(list)}
         
     for mc in range(num_mc):
         for num_waypoints in xrange:
@@ -250,6 +252,39 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             results[num_waypoints]['online_sgp']['ParamTime'].append(gp_time)
             results[num_waypoints]['online_sgp']['IPPTime'].append(ipp_time)
             results[num_waypoints]['online_sgp']['RMSE'].append(rmse)
+
+            # ---------------------------------------------------------------------------------
+
+            if continuous_ipp:
+                # Online Continuous SGP with covariance aggregation
+                ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                             X_train, 
+                                             noise_variance, 
+                                             kernel,
+                                             IPPTransform(num_robots=num_robots,
+                                                          sampling_rate=sampling_rate),
+                                             Xu_init=Xu_init.reshape(-1, 2), 
+                                             max_steps=0)
+                online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
+                                                                     ipp_sgpr, 
+                                                                     Xu_init,
+                                                                     path2data,
+                                                                     continuous_ipp,
+                                                                     'SGP',
+                                                                     'SSGP' if continuous_ipp else 'GP')
+                # Get RMSE from oracle hyperparameters
+                y_pred, _ = get_reconstruction((online_X, online_y), 
+                                               X_test, 
+                                               noise_variance_opt, 
+                                               kernel_opt)
+                rmse = get_rmse(y_pred, y_test)
+
+                print(f'\nOnline SGP Cov Param Time: {param_time:.4f}')
+                print(f'Online SGP Cov IPP Time: {ipp_time:.4f}')
+                print(f'Online SGP Cov RMSE: {rmse:.4f}')
+                results[num_waypoints]['online_sgp_cov']['ParamTime'].append(gp_time)
+                results[num_waypoints]['online_sgp_cov']['IPPTime'].append(ipp_time)
+                results[num_waypoints]['online_sgp_cov']['RMSE'].append(rmse)
             
             # ---------------------------------------------------------------------------------
 
@@ -315,6 +350,44 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             results[num_waypoints]['offline_sgp']['ParamTime'].append(gp_time)
             results[num_waypoints]['offline_sgp']['IPPTime'].append(ipp_time)
             results[num_waypoints]['offline_sgp']['RMSE'].append(rmse)
+
+            # ---------------------------------------------------------------------------------
+
+            if continuous_ipp:
+                # Oracle Offline Continuous SGP
+                start_time = time()
+                ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                             X_train, 
+                                             noise_variance_opt, 
+                                             kernel_opt,
+                                             IPPTransform(num_robots=num_robots,
+                                                          sampling_rate=sampling_rate),
+                                             Xu_init=Xu_init.reshape(-1, 2), 
+                                             optimizer='scipy')
+                offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
+                offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
+                end_time = time()
+                ipp_time = end_time-start_time
+
+                # Get RMSE from oracle hyperparameters
+                offline_X, offline_y = [], []
+                for r in range(num_robots):
+                    X_new, y_new = path2data(offline_sgp_sol[r])
+                    offline_X.extend(X_new)
+                    offline_y.extend(y_new)
+                offline_X = np.array(offline_X)
+                offline_y = np.array(offline_y)
+                y_pred, _ = get_reconstruction((offline_X, offline_y), 
+                                               X_test, 
+                                               noise_variance_opt, 
+                                               kernel_opt)
+                rmse = get_rmse(y_pred, y_test)
+
+                print(f'\nOracle Offline SGP Cov Time: {ipp_time:.4f}')
+                print(f'Oracle Offline SGP Cov RMSE: {rmse:.4f}')
+                results[num_waypoints]['offline_sgp_cov']['ParamTime'].append(gp_time)
+                results[num_waypoints]['offline_sgp_cov']['IPPTime'].append(ipp_time)
+                results[num_waypoints]['offline_sgp_cov']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
