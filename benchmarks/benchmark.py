@@ -187,13 +187,13 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
 
     results = dict()
     for num_waypoints in xrange:
-        results[num_waypoints] = {'online_sgp':  defaultdict(list),
-                                  'online_cma':  defaultdict(list),
-                                  'offline_sgp': defaultdict(list),
-                                  'offline_cma': defaultdict(list)}
+        results[num_waypoints] = {'Adaptive-SGP':  defaultdict(list),
+                                  'Adaptive-CMA-ES':  defaultdict(list),
+                                  'Online-SGP': defaultdict(list),
+                                  'Online-CMA-ES': defaultdict(list)}
         if continuous_ipp:
-            results[num_waypoints]['online_sgp_cov'] = defaultdict(list)
-            results[num_waypoints]['offline_sgp_cov'] = defaultdict(list)
+            results[num_waypoints]['Adaptive-Agg-SGP'] = defaultdict(list)
+            results[num_waypoints]['Online-Agg-SGP'] = defaultdict(list)
 
     for _ in range(num_mc):
         for num_waypoints in xrange:
@@ -233,7 +233,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
         
             # ---------------------------------------------------------------------------------
 
-            # Online Continuous SGP
+            # Adaptive SGP
             ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                          X_train, 
                                          noise_variance, 
@@ -255,17 +255,17 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                            kernel_opt)
             rmse = get_rmse(y_pred, y_test)
 
-            print(f'\nOnline SGP Param Time: {param_time:.4f}')
-            print(f'Online SGP IPP Time: {ipp_time:.4f}')
-            print(f'Online SGP RMSE: {rmse:.4f}')
-            results[num_waypoints]['online_sgp']['ParamTime'].append(gp_time)
-            results[num_waypoints]['online_sgp']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['online_sgp']['RMSE'].append(rmse)
+            print(f'\nAdaptive-SGP Param Time: {param_time:.4f}')
+            print(f'Adaptive-SGP IPP Time: {ipp_time:.4f}')
+            print(f'Adaptive-SGP RMSE: {rmse:.4f}')
+            results[num_waypoints]['Adaptive-SGP']['ParamTime'].append(gp_time)
+            results[num_waypoints]['Adaptive-SGP']['IPPTime'].append(ipp_time)
+            results[num_waypoints]['Adaptive-SGP']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
+            # Adaptive SGP with covariance aggregation for continuous sensing
             if continuous_ipp:
-                # Online Continuous SGP with covariance aggregation
                 ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                              X_train, 
                                              noise_variance, 
@@ -289,16 +289,16 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                                kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
 
-                print(f'\nOnline SGP Cov Param Time: {param_time:.4f}')
-                print(f'Online SGP Cov IPP Time: {ipp_time:.4f}')
-                print(f'Online SGP Cov RMSE: {rmse:.4f}')
-                results[num_waypoints]['online_sgp_cov']['ParamTime'].append(gp_time)
-                results[num_waypoints]['online_sgp_cov']['IPPTime'].append(ipp_time)
-                results[num_waypoints]['online_sgp_cov']['RMSE'].append(rmse)
+                print(f'\nAdaptive-Agg-SGP Param Time: {param_time:.4f}')
+                print(f'Adaptive-Agg-SGP IPP Time: {ipp_time:.4f}')
+                print(f'Adaptive-Agg-SGP RMSE: {rmse:.4f}')
+                results[num_waypoints]['Adaptive-Agg-SGP']['ParamTime'].append(gp_time)
+                results[num_waypoints]['Adaptive-Agg-SGP']['IPPTime'].append(ipp_time)
+                results[num_waypoints]['Adaptive-Agg-SGP']['RMSE'].append(rmse)
             
             # ---------------------------------------------------------------------------------
 
-            # Online Param CMA_ES
+            # Adaptive CMA_ES
             cma_es = CMA_ES(candidates, 
                             noise_variance, 
                             kernel,
@@ -318,16 +318,16 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                            kernel_opt)
             rmse = get_rmse(y_pred, y_test)
 
-            print(f'\nOnline CMA Param Time: {param_time:.4f}')
-            print(f'Online CMA IPP Time: {ipp_time:.4f}')
-            print(f'Online CMA RMSE: {rmse:.4f}')
-            results[num_waypoints]['online_cma']['ParamTime'].append(gp_time)
-            results[num_waypoints]['online_cma']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['online_cma']['RMSE'].append(rmse)
+            print(f'\nAdaptive-CMA-ES Param Time: {param_time:.4f}')
+            print(f'Adaptive-CMA-ES IPP Time: {ipp_time:.4f}')
+            print(f'Adaptive-CMA-ES RMSE: {rmse:.4f}')
+            results[num_waypoints]['Adaptive-CMA-ES']['ParamTime'].append(gp_time)
+            results[num_waypoints]['Adaptive-CMA-ES']['IPPTime'].append(ipp_time)
+            results[num_waypoints]['Adaptive-CMA-ES']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
-            # Oracle Offline Continuous SGP
+            # Online SGP
             start_time = time()
             ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                          X_train, 
@@ -355,16 +355,16 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                            kernel_opt)
             rmse = get_rmse(y_pred, y_test)
 
-            print(f'\nOracle Offline SGP Time: {ipp_time:.4f}')
-            print(f'Oracle Offline SGP RMSE: {rmse:.4f}')
-            results[num_waypoints]['offline_sgp']['ParamTime'].append(gp_time)
-            results[num_waypoints]['offline_sgp']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['offline_sgp']['RMSE'].append(rmse)
+            print(f'\nOnline-SGP Time: {ipp_time:.4f}')
+            print(f'Online-SGP RMSE: {rmse:.4f}')
+            results[num_waypoints]['Online-SGP']['ParamTime'].append(gp_time)
+            results[num_waypoints]['Online-SGP']['IPPTime'].append(ipp_time)
+            results[num_waypoints]['Online-SGP']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
+            # Online SGP with covariance aggregation for continuous sensing
             if continuous_ipp:
-                # Oracle Offline Continuous SGP
                 start_time = time()
                 ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                              X_train, 
@@ -394,15 +394,15 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                                kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
 
-                print(f'\nOracle Offline SGP Cov Time: {ipp_time:.4f}')
-                print(f'Oracle Offline SGP Cov RMSE: {rmse:.4f}')
-                results[num_waypoints]['offline_sgp_cov']['ParamTime'].append(gp_time)
-                results[num_waypoints]['offline_sgp_cov']['IPPTime'].append(ipp_time)
-                results[num_waypoints]['offline_sgp_cov']['RMSE'].append(rmse)
+                print(f'\nOnline-Agg-SGP Time: {ipp_time:.4f}')
+                print(f'Online-Agg-SGP Cov RMSE: {rmse:.4f}')
+                results[num_waypoints]['Online-Agg-SGP']['ParamTime'].append(gp_time)
+                results[num_waypoints]['Online-Agg-SGP']['IPPTime'].append(ipp_time)
+                results[num_waypoints]['Online-Agg-SGP']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
-            # Oracle Offline CMA_ES
+            # Online CMA-ES
             start_time = time()
             cma_es = CMA_ES(candidates, 
                             noise_variance_opt,
@@ -429,21 +429,21 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                            kernel_opt)
             rmse = get_rmse(y_pred, y_test)
 
-            print(f'\nOracle Offline CMA Time: {ipp_time:.4f}')
-            print(f'Oracle Offline CMA RMSE: {rmse:.4f}')
-            results[num_waypoints]['offline_cma']['ParamTime'].append(gp_time)
-            results[num_waypoints]['offline_cma']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['offline_cma']['RMSE'].append(rmse)
+            print(f'\nOnline-CMA-ES Time: {ipp_time:.4f}')
+            print(f'Online-CMA-ES RMSE: {rmse:.4f}')
+            results[num_waypoints]['Online-CMA-ES']['ParamTime'].append(gp_time)
+            results[num_waypoints]['Online-CMA-ES']['IPPTime'].append(ipp_time)
+            results[num_waypoints]['Online-CMA-ES']['RMSE'].append(rmse)
 
-        # ---------------------------------------------------------------------------------
+            # ---------------------------------------------------------------------------------
 
             # Dump the results to a json file
-            with open(f'AIPP_{num_robots}R_{dataset}_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
+            with open(f'{dataset}_{num_robots}R_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
                 json.dump(results, f, ensure_ascii=False, indent=4)
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description="AIPP benchmark")
+    parser=argparse.ArgumentParser(description="SP/IPP benchmarking script")
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)

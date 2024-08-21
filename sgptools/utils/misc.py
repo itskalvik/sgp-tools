@@ -49,9 +49,10 @@ def cont2disc(Xu, candidates, candidate_labels=None):
                         was passed to the function
 
     """
-    # Sanity check to ensure that there are candidates to match
-    if len(candidates)==0:
+    # Sanity check to ensure that there are sensing locations and candidates to match
+    if len(candidates)==0 or len(Xu)==0:
         return []
+    
     dists = pairwise_distances(candidates, Y=Xu, metric='euclidean')
     row_ind, _ = linear_sum_assignment(dists)
     Xu_X = candidates[row_ind].copy()
