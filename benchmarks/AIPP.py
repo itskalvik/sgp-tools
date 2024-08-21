@@ -93,8 +93,12 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             sol_data_X.extend(X_new)
             sol_data_y.extend(y_new)
 
+        # Skip param and path update if no data was collected
+        if len(data_X_batch) == 0:
+            continue
+
         if time_step == num_waypoints:
-            break # Skip param update for the last waypoint
+            break # Skip param and path update for the last waypoint
 
         # Init/update parameter model
         start_time = time()
@@ -102,15 +106,18 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             # Starting from initial params ensures recovery from bad params
             _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
                                                          np.array(sol_data_y),
-                                                         kernel=init_kernel,
+                                                         kernel=deepcopy(init_kernel),
                                                          noise_variance=init_noise_variance,
                                                          print_params=False,
-                                                         optimizer='scipy')
+                                                         optimizer='scipy',
+                                                         method='CG')
         elif param_method=='SSGP':
             param_model.update((np.array(data_X_batch), 
                                 np.array(data_y_batch)))
             optimize_model(param_model, 
-                           optimizer='scipy')
+                           trainable_variables=param_model.trainable_variables[1:], 
+                           optimizer='scipy',
+                           method='CG')
             noise_variance = param_model.likelihood.variance
             kernel = param_model.kernel
         end_time = time()
@@ -132,7 +139,8 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
         if ipp_method == 'SGP':
             _ = optimize_model(ipp_model,
                                kernel_grad=False, 
-                               optimizer='scipy')
+                               optimizer='scipy',
+                               method='CG')
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
@@ -158,7 +166,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
         continuous_ipp = True
-        path2data = lambda x : cont2disc(interpolate_path(x, sampling_rate=0.1), X, y)
+        path2data = lambda x : cont2disc(interpolate_path(x, sampling_rate=0.2), X, y)
     else:
         continuous_ipp = False
         path2data = lambda x : cont2disc(x, X, y)
@@ -179,14 +187,15 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
 
     results = dict()
     for num_waypoints in xrange:
-        results[num_waypoints] = {'online_sgp':      defaultdict(list),
-                                  'online_sgp_cov':  defaultdict(list),
-                                  'online_cma':      defaultdict(list),
-                                  'offline_sgp':     defaultdict(list),
-                                  'offline_sgp_cov': defaultdict(list),
-                                  'offline_cma':     defaultdict(list)}
-        
-    for mc in range(num_mc):
+        results[num_waypoints] = {'online_sgp':  defaultdict(list),
+                                  'online_cma':  defaultdict(list),
+                                  'offline_sgp': defaultdict(list),
+                                  'offline_cma': defaultdict(list)}
+        if continuous_ipp:
+            results[num_waypoints]['online_sgp_cov'] = defaultdict(list)
+            results[num_waypoints]['offline_sgp_cov'] = defaultdict(list)
+
+    for _ in range(num_mc):
         for num_waypoints in xrange:
             print(f'\nNum Waypoints: {num_waypoints}', flush=True)
 
@@ -196,27 +205,28 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                                          print_params=False)
             # Set lower and upper limits on the hyperparameters
             kernel.variance = gpflow.Parameter(
-                np.random.normal(1.0, 0.01),
+                np.random.normal(1.0, 0.1),
                 transform=tfp.bijectors.SoftClip(
                     gpflow.utilities.to_default_float(0.1),
-                    gpflow.utilities.to_default_float(50.0),
+                    gpflow.utilities.to_default_float(20.0),
                 ),
             )
             kernel.lengthscales = gpflow.Parameter(
-                np.random.normal(1.0, 0.01),
+                np.random.normal(1.0, 0.1),
                 transform=tfp.bijectors.SoftClip(
                     gpflow.utilities.to_default_float(0.1),
-                    gpflow.utilities.to_default_float(50.0),
+                    gpflow.utilities.to_default_float(20.0),
                 ),
             )
 
             # Generate initial paths
             Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
-            Xu_init, _ = run_tsp(Xu_init, 
-                                 num_vehicles=num_robots, 
-                                 max_dist=max_dist, 
-                                 resample=num_waypoints)
-                        
+            Xu_init, dist = run_tsp(Xu_init, 
+                                    num_vehicles=num_robots, 
+                                    max_dist=max_dist, 
+                                    resample=num_waypoints)
+            print(f"Path length(s): {dist}")
+
             # Setup the IPP Transform
             transform = IPPTransform(num_robots=num_robots,
                                      sampling_rate=sampling_rate)
@@ -441,10 +451,9 @@ if __name__=='__main__':
                         default='datasets/bathymetry/bathymetry.tif')
     args=parser.parse_args()
 
-    max_dist = 250
+    max_dist = 350 if args.num_robots==1 else 150
     dataset_type = 'tif'
-    max_range = 101 if args.num_robots==1 else 51
-    max_range = 101 if args.sampling_rate==2 else 51
+    max_range = 101 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
     main(dataset_type, 
          args.dataset_path, 

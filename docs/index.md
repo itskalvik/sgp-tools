@@ -31,7 +31,7 @@ python3 -m pip install -e .
 Note: The requirements.txt file contains packages and their latest versions that were last verified to be working without any issues.
 
 ## Quick Start
-Please refer to [examples](examples/IPP.html) for Jupyter notebooks demonstrating the methods included in the library 😄
+Please refer to the [example Jupyter notebooks](examples/IPP.html) demonstrating the methods included in the library 😄
 
 ## Method Summary
 <p align="center"><div class="video-con"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></p>
