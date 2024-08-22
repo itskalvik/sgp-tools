@@ -19,13 +19,7 @@
 
 import numpy as np
 import tensorflow as tf
-from gpflow.models import SGPR
-from gpflow.base import InputData, MeanAndVariance
-from gpflow.config import default_float
-from gpflow.utilities import add_noise_cov
-from gpflow.base import InputData, MeanAndVariance
-from gpflow.utilities import add_noise_cov, to_default_float
-from gpflow.models.util import inducingpoint_wrapper
+from gpflow.models.sgpr import *
 from .transformations import Transform
 
 
@@ -46,6 +40,7 @@ class AugmentedSGPR(SGPR):
         noise_variance (float): data variance
         inducing_variable (ndarray): (m, d); Initial inducing points
         transform (Transform): Transform object
+        quad_data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1) used to compute the quadratic term in the ELBO
         inducing_variable_time (ndarray): (m, d); Temporal dimensions of the inducing points, 
                                             used when modeling spatio-temporal IPP
     """
@@ -53,6 +48,7 @@ class AugmentedSGPR(SGPR):
         self,
         *args,
         transform=None,
+        quad_data=None,
         inducing_variable_time=None,
         **kwargs
     ):
@@ -71,6 +67,19 @@ class AugmentedSGPR(SGPR):
         else:
             self.inducing_variable_time = None
 
+        if quad_data is not None:
+            self.quad_data = data_input_to_tensor(quad_data)
+        else:
+            self.quad_data = None
+
+    def update_quad_data(self, quad_data):
+        if self.quad_data is not None:
+            x = tf.concat([self.quad_data[0], quad_data[0]], axis=0)
+            y = tf.concat([self.quad_data[1], quad_data[1]], axis=0)
+            self.quad_data = (x, y)
+        else:
+            self.quad_data = data_input_to_tensor(quad_data)
+
     def update(self, noise_variance, kernel):
         """Update SGP noise variance and kernel function parameters
 
@@ -80,16 +89,20 @@ class AugmentedSGPR(SGPR):
         """
         self.likelihood.variance.assign(noise_variance)
         self.kernel.lengthscales.assign(kernel.lengthscales)
-        self.kernel.variance.assign(kernel.variance)
+        self.kernel.variance.assign(kernel.variance)        
 
-    def _common_calculation(self) -> "SGPR.CommonTensors":
+    def _common_calculation(self, data=None) -> "SGPR.CommonTensors":
         """
         Matrices used in log-det calculation
         :return: A , B, LB, AAT with :math:`LLᵀ = Kᵤᵤ , A = L⁻¹K_{uf}/σ, AAT = AAᵀ,
             B = AAT+I, LBLBᵀ = B`
             A is M x N, B is M x M, LB is M x M, AAT is M x M
         """
-        x, _ = self.data
+
+        if data is not None:
+            x, _ = data
+        else:
+            x, _ = self.data
         
         iv = self.inducing_variable.Z  # [M]
         iv = self.transform.expand(iv)
@@ -113,6 +126,36 @@ class AugmentedSGPR(SGPR):
 
         return self.CommonTensors(sigma_sq, sigma, A, B, LB, AAT, L)
 
+    @check_shapes(
+        "return: []",
+    )
+    def quad_term(self, common=None, data=None) -> tf.Tensor:
+        """
+        :param common: A named tuple containing matrices that will be used
+        :return: Lower bound on -.5 yᵀ(K + σ²I)⁻¹y
+        """
+        if data is not None:
+            common = self._common_calculation(data)
+            x, y = data
+        else:
+            x, y = self.data
+
+        sigma = common.sigma
+        A = common.A
+        LB = common.LB
+
+        err = (y - self.mean_function(x)) / sigma[..., None]
+
+        Aerr = tf.linalg.matmul(A, err)
+        c = tf.linalg.triangular_solve(LB, Aerr, lower=True)
+
+        # σ⁻² yᵀy
+        err_inner_prod = tf.reduce_sum(tf.square(err))
+        c_inner_prod = tf.reduce_sum(tf.square(c))
+
+        quad = -0.5 * (err_inner_prod - c_inner_prod)
+        return quad
+    
     def elbo(self) -> tf.Tensor:
         """
         Construct a tensorflow function to compute the bound on the marginal
@@ -125,7 +168,10 @@ class AugmentedSGPR(SGPR):
         output_dim = to_default_float(output_shape[1])
         const = -0.5 * num_data * output_dim * np.log(2 * np.pi)
         logdet = self.logdet_term(common)
-        quad = self.quad_term(common)
+        if self.quad_data is not None:
+            quad = self.quad_term(data=self.quad_data)
+        else:
+            quad = self.quad_term(common)
         constraints = self.transform.constraints(self.inducing_variable.Z)
         return const + logdet + quad + constraints
 

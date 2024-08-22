@@ -61,11 +61,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
     num_robots = Xu_init.shape[0]
     num_waypoints = Xu_init.shape[1]
     curr_sol = Xu_init
-
-    if continuous_ipp:
-        offset = 2
-    else:
-        offset = 1
+    offset = 2 if continuous_ipp else 1
 
     init_kernel = deepcopy(ipp_model.kernel)
     try: # SGP
@@ -102,7 +98,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
 
         # Init/update parameter model
         start_time = time()
-        if param_method=='GP':
+        if param_method=='GP' and ipp_method=='CMA':
             # Starting from initial params ensures recovery from bad params
             _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
                                                          np.array(sol_data_y),
@@ -134,17 +130,20 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
         # SGP-IPP update
         Xu_visited = curr_sol.copy()[:, :time_step]
         ipp_model.transform.update_Xu_fixed(Xu_visited)
-        ipp_model.update(noise_variance, kernel)
         start_time = time()
         if ipp_method == 'SGP':
+            if param_method == 'GP':
+                ipp_model.update_quad_data((np.array(data_X_batch), 
+                                            np.array(data_y_batch)))
             _ = optimize_model(ipp_model,
-                               kernel_grad=False, 
                                optimizer='scipy',
-                               method='CG', max_steps=500)
+                               method='CG',
+                               max_steps=500)
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
         elif ipp_method == 'CMA':
+            ipp_model.update(noise_variance, kernel)
             curr_sol = ipp_model.optimize(X_init=curr_sol,
                                           max_steps=5000)
         curr_sol = curr_sol.reshape(num_robots, num_waypoints, 2)
