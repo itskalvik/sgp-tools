@@ -140,7 +140,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             _ = optimize_model(ipp_model,
                                kernel_grad=False, 
                                optimizer='scipy',
-                               method='CG')
+                               method='CG', max_steps=500)
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
@@ -224,7 +224,8 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             Xu_init, dist = run_tsp(Xu_init, 
                                     num_vehicles=num_robots, 
                                     max_dist=max_dist, 
-                                    resample=num_waypoints)
+                                    resample=num_waypoints,
+                                    time_limit=30)
             print(f"Path length(s): {dist}")
 
             # Setup the IPP Transform

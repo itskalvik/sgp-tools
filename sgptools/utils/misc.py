@@ -51,7 +51,10 @@ def cont2disc(Xu, candidates, candidate_labels=None):
     """
     # Sanity check to ensure that there are sensing locations and candidates to match
     if len(candidates)==0 or len(Xu)==0:
-        return []
+        if candidate_labels is not None:
+            return [], []
+        else:
+            return []
     
     dists = pairwise_distances(candidates, Y=Xu, metric='euclidean')
     row_ind, _ = linear_sum_assignment(dists)
