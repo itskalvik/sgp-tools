@@ -25,7 +25,8 @@ def run_tsp(nodes,
             depth=1, 
             resample=None, 
             start_idx=None,
-            end_idx=None):
+            end_idx=None,
+            time_limit=10):
     """Method to run TSP/VRP with arbitrary start and end nodes, 
     and without any distance constraint
     
@@ -38,6 +39,7 @@ def run_tsp(nodes,
                         `resample` number of points
         start_idx (list): Optionl list of start node indices from which to start the solution path 
         end_idx (list): Optionl list of end node indices from which to start the solution path 
+        time_limit (int): TSP runtime time limit in seconds
 
     Returns:
         paths (ndarray): Solution paths
@@ -102,7 +104,7 @@ def run_tsp(nodes,
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
     )
-    search_parameters.time_limit.seconds = 10
+    search_parameters.time_limit.seconds = time_limit
     solution = routing.SolveWithParameters(search_parameters)
        
     paths = None

@@ -190,6 +190,7 @@ def get_dataset(dataset_type, dataset_path=None,
     X_train = X_scaler.transform(X_train)*10.0
     X_test = X_scaler.transform(X_test)*10.0
     X = X_scaler.transform(X)*10.0
+    candidates = X_scaler.transform(candidates)*10.0
 
     y_scaler = StandardScaler()
     y_scaler.fit(y_train)

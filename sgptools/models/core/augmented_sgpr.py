@@ -52,7 +52,7 @@ class AugmentedSGPR(SGPR):
     def __init__(
         self,
         *args,
-        transform,
+        transform=None,
         inducing_variable_time=None,
         **kwargs
     ):

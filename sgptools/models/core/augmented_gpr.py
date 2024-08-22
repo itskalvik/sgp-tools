@@ -42,7 +42,7 @@ class AugmentedGPR(GPR):
     def __init__(
         self,
         *args,
-        transform,
+        transform=None,
         **kwargs
     ):
         super().__init__(
