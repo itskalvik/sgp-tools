@@ -98,7 +98,7 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
 
         # Init/update parameter model
         start_time = time()
-        if param_method=='GP' and ipp_method=='CMA':
+        if param_method=='GP':
             # Starting from initial params ensures recovery from bad params
             _, noise_variance, kernel = get_model_params(np.array(sol_data_X), 
                                                          np.array(sol_data_y),
@@ -132,13 +132,13 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
         ipp_model.transform.update_Xu_fixed(Xu_visited)
         start_time = time()
         if ipp_method == 'SGP':
-            if param_method == 'GP':
+            if param_method == 'Quad':
                 ipp_model.update_quad_data((np.array(data_X_batch), 
                                             np.array(data_y_batch)))
             _ = optimize_model(ipp_model,
                                optimizer='scipy',
                                method='CG',
-                               max_steps=500)
+                               max_steps=100)
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
@@ -187,12 +187,14 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
     results = dict()
     for num_waypoints in xrange:
         results[num_waypoints] = {'Adaptive-SGP':  defaultdict(list),
+                                  'Adaptive-SGP-Quad':  defaultdict(list),
                                   'Adaptive-CMA-ES':  defaultdict(list),
                                   'Online-SGP': defaultdict(list),
                                   'Online-CMA-ES': defaultdict(list)}
         if continuous_ipp:
             results[num_waypoints]['Adaptive-Agg-SGP'] = defaultdict(list)
             results[num_waypoints]['Online-Agg-SGP'] = defaultdict(list)
+            results[num_waypoints]['Adaptive-Agg-SGP-Quad'] = defaultdict(list)
 
     for _ in range(num_mc):
         for num_waypoints in xrange:
@@ -261,6 +263,37 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             results[num_waypoints]['Adaptive-SGP']['ParamTime'].append(gp_time)
             results[num_waypoints]['Adaptive-SGP']['IPPTime'].append(ipp_time)
             results[num_waypoints]['Adaptive-SGP']['RMSE'].append(rmse)
+
+            # ---------------------------------------------------------------------------------
+
+            # Adaptive SGP with quadratic term
+            ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                         X_train, 
+                                         noise_variance, 
+                                         kernel,
+                                         transform,
+                                         Xu_init=Xu_init.reshape(-1, 2), 
+                                         max_steps=0)
+            online_X, online_y, param_time, ipp_time = online_ipp(X_train, 
+                                                                  ipp_sgpr, 
+                                                                  Xu_init,
+                                                                  path2data,
+                                                                  continuous_ipp,
+                                                                  'SGP',
+                                                                  'SSGP' if continuous_ipp else 'Quad')
+            # Get RMSE from oracle hyperparameters
+            y_pred, _ = get_reconstruction((online_X, online_y), 
+                                           X_test, 
+                                           noise_variance_opt, 
+                                           kernel_opt)
+            rmse = get_rmse(y_pred, y_test)
+
+            print(f'\nAdaptive-SGP Quad Param Time: {param_time:.4f}')
+            print(f'Adaptive-SGP Quad IPP Time: {ipp_time:.4f}')
+            print(f'Adaptive-SGP Quad RMSE: {rmse:.4f}')
+            results[num_waypoints]['Adaptive-SGP-Quad']['ParamTime'].append(gp_time)
+            results[num_waypoints]['Adaptive-SGP-Quad']['IPPTime'].append(ipp_time)
+            results[num_waypoints]['Adaptive-SGP-Quad']['RMSE'].append(rmse)
 
             # ---------------------------------------------------------------------------------
 
