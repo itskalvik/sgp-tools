@@ -140,7 +140,8 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
             _ = optimize_model(ipp_model,
                                kernel_grad=False, 
                                optimizer='scipy',
-                               method='CG', max_steps=500)
+                               method='CG', 
+                               max_steps=200)
             curr_sol = ipp_model.inducing_variable.Z
             curr_sol = ipp_model.transform.expand(curr_sol, 
                                                   expand_sensor_model=False).numpy()
@@ -154,7 +155,14 @@ def online_ipp(X_train, ipp_model, Xu_init, path2data,
     return np.array(sol_data_X), np.array(sol_data_y), total_time_param, total_time_ipp 
 
 
-def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate, xrange):
+def main(dataset_type, 
+         dataset_path, 
+         num_mc, 
+         num_robots, 
+         max_dist, 
+         sampling_rate, 
+         xrange,
+         agg_sgp=False):
     dataset = dataset_path.split('/')[-1][:-4]
     print(f'Dataset: {dataset}')
     print(f'Num MC: {num_mc}')
@@ -266,7 +274,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             # ---------------------------------------------------------------------------------
 
             # Adaptive SGP with covariance aggregation for continuous sensing
-            if continuous_ipp:
+            if continuous_ipp and agg_sgp:
                 ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                              X_train, 
                                              noise_variance, 
@@ -290,7 +298,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
                                                kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
 
-                print(f'\nAdaptive-Agg-SGP Param Time: {param_time:.4f}')
+                print(f'\nAdaptive- Param Time: {param_time:.4f}')
                 print(f'Adaptive-Agg-SGP IPP Time: {ipp_time:.4f}')
                 print(f'Adaptive-Agg-SGP RMSE: {rmse:.4f}')
                 results[num_waypoints]['Adaptive-Agg-SGP']['ParamTime'].append(gp_time)
@@ -365,7 +373,7 @@ def main(dataset_type, dataset_path, num_mc, num_robots, max_dist, sampling_rate
             # ---------------------------------------------------------------------------------
 
             # Online SGP with covariance aggregation for continuous sensing
-            if continuous_ipp:
+            if continuous_ipp and agg_sgp:
                 start_time = time()
                 ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                              X_train, 
