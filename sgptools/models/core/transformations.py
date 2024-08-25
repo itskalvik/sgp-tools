@@ -15,16 +15,8 @@
 """Provides transforms to model complex sensor field of views and handle informative path planning
 """
 
-try:
-    from tensorflow_graphics.math.interpolation import bspline
-except:
-  pass
-
 import tensorflow as tf
 import numpy as np
-
-from scipy.optimize import linear_sum_assignment
-from sklearn.metrics import pairwise_distances
 
 
 class Transform:
@@ -98,84 +90,6 @@ class Transform:
         """
         return 0.
 
-    def distance(self, Xu):
-        """Computes the distance incured by sequentially visiting the inducing points
-
-        Args:
-            Xu (ndarray): Inducing points from which to compute the path length
-
-        Returns:
-            dist (float): path length
-        """
-        dist = tf.math.reduce_sum(tf.norm(Xu[1:]-Xu[:-1], axis=1))
-        return dist
-    
-
-class SquareTransform(Transform):
-    """Non-point Transform to model a square FoV. Only works for single robot cases. 
-    ToDo: update expand function to handle multi-robot case.
-
-    Args:
-        length (float): Length of the square FoV
-        num_side (int): Number of points along each side of the FoV
-    """
-    def __init__(self, length, num_side, **kwargs):
-        super().__init__(**kwargs)
-        self.length = length
-        self.num_side = num_side
-        self.length_factor=length/(self.num_side)
-        self.num_length = int(length/self.length_factor)
-
-        if self.aggregation_size == 0:
-            self.aggregation_size = None
-        elif self.aggregation_size is None:
-            self.aggregation_size = num_side**2
-
-    def expand(self, Xu):
-        """Applies the expansion transformation to the inducing points
-
-        Args:
-            Xu (ndarray): (1, m, 3); Inducing points in the position and orientation space.
-                            `m` is the number of inducing points,
-                            `3` is the dimension of the space (x, y, angle in radians)
-                        
-        Returns:
-            Xu (ndarray): (mp, 2); Inducing points in input space.
-                        `p` is the number of points each inducing point is mapped 
-                         to in order to form the FoV.
-        """
-        x, y, theta = tf.split(Xu, num_or_size_splits=3, axis=2)
-        x = tf.squeeze(x)
-        y = tf.squeeze(y)
-        theta = tf.squeeze(theta)
-
-        points = []
-        for i in range(-int(np.floor((self.num_side)/2)), int(np.ceil((self.num_side)/2))):
-            points.append(tf.linspace([(x + (i * self.length_factor) * tf.cos(theta)) - self.length/2 * tf.cos(theta+np.pi/2), 
-                                       (y + (i * self.length_factor) * tf.sin(theta)) - self.length/2 * tf.sin(theta+np.pi/2)], 
-                                      [(x + (i * self.length_factor) * tf.cos(theta)) + self.length/2 * tf.cos(theta+np.pi/2), 
-                                       (y + (i * self.length_factor) * tf.sin(theta)) + self.length/2 * tf.sin(theta+np.pi/2)], 
-                                      self.num_side, axis=1))
-        xy = tf.concat(points, axis=1)
-        xy = tf.transpose(xy, [2, 1, 0])
-        xy = tf.reshape(xy, [-1, 2])
-        xy = self._reshape(xy, tf.shape(Xu)[1])
-        return xy
-    
-    def _reshape(self, X, num_inducing):
-        """Reorder the inducing points to be in the correct order for aggregation with square FoV.
-
-        Args:
-            X (ndarray): (mp, 2); Inducing points in input space. `p` is the number of points each 
-                        inducing point is mapped to in order to form the FoV.
-                            
-        Returns:
-            Xu (ndarray): (mp, 2); Reorder inducing points
-        """
-        X = tf.reshape(X, (num_inducing, -1, self.num_side, self.num_side, 2))
-        X = tf.transpose(X, (0, 2, 1, 3, 4))
-        X = tf.reshape(X, (-1, 2))
-        return X
 
 class IPPTransform(Transform):
     """Transform to model IPP problems
@@ -184,6 +98,7 @@ class IPPTransform(Transform):
         * For point sensing, set `sampling_rate = 2`
         * For continuous sensing, set `sampling_rate > 2` (account for the information along the path)
         * For continuous sensing with aggregation, set `sampling_rate > 2` and `aggregate_fov = True` (faster but solution quality is a bit diminished)
+        * If using a non-point FoV model with continuous sampling, only the FoV inducing points are aggregated
         * For multi-robot case, set `num_robots > 1`
         * For onlineIPP use `update_fixed` to freeze the visited waypoints
 
@@ -192,7 +107,7 @@ class IPPTransform(Transform):
         distance_budget (float): Distance budget for the path
         num_robots (int): Number of robots
         Xu_fixed (ndarray): (num_robots, num_visited, num_dim); Visited waypoints that don't need to be optimized
-        num_dim (int): Dimension of the data collection environment
+        num_dim (int): Number of dimensions of the inducing points
         sensor_model (Transform): Transform object to expand each inducing point to `p` points 
                                   approximating each sensor's FoV
         aggregate_fov (bool): Used only when sampling_rate > 2, i.e., when using a continuous sensing model. 
@@ -220,8 +135,11 @@ class IPPTransform(Transform):
 
         # Set aggregation size to sampling rate if aggregate_fov is True
         # and sampling rate is enabled (greater than 2)
-        if aggregate_fov and sampling_rate > 2:
-            self.aggregation_size = sampling_rate
+        if aggregate_fov:
+            if self.sensor_model is not None:
+                self.sensor_model.enable_aggregation()
+            elif sampling_rate > 2:
+                self.aggregation_size = sampling_rate
     
         # Initilize variable to store visited waypoints for onlineIPP
         if Xu_fixed is not None:
@@ -278,7 +196,10 @@ class IPPTransform(Transform):
             Xu = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
 
         if self.sensor_model is not None:
-            Xu = self.sensor_model.expand(Xu)
+            Xu_ = []
+            for i in range(self.num_robots):
+                Xu_.append(self.sensor_model.expand(Xu[i]))
+            Xu = tf.concat(Xu_, axis=0)
             return Xu
 
         Xu = tf.reshape(Xu, (-1, self.num_dim))
@@ -315,6 +236,7 @@ class IPPTransform(Transform):
         if self.distance_budget is None:
             return 0.
         else:
+            # Only do fixed points expansion transform
             Xu = self.expand(Xu, expand_sensor_model=False)
             dist = self.distance(Xu)-self.distance_budget
             dist = tf.reduce_sum(tf.nn.relu(dist))
@@ -323,39 +245,147 @@ class IPPTransform(Transform):
 
     def distance(self, Xu):
         """Computes the distance incured by sequentially visiting the inducing points
-        ToDo: Change distance from 2d to nd. Currently limited to 2d 
-            to ensure the rotation angle is not included when using
-            a square FoV sensor.
+        Args:
+            Xu (ndarray): (m, num_dim); Inducing points from which to compute the path lengths
+                          `m` is the number of inducing points
+                          `num_dim` dimension of the data collection environment
+        Returns:
+            dist (float or tensor of floats): path length(s)
+        """
+        Xu = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
+        if self.sensor_model is not None:
+            dists = []
+            for i in range(self.num_robots):
+                dists.append(self.sensor_model.distance(Xu[i]))
+            dists = tf.concat(dists, axis=0)
+            return dists
+        else:
+            # Assumes 2D waypoints by default
+            dist = tf.norm(Xu[:, 1:, :2] - Xu[:, :-1, :2], axis=-1)
+            dist = tf.reduce_sum(dist, axis=1)
+            return dist
+
+
+class SquareTransform(Transform):
+    """Non-point Transform to model a square FoV. Only works for single robot cases. 
+
+    Args:
+        length (float): Length of the square FoV
+        num_side (int): Number of points along each side of the FoV
+        aggregate_fov (bool): If `True`, covariances corresponding to interpolated inducing points used to 
+                              approximate the sensor FoV are aggregated to reduce the matrix inversion cost
+    """
+    def __init__(self, length, num_side, aggregate_fov=False, **kwargs):
+        super().__init__(**kwargs)
+        self.length = length
+        self.num_side = num_side
+        self.length_factor=length/(self.num_side)
+        self.num_length = int(length/self.length_factor)
+
+        if aggregate_fov:
+            self.enable_aggregation()
+
+    def enable_aggregation(self, size=None):
+        """Enable FoV covariance aggregation, which reduces the covariance matrix inversion cost by reducing the 
+        covariance matrix size.
 
         Args:
-            Xu (ndarray): Inducing points from which to compute the path lengths
+            size (int): If None, all the interpolated inducing points within the FoV are aggregated. Alternatively, 
+                        the number of inducing points to aggregate can be explicitly defined using this variable.
+        """
+        if size is None:
+            self.aggregation_size = self.num_side**2
+        else:
+            self.aggregation_size = size
+
+    def expand(self, Xu):
+        """Applies the expansion transformation to the inducing points
+
+        Args:
+            Xu (ndarray): (m, 3); Inducing points in the position and orientation space.
+                          `m` is the number of inducing points,
+                          `3` is the dimension of the space (x, y, angle in radians)
+                        
+        Returns:
+            Xu (ndarray): (mp, 2); Inducing points in input space.
+                        `p` is the number of points each inducing point is mapped 
+                         to in order to form the FoV.
+        """
+        x, y, theta = tf.split(Xu, num_or_size_splits=3, axis=1)
+        x = tf.squeeze(x)
+        y = tf.squeeze(y)
+        theta = tf.squeeze(theta)
+
+        points = []
+        for i in range(-int(np.floor((self.num_side)/2)), int(np.ceil((self.num_side)/2))):
+            points.append(tf.linspace([(x + (i * self.length_factor) * tf.cos(theta)) - self.length/2 * tf.cos(theta+np.pi/2), 
+                                       (y + (i * self.length_factor) * tf.sin(theta)) - self.length/2 * tf.sin(theta+np.pi/2)], 
+                                      [(x + (i * self.length_factor) * tf.cos(theta)) + self.length/2 * tf.cos(theta+np.pi/2), 
+                                       (y + (i * self.length_factor) * tf.sin(theta)) + self.length/2 * tf.sin(theta+np.pi/2)], 
+                                      self.num_side, axis=1))
+        xy = tf.concat(points, axis=1)
+        xy = tf.transpose(xy, [2, 1, 0])
+        xy = self._reshape(xy)
+        return xy
+    
+    def _reshape(self, X):
+        """Reorder the inducing points to be in the correct order for aggregation with square FoV.
+
+        Args:
+            X (ndarray): (mp, 2); Inducing points in input space. `p` is the number of points each 
+                        inducing point is mapped to in order to form the FoV.
+                            
+        Returns:
+            Xu (ndarray): (mp, 2); Reorder inducing points
+        """
+        X = tf.reshape(X, (-1, self.num_side, self.num_side, 2))
+        X = tf.transpose(X, (1, 0, 2, 3))
+        X = tf.reshape(X, (-1, 2))
+        return X
+    
+    def distance(self, Xu):
+        """Computes the distance incured by sequentially visiting the inducing points
+        Args:
+            Xu (ndarray): (m, 3); Inducing points from which to compute the path lengths.
+                          `m` is the number of inducing points.
 
         Returns:
             dist (float): path lengths
         """
-        Xu = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
-        dist = tf.norm(Xu[:, 1:, :2] - Xu[:, :-1, :2], axis=-1)
-        dist = tf.reduce_sum(dist, axis=1)
+        Xu = tf.reshape(Xu, (-1, 3))[:, :2]
+        print(Xu.shape)
+        dist = tf.norm(Xu[1:] - Xu[:-1], axis=-1)
+        dist = tf.reduce_sum(dist, axis=0)
         return dist
-    
+
 
 class SquareHeightTransform(Transform):
-    """Non-point Transform to model a height-dependent square FoV. Only works for single robot cases. 
-    ToDo: Convert from single to multi-robot setup and make it compatible with IPPTransform
+    """Non-point Transform to model a height-dependent square FoV
 
     Args:
-        num_points (int): Number of points along each side of the FoV
-        distance_budget (float): Distance budget for the path
+        num_side (int): Number of points along each side of the FoV
+        aggregate_fov (bool): If `True`, covariances corresponding to interpolated inducing points used to 
+                              approximate the sensor FoV are aggregated to reduce the matrix inversion cost
     """
-    def __init__(self, num_points, distance_budget=None, **kwargs):
+    def __init__(self, num_side, aggregate_fov=False, **kwargs):
         super().__init__(**kwargs)
-        self.num_points = num_points
-        self.distance_budget = distance_budget
-    
-        if self.aggregation_size == 0:
-            self.aggregation_size = None
-        elif self.aggregation_size is None:
-            self.aggregation_size = num_points**2
+        self.num_side = num_side
+
+        if aggregate_fov:
+            self.enable_aggregation()
+
+    def enable_aggregation(self, size=None):
+        """Enable FoV covariance aggregation, which reduces the covariance matrix inversion cost by reducing the 
+        covariance matrix size.
+
+        Args:
+            size (int): If None, all the interpolated inducing points within the FoV are aggregated. Alternatively, 
+                        the number of inducing points to aggregate can be explicitly defined using this variable.
+        """
+        if size is None:
+            self.aggregation_size = self.num_side**2
+        else:
+            self.aggregation_size = size
 
     def expand(self, Xu):     
         """
@@ -376,13 +406,13 @@ class SquareHeightTransform(Transform):
         y = tf.squeeze(y)
         h = tf.squeeze(h)
 
-        delta = h / (self.num_points - 1)
+        delta = h / (self.num_side - 1)
 
         pts = []
-        for i in range(self.num_points):
+        for i in range(self.num_side):
             pts.append(tf.linspace([x - h/2, y - (h/2) + (delta * i)], 
                                    [x + h/2, y - (h/2) + (delta * i)], 
-                                   self.num_points, 
+                                   self.num_side, 
                                    axis=1))
         xy = tf.concat(pts, axis=1)
         xy = tf.transpose(xy, [2, 1, 0])
@@ -400,7 +430,22 @@ class SquareHeightTransform(Transform):
         Returns:
             Xu (ndarray): (mp, 2); Reorder inducing points
         """
-        X = tf.reshape(X, (num_inducing, -1, self.num_points, self.num_points, 2))
+        X = tf.reshape(X, (num_inducing, -1, self.num_side, self.num_side, 2))
         X = tf.transpose(X, (0, 2, 1, 3, 4))
         X = tf.reshape(X, (-1, 2))
         return X
+    
+    def distance(self, Xu):
+        """Computes the distance incured by sequentially visiting the inducing points
+        Args:
+            Xu (ndarray): (m, 3); Inducing points from which to compute the path lengths.
+                          `m` is the number of inducing points.
+
+        Returns:
+            dist (float): path lengths
+        """
+        Xu = tf.reshape(Xu, (-1, 3))
+        dist = tf.norm(Xu[1:] - Xu[:-1], axis=-1)
+        dist = tf.reduce_sum(dist, axis=0)
+        return dist
+    
