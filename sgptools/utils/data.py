@@ -91,8 +91,8 @@ def prep_tif_dataset(dataset_path):
         dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
 
     Returns:
-       X: (n, d); Dataset input features
-       y: (n, 1); Dataset labels
+       X (ndarray): (n, d); Dataset input features
+       y (ndarray): (n, 1); Dataset labels
     '''
     data = PIL.Image.open(dataset_path)
     data = np.array(data)
@@ -116,22 +116,31 @@ def prep_tif_dataset(dataset_path):
 
 ####################################################
 
-def prep_synthetic_dataset():
+def prep_synthetic_dataset(shape=(50, 50), 
+                           min_height=0.0, 
+                           max_height=30.0, 
+                           roughness=0.5,
+                           **kwargs):
     '''Generates a 50x50 grid of synthetic elevation data using the diamond square algorithm.
     
     Refer to the following repo for more details:
         - [https://github.com/buckinha/DiamondSquare](https://github.com/buckinha/DiamondSquare)
     
     Args:
+        shape (tuple): (x, y); Grid size along the x and y axis
+        min_height (float): Minimum allowed height in the sampled data
+        max_height (float): Maximum allowed height in the sampled data
+        roughness (float): Roughness of the sampled data
 
     Returns:
-       X: (n, d); Dataset input features
-       y: (n, 1); Dataset labels
+       X (ndarray): (n, d); Dataset input features
+       y (ndarray): (n, 1); Dataset labels
     '''
-    data = diamond_square(shape=(50,50), 
-                          min_height=0, 
-                          max_height=30, 
-                          roughness=0.5)
+    data = diamond_square(shape=shape,
+                          min_height=min_height, 
+                          max_height=max_height, 
+                          roughness=roughness,
+                          **kwargs)
 
     # create x and y coordinates from the extent
     x_coords = np.arange(0, data.shape[0])/10
@@ -148,7 +157,8 @@ def prep_synthetic_dataset():
 def get_dataset(dataset_type, dataset_path=None,
                 num_train=1000,
                 num_test=2500, 
-                num_candidates=150):
+                num_candidates=150,
+                **kwargs):
     """Method to generate/load datasets and preprocess them for SP/IPP. The method uses kmeans to 
     generate train and test sets.
     
@@ -173,7 +183,7 @@ def get_dataset(dataset_type, dataset_path=None,
     if dataset_type == 'tif':
         X, y = prep_tif_dataset(dataset_path=dataset_path)
     elif dataset_type == 'synthetic':
-        X, y = prep_synthetic_dataset()
+        X, y = prep_synthetic_dataset(**kwargs)
 
     X_train = get_inducing_pts(X, num_train)
     X_train, y_train = cont2disc(X_train, X, y)

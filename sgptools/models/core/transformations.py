@@ -312,9 +312,9 @@ class SquareTransform(Transform):
                          to in order to form the FoV.
         """
         x, y, theta = tf.split(Xu, num_or_size_splits=3, axis=1)
-        x = tf.squeeze(x)
-        y = tf.squeeze(y)
-        theta = tf.squeeze(theta)
+        x     = tf.reshape(x, [-1,])
+        y     = tf.reshape(y, [-1,])
+        theta = tf.reshape(theta, [-1,])
 
         points = []
         for i in range(-int(np.floor((self.num_side)/2)), int(np.ceil((self.num_side)/2))):
@@ -353,7 +353,6 @@ class SquareTransform(Transform):
             dist (float): path lengths
         """
         Xu = tf.reshape(Xu, (-1, 3))[:, :2]
-        print(Xu.shape)
         dist = tf.norm(Xu[1:] - Xu[:-1], axis=-1)
         dist = tf.reduce_sum(dist, axis=0)
         return dist
@@ -402,9 +401,9 @@ class SquareHeightTransform(Transform):
                         to in order to form the FoV.
         """
         x, y, h = tf.split(Xu, num_or_size_splits=3, axis=1)
-        x = tf.squeeze(x)
-        y = tf.squeeze(y)
-        h = tf.squeeze(h)
+        x = tf.reshape(x, [-1,])
+        y = tf.reshape(y, [-1,])
+        h = tf.reshape(h, [-1,])
 
         delta = h / (self.num_side - 1)
 
