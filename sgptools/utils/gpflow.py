@@ -18,6 +18,7 @@ from gpflow.utilities.traversal import print_summary
 import tensorflow as tf
 import tensorflow_probability as tfp
 
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -87,6 +88,43 @@ def get_model_params(X_train, y_train,
     
     return loss, gpr_gt.likelihood.variance, kernel
 
+
+class TraceInducingPts(gpflow.monitor.MonitorTask):
+    '''
+    GPflow monitoring task, used to trace the inducing points
+    states at every step during optimization. 
+
+    Args:
+        model (gpflow.models.sgpr): GPflow GP/SGP model
+    '''
+    def __init__(self, model):
+        super().__init__()
+        self.trace = []
+        self.model = model
+
+    def run(self, **kwargs):
+        '''
+        Method used to extract the inducing points and 
+        apply IPP fixed points transform if available
+        '''
+        Xu = self.model.inducing_variable.Z
+        Xu_exp = self.model.transform.expand(Xu, 
+                            expand_sensor_model=False).numpy()
+        self.trace.append(Xu_exp)
+
+    def get_trace(self):
+        '''
+        Returns the inducing points collected at each optimization step
+
+        Returns:
+            trace (ndarray): (n, m, d); Array with the inducing points.
+                            `n` is the number of optimization steps;
+                            `m` is the number of inducing points;
+                            `d` is the dimension of the inducing points.
+        '''
+        return np.array(self.trace)
+
+
 def optimize_model(model, 
                    max_steps=2000, 
                    kernel_grad=True, 
@@ -102,21 +140,22 @@ def optimize_model(model,
     Trains a GP/SGP model
 
     Args:
-        model (gpflow.models): GPflow GP/SGP model to train
-        max_steps (int): Maximum number of training steps
-        kernel_grad (bool): If False, the kernel parameters will not be optimized
-        lr (float): Optimization learning rate
-        optimizer (str): Optimizer to use for training (`scipy` or `tf`)
+        model (gpflow.models): GPflow GP/SGP model to train.
+        max_steps (int): Maximum number of training steps.
+        kernel_grad (bool): If `False`, the kernel parameters will not be optimized. 
+                            Ignored when `trainable_variables` are passed.
+        lr (float): Optimization learning rate.
+        optimizer (str): Optimizer to use for training (`scipy` or `tf`).
         method (str): Optimization method refer to [scipy minimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize) 
                       and [tf optimizers](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers) for full list
-        verbose (bool): If true, the training progress will be printed
+        verbose (bool): If `True`, the training progress will be printed when using Scipy.
         trace_fn (str): Function to trace metrics during training. 
-                        If `None`, the loss values are traced;
-                        if `traceXu`, it the inducing points states at each optimization step are traced
-        convergence_criterion (bool): It True, enables early stopping when the loss plateaus
-        trainable_variables (list): List of model variables to train 
-                                    (can be used to limit training to a subset of variables)
-        tol (float): Convergence tolerance to decide when to stop optimization
+                        If `None`, the loss values are returned;
+                        If `traceXu`, it the inducing points states at each optimization step are returned (increases computation time).
+        convergence_criterion (bool): If `True` and using a tensorflow optimizer, it 
+                                      enables early stopping when the loss plateaus.
+        trainable_variables (list): List of model variables to train.
+        tol (float): Convergence tolerance to decide when to stop optimization.
     """
     # Train all variables if trainable_variables are not provided
     # If kernel_gradient is False, disable the kernel parameter gradient updates
@@ -128,13 +167,24 @@ def optimize_model(model,
     if optimizer == 'scipy':
         if method is None:
             method = 'L-BFGS-B'
+
+        if trace_fn == 'traceXu':
+            execute_task = TraceInducingPts(model)
+            task_group = gpflow.monitor.MonitorTaskGroup(execute_task, 
+                                                         period=1)
+            trace_fn = gpflow.monitor.Monitor(task_group)
+
         opt = gpflow.optimizers.Scipy()
         losses = opt.minimize(model.training_loss,
                               trainable_variables,
                               method=method,
                               options=dict(disp=verbose, maxiter=max_steps),
-                              tol=tol)
-        losses = losses.fun
+                              tol=tol,
+                              step_callback=trace_fn)
+        if trace_fn is None:
+            losses = losses.fun
+        else:
+            losses = trace_fn.task_groups[0].tasks[0].get_trace()
     else:
         if trace_fn is None:
             trace_fn = lambda x: x.loss
