@@ -154,7 +154,7 @@ def prep_synthetic_dataset(shape=(50, 50),
 
 ####################################################
 
-def get_dataset(dataset_type, dataset_path=None,
+def get_dataset(dataset_path=None,
                 num_train=1000,
                 num_test=2500, 
                 num_candidates=150,
@@ -163,9 +163,7 @@ def get_dataset(dataset_type, dataset_path=None,
     generate train and test sets.
     
     Args:
-        dataset_type (str): 'tif' or 'synthetic'. 'tif' will load and proprocess data from a GeoTIFF file. 
-                        'synthetic' will use the diamond square algorithm to generate synthetic elevation data.
-        dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
+        dataset_path (str): Path to a tif dataset file. If None, the method will generate synthetic data.
         num_train (int): Number of training samples to generate.
         num_test (int): Number of testing samples to generate.
         num_candidates (int): Number of candidate locations to generate.
@@ -180,9 +178,9 @@ def get_dataset(dataset_type, dataset_path=None,
        y (ndarray): (n, 1); Full dataset labels
     """
     # Load the data
-    if dataset_type == 'tif':
+    if dataset_path is not None:
         X, y = prep_tif_dataset(dataset_path=dataset_path)
-    elif dataset_type == 'synthetic':
+    else:
         X, y = prep_synthetic_dataset(**kwargs)
 
     X_train = get_inducing_pts(X, num_train)
