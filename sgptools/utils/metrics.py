@@ -131,12 +131,12 @@ def get_rmse(y_pred, y_test):
     """
     return np.sqrt(np.mean(np.square(y_pred - y_test)))
 
-def get_reconstruction(Xu, X_test, noise_variance, kernel):
+def get_reconstruction(sensor_data, X_test, noise_variance, kernel):
     """Computes the GP-based data field estimates with the solution placements as the training set
 
     Args:
-        Xu (tuple): (ndarray (m, d); ndarray (m, 1)); Sensing locations' input 
-                    and corresponding ground truth labels
+        sensor_data (ndarray tuple): ((m, d), (m, 1)); Sensing locations' input 
+                             and corresponding ground truth labels
         X_test (ndarray): (n, d); Testing data input locations
         noise_variance (float): data variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
@@ -145,7 +145,7 @@ def get_reconstruction(Xu, X_test, noise_variance, kernel):
         y_pred (ndarray): (n, 1); Predicted data field estimates
         y_var (ndarray): (n, 1); Prediction variance at each location in the data field
     """
-    Xu_X, Xu_y = Xu
+    Xu_X, Xu_y = sensor_data
 
     # Get the GP predictions
     gpr = gpflow.models.GPR((Xu_X, Xu_y),
