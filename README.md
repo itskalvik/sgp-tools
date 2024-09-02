@@ -15,7 +15,8 @@ The library includes python code for the following:
   <img alt="Light" src="docs/assets/point_sensing.gif" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Dark" src="docs/assets/non-point_sensing.gif" width="45%">
-</p>
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="docs/assets/AIPP-non-point_sensing.gif" width="45%"></p>
 
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:
