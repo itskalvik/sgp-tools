@@ -89,13 +89,12 @@ class CMA_ES:
         """Objective function (GP-based Mutual Information)
 
         Args:
-            X (ndarray): (n, d); Initial sensor placement locations
+            X (ndarray): (n, d); Current solution sensor placement locations
         """
         # MI does not depend on waypoint order (reshape to -1, num_dim)
         X = np.array(X).reshape(-1, self.num_dim)
         if self.transform is not None:
-            X = self.transform.expand(X, 
-                                      expand_sensor_model=False).numpy()
+            X = self.transform.expand(X).numpy()
 
         try:
             mi = -get_mi(X, self.noise_variance, self.kernel, self.X_train)
@@ -107,15 +106,19 @@ class CMA_ES:
                  num_sensors=10, 
                  max_steps=5000, 
                  tol=1e-11, 
-                 X_init=None):
-        """Optimizes the SP objective function using CMA-ES without any constraints
+                 X_init=None,
+                 verbose=0,
+                 seed=1234):
+        """Optimizes the sensor placements using CMA-ES without any constraints
 
         Args:
             num_sensors (int): Number of sensor locations to optimize
             max_steps (int): Maximum number of optimization steps
             tol (float): Convergence tolerance to decide when to stop optimization
             X_init (ndarray): (m, d); Initial inducing points
-
+            verbose (int): The level of verbosity.
+            seed (int): The algorithm will use it to seed the randomnumber generator, ensuring replicability.
+            
         Returns:
             Xu (ndarray): (m, d); Solution sensor placement locations
         """
@@ -127,9 +130,9 @@ class CMA_ES:
 
         xopt, _ = cma.fmin2(self.objective, X_init, sigma0, 
                             options={'maxfevals': max_steps,
-                                     'verb_disp': 0,
+                                     'verb_disp': verbose,
                                      'tolfun': tol,
-                                     'seed': 1234},
+                                     'seed': seed},
                             restarts=5)
         
         xopt = np.array(xopt).reshape(-1, self.num_dim)

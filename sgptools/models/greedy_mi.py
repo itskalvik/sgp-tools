@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .core.augmented_gpr import AugmentedGPR
 from apricot import CustomSelection
+from gpflow.models.gpr import GPR
 import numpy as np
 
 
@@ -32,15 +32,24 @@ class GreedyMI:
         kernel (gpflow.kernels.Kernel): gpflow kernel function
         transform (Transform): Transform object
     """
-    def __init__(self, S, V, noise_variance, kernel, transform=None):
+    def __init__(self, S, V, noise_variance, kernel, 
+                 transform=None):
         self.S = S
         self.V = V
         self.kernel = kernel
         self.input_dim = S.shape[1]
         self.noise_variance = noise_variance
         self.transform = transform
-                                 
+
     def mutual_info(self, x):
+        """Computes mutual information using the points `x` 
+
+        Args:
+            x (ndarray): (n); Indices of the solution placement locations
+
+        Returns:
+            MI (float): Mutual information between the placement x and candidate locations
+        """
         x = np.array(x).reshape(-1).astype(int)
         A = self.S[x[:-1]].reshape(-1, self.input_dim)
         y = self.S[x[-1]].reshape(-1, self.input_dim)
@@ -50,26 +59,26 @@ class GreedyMI:
         else:
             if self.transform is not None:
                 A = self.transform.expand(A)
-            a_gp = AugmentedGPR(data=(A, np.zeros((len(A), 1))),
-                                kernel=self.kernel,
-                                noise_variance=self.noise_variance,
-                                transform=self.transform)
-            _, sigma_a = a_gp.predict_f(y, aggregate_train=True)
+            a_gp = GPR(data=(A, np.zeros((len(A), 1))),
+                       kernel=self.kernel,
+                       noise_variance=self.noise_variance)
+            _, sigma_a = a_gp.predict_f(y)
 
-        # Remove locations in A to build A bar
+        # Remove locations in A∪y from V to build A bar (Refer to Krause et al., 2008)
         V_ = self.V.copy()
         V_rows = V_.view([('', V_.dtype)] * V_.shape[1])
+
         if self.transform is not None:
             A_ = self.transform.expand(self.S[x]).numpy()
         else:
             A_ = self.S[x]
         A_rows = A_.view([('', V_.dtype)] * A_.shape[1])
+
         V_ = np.setdiff1d(V_rows, A_rows).view(V_.dtype).reshape(-1, V_.shape[1])
 
-        self.v_gp = AugmentedGPR(data=(V_, np.zeros((len(V_), 1))), 
-                                 kernel=self.kernel,
-                                 noise_variance=self.noise_variance,
-                                 transform=self.transform)
+        self.v_gp = GPR(data=(V_, np.zeros((len(V_), 1))), 
+                        kernel=self.kernel,
+                        noise_variance=self.noise_variance)
         _, sigma_v = self.v_gp.predict_f(y)
 
         return (sigma_a/sigma_v).numpy().squeeze()

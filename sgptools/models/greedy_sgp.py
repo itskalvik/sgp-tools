@@ -30,20 +30,16 @@ class GreedySGP:
         V (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
         noise_variance (float): Data noise variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
-        Xu_fixed (ndarray): (m, d); Inducing points that are not optimized and are always 
-                                    added to the inducing points set during loss function computation
         transform (Transform): Transform object
     """
     def __init__(self, num_inducing, S, V, noise_variance, kernel, 
-                 Xu_fixed=None, 
                  transform=None):
-        self.gp = AugmentedSGPR((V, np.zeros((len(V), 1))),
-                                noise_variance=noise_variance,
-                                kernel=kernel, 
-                                inducing_variable=S[:num_inducing],
-                                transform=transform)
+        self.sgp = AugmentedSGPR((V, np.zeros((len(V), 1))),
+                                 noise_variance=noise_variance,
+                                 kernel=kernel, 
+                                 inducing_variable=S[:num_inducing],
+                                 transform=transform)
         self.locs = S
-        self.Xu_fixed = Xu_fixed
         self.num_inducing = num_inducing
         self.inducing_dim = S.shape[1]
 
@@ -51,21 +47,25 @@ class GreedySGP:
         """Computes the SGP's optimization bound using the inducing points `x` 
 
         Args:
-            x (ndarray): (n, d); Inducing points
+            x (ndarray): (n); Indices of the solution placement locations
 
         Returns:
             elbo (float): Evidence lower bound/SGP's optimization bound value
         """
         x = np.array(x).reshape(-1).astype(int)
         Xu = np.ones((self.num_inducing, self.inducing_dim), dtype=np.float32)
+
+        # Initialize all inducing points at the first solution placement location.
+        # Ensures that the number of inducing points is always fixed and no additional
+        # information is passed to the SGP
         Xu *= self.locs[x][0]
+
+        # Copy all given solution placements to the inducing points set
         Xu[-len(x):] = self.locs[x]
 
-        if self.Xu_fixed is not None:
-            Xu[:len(self.Xu_fixed)] = self.Xu_fixed
-
-        self.gp.inducing_variable.Z.assign(Xu)
-        return self.gp.elbo().numpy()
+        # Update the SGP inducing points
+        self.sgp.inducing_variable.Z.assign(Xu)
+        return self.sgp.elbo().numpy() # return the ELBO
 
 
 def get_greedy_sgp_sol(num_sensors, candidates, X_train, noise_variance, kernel, 

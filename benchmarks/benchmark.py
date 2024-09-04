@@ -15,7 +15,10 @@ from sgptools.utils.metrics import *
 from sgptools.utils.tsp import run_tsp
 from sgptools.utils.gpflow import get_model_params
 
+from sgptools.models.bo import *
 from sgptools.models.cma_es import *
+from sgptools.models.greedy_mi import *
+from sgptools.models.greedy_sgp import *
 from sgptools.models.core.osgpr import *
 from sgptools.models.continuous_sgp import *
 from sgptools.models.core.augmented_gpr import *
@@ -28,7 +31,7 @@ tf.random.set_seed(1234)
 
 
 '''
-Online/Adaptive IPP (data collection phase is excluded from the total runtime)
+Adaptive IPP (data collection phase is excluded from the total runtime)
 The hyperparameters GP is initilized with the hyperparameters of the kernel and variance in ipp_model
 
 Args:
@@ -51,11 +54,11 @@ Returns:
                      excluding the time taken to get the 
                      data collected along the solution paths.
 '''
-def run_ipp(X_train, ipp_model, Xu_init, path2data, 
-            continuous_ipp=False, 
-            ipp_method='SGP', 
-            param_method='GP',
-            plot=False):
+def run_aipp(X_train, ipp_model, Xu_init, path2data, 
+             continuous_ipp=False, 
+             ipp_method='SGP', 
+             param_method='GP',
+             plot=False):
     total_time_param = 0
     total_time_ipp = 0
     num_robots = Xu_init.shape[0]
@@ -161,7 +164,7 @@ def main(dataset_path,
          max_dist, 
          sampling_rate, 
          xrange,
-         agg_sgp=False):
+         methods):
     dataset = dataset_path.split('/')[-1][:-4]
     print(f'Dataset: {dataset}')
     print(f'Num MC: {num_mc}')
@@ -192,13 +195,7 @@ def main(dataset_path,
 
     results = dict()
     for num_waypoints in xrange:
-        results[num_waypoints] = {'Adaptive-SGP':  defaultdict(list),
-                                  'Adaptive-CMA-ES':  defaultdict(list),
-                                  'Online-SGP': defaultdict(list),
-                                  'Online-CMA-ES': defaultdict(list)}
-        if continuous_ipp:
-            results[num_waypoints]['Adaptive-Agg-SGP'] = defaultdict(list)
-            results[num_waypoints]['Online-Agg-SGP'] = defaultdict(list)
+        results[num_waypoints] = {m:defaultdict(list) for m in methods}
 
     for _ in range(num_mc):
         for num_waypoints in xrange:
@@ -239,217 +236,232 @@ def main(dataset_path,
         
             # ---------------------------------------------------------------------------------
 
-            # Adaptive SGP
-            ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                         X_train, 
-                                         noise_variance, 
-                                         kernel,
-                                         transform,
-                                         Xu_init=Xu_init.reshape(-1, 2), 
-                                         max_steps=0)
-            solution_X, solution_y, param_time, ipp_time = run_ipp(X_train, 
-                                                                   ipp_sgpr, 
-                                                                   Xu_init,
-                                                                   path2data,
-                                                                   continuous_ipp,
-                                                                   'SGP',
-                                                                   'SSGP' if continuous_ipp else 'GP')
-            # Get RMSE from oracle hyperparameters
-            y_pred, _ = get_reconstruction((solution_X, solution_y), 
-                                           X_test, 
-                                           noise_variance_opt, 
-                                           kernel_opt)
-            rmse = get_rmse(y_pred, y_test)
+            for method in methods:
+                # Adaptive SGP
+                if method=='Adaptive-SGP':
+                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                                X_train, 
+                                                noise_variance, 
+                                                kernel,
+                                                transform,
+                                                Xu_init=Xu_init.reshape(-1, 2), 
+                                                max_steps=0)
+                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
+                                                                            ipp_sgpr, 
+                                                                            Xu_init,
+                                                                            path2data,
+                                                                            continuous_ipp,
+                                                                            'SGP',
+                                                                            'SSGP' if continuous_ipp else 'GP')
 
-            print(f'\nAdaptive-SGP Param Time: {param_time:.4f}')
-            print(f'Adaptive-SGP IPP Time: {ipp_time:.4f}')
-            print(f'Adaptive-SGP RMSE: {rmse:.4f}')
-            results[num_waypoints]['Adaptive-SGP']['ParamTime'].append(gp_time)
-            results[num_waypoints]['Adaptive-SGP']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['Adaptive-SGP']['RMSE'].append(rmse)
+                # ---------------------------------------------------------------------------------
 
-            # ---------------------------------------------------------------------------------
+                # Adaptive SGP with covariance aggregation for continuous sensing
+                if method=='Adaptive-SGP-Agg':
+                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                                X_train, 
+                                                noise_variance, 
+                                                kernel,
+                                                IPPTransform(num_robots=num_robots,
+                                                            sampling_rate=sampling_rate,
+                                                            aggregate_fov=True),
+                                                Xu_init=Xu_init.reshape(-1, 2), 
+                                                max_steps=0)
+                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
+                                                                            ipp_sgpr, 
+                                                                            Xu_init,
+                                                                            path2data,
+                                                                            continuous_ipp,
+                                                                            'SGP',
+                                                                            'SSGP' if continuous_ipp else 'GP')
 
-            # Adaptive SGP with covariance aggregation for continuous sensing
-            if continuous_ipp and agg_sgp:
-                ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                             X_train, 
-                                             noise_variance, 
-                                             kernel,
-                                             IPPTransform(num_robots=num_robots,
-                                                          sampling_rate=sampling_rate,
-                                                          aggregate_fov=True),
-                                             Xu_init=Xu_init.reshape(-1, 2), 
-                                             max_steps=0)
-                solution_X, solution_y, param_time, ipp_time = run_ipp(X_train, 
-                                                                       ipp_sgpr, 
-                                                                       Xu_init,
-                                                                       path2data,
-                                                                       continuous_ipp,
-                                                                       'SGP',
-                                                                       'SSGP' if continuous_ipp else 'GP')
-                # Get RMSE from oracle hyperparameters
+                # ---------------------------------------------------------------------------------
+
+                # Adaptive CMA-ES
+                if method=='Adaptive-CMA-ES':
+                    cma_es = CMA_ES(candidates, 
+                                    noise_variance, 
+                                    kernel,
+                                    num_robots=num_robots,
+                                    transform=transform)
+                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
+                                                                            cma_es, 
+                                                                            Xu_init,
+                                                                            path2data,
+                                                                            continuous_ipp,
+                                                                            'CMA',
+                                                                            'SSGP' if continuous_ipp else 'GP')
+                    
+                # ---------------------------------------------------------------------------------
+
+                # Online SGP
+                if method=='Online-SGP':
+                    start_time = time()
+                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                                 X_train, 
+                                                 noise_variance_opt, 
+                                                 kernel_opt,
+                                                 transform,
+                                                 Xu_init=Xu_init.reshape(-1, 2), 
+                                                 optimizer='scipy')
+                    solution = ipp_sgpr.inducing_variable.Z.numpy()
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Online SGP with covariance aggregation for continuous sensing
+                if method=='Online-SGP-Agg':
+                    start_time = time()
+                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                                 X_train, 
+                                                 noise_variance_opt, 
+                                                 kernel_opt,
+                                                 IPPTransform(num_robots=num_robots,
+                                                              sampling_rate=sampling_rate,
+                                                              aggregate_fov=True),
+                                                 Xu_init=Xu_init.reshape(-1, 2), 
+                                                 optimizer='scipy')
+                    solution = ipp_sgpr.inducing_variable.Z.numpy()
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Online CMA-ES
+                if method=='Online-CMA-ES':
+                    start_time = time()
+                    cma_es = CMA_ES(candidates, 
+                                    noise_variance_opt,
+                                    kernel_opt, 
+                                    num_robots=num_robots,
+                                    transform=transform)
+                    solution = cma_es.optimize(X_init=Xu_init, 
+                                               max_steps=5000)
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Online Bayesian Optimization
+                if method=='Online-BO':
+                    start_time = time()
+                    bo_model = BayesianOpt(candidates, 
+                                           noise_variance_opt,
+                                           kernel_opt, 
+                                           transform=transform)
+                    solution = bo_model.optimize(X_init=Xu_init,
+                                                 max_steps=100)
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Online Greedy MI
+                if method=='Online-Greedy-MI':
+                    start_time = time()
+                    solution = get_greedy_mi_sol(num_robots*num_waypoints,
+                                                 candidates, 
+                                                 candidates, 
+                                                 noise_variance_opt,
+                                                 kernel_opt, 
+                                                 transform=transform)
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Online Greedy SGP
+                if method=='Online-Greedy-SGP':
+                    start_time = time()
+                    solution = get_greedy_sgp_sol(num_robots*num_waypoints,
+                                                  candidates, 
+                                                  candidates, 
+                                                  noise_variance_opt,
+                                                  kernel_opt, 
+                                                  transform=transform)
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
+                # Get RMSE using the oracle hyperparameters
                 y_pred, _ = get_reconstruction((solution_X, solution_y), 
-                                               X_test, 
-                                               noise_variance_opt, 
-                                               kernel_opt)
+                                            X_test, 
+                                            noise_variance_opt, 
+                                            kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
 
-                print(f'\nAdaptive- Param Time: {param_time:.4f}')
-                print(f'Adaptive-Agg-SGP IPP Time: {ipp_time:.4f}')
-                print(f'Adaptive-Agg-SGP RMSE: {rmse:.4f}')
-                results[num_waypoints]['Adaptive-Agg-SGP']['ParamTime'].append(gp_time)
-                results[num_waypoints]['Adaptive-Agg-SGP']['IPPTime'].append(ipp_time)
-                results[num_waypoints]['Adaptive-Agg-SGP']['RMSE'].append(rmse)
-            
-            # ---------------------------------------------------------------------------------
+                param_time = gp_time if 'Online' in method else param_time
+                results[num_waypoints][method]['ParamTime'].append(param_time)
+                results[num_waypoints][method]['IPPTime'].append(ipp_time)
+                results[num_waypoints][method]['RMSE'].append(rmse)
 
-            # Adaptive CMA_ES
-            cma_es = CMA_ES(candidates, 
-                            noise_variance, 
-                            kernel,
-                            num_robots=num_robots,
-                            transform=transform)
-            solution_X, solution_y, param_time, ipp_time = run_ipp(X_train, 
-                                                                   cma_es, 
-                                                                   Xu_init,
-                                                                   path2data,
-                                                                   continuous_ipp,
-                                                                   'CMA',
-                                                                   'SSGP' if continuous_ipp else 'GP')
-            # Get RMSE from oracle hyperparameters
-            y_pred, _ = get_reconstruction((solution_X, solution_y), 
-                                           X_test, 
-                                           noise_variance_opt, 
-                                           kernel_opt)
-            rmse = get_rmse(y_pred, y_test)
+                print(f'\n{method} Param Time: {param_time:.4f}')
+                print(f'{method} IPP Time: {ipp_time:.4f}')
+                print(f'{method} RMSE: {rmse:.4f}')
 
-            print(f'\nAdaptive-CMA-ES Param Time: {param_time:.4f}')
-            print(f'Adaptive-CMA-ES IPP Time: {ipp_time:.4f}')
-            print(f'Adaptive-CMA-ES RMSE: {rmse:.4f}')
-            results[num_waypoints]['Adaptive-CMA-ES']['ParamTime'].append(gp_time)
-            results[num_waypoints]['Adaptive-CMA-ES']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['Adaptive-CMA-ES']['RMSE'].append(rmse)
-
-            # ---------------------------------------------------------------------------------
-
-            # Online SGP
-            start_time = time()
-            ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                         X_train, 
-                                         noise_variance_opt, 
-                                         kernel_opt,
-                                         transform,
-                                         Xu_init=Xu_init.reshape(-1, 2), 
-                                         optimizer='scipy')
-            offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
-            offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
-            end_time = time()
-            ipp_time = end_time-start_time
-
-            # Get RMSE from oracle hyperparameters
-            offline_X, offline_y = [], []
-            for r in range(num_robots):
-                X_new, y_new = path2data(offline_sgp_sol[r])
-                offline_X.extend(X_new)
-                offline_y.extend(y_new)
-            offline_X = np.array(offline_X)
-            offline_y = np.array(offline_y)
-            y_pred, _ = get_reconstruction((offline_X, offline_y), 
-                                           X_test, 
-                                           noise_variance_opt, 
-                                           kernel_opt)
-            rmse = get_rmse(y_pred, y_test)
-
-            print(f'\nOnline-SGP Time: {ipp_time:.4f}')
-            print(f'Online-SGP RMSE: {rmse:.4f}')
-            results[num_waypoints]['Online-SGP']['ParamTime'].append(gp_time)
-            results[num_waypoints]['Online-SGP']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['Online-SGP']['RMSE'].append(rmse)
-
-            # ---------------------------------------------------------------------------------
-
-            # Online SGP with covariance aggregation for continuous sensing
-            if continuous_ipp and agg_sgp:
-                start_time = time()
-                ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                             X_train, 
-                                             noise_variance_opt, 
-                                             kernel_opt,
-                                             IPPTransform(num_robots=num_robots,
-                                                          sampling_rate=sampling_rate,
-                                                          aggregate_fov=True),
-                                             Xu_init=Xu_init.reshape(-1, 2), 
-                                             optimizer='scipy')
-                offline_sgp_sol = ipp_sgpr.inducing_variable.Z.numpy()
-                offline_sgp_sol = offline_sgp_sol.reshape(num_robots, num_waypoints, 2)
-                end_time = time()
-                ipp_time = end_time-start_time
-
-                # Get RMSE from oracle hyperparameters
-                offline_X, offline_y = [], []
-                for r in range(num_robots):
-                    X_new, y_new = path2data(offline_sgp_sol[r])
-                    offline_X.extend(X_new)
-                    offline_y.extend(y_new)
-                offline_X = np.array(offline_X)
-                offline_y = np.array(offline_y)
-                y_pred, _ = get_reconstruction((offline_X, offline_y), 
-                                               X_test, 
-                                               noise_variance_opt, 
-                                               kernel_opt)
-                rmse = get_rmse(y_pred, y_test)
-
-                print(f'\nOnline-Agg-SGP Time: {ipp_time:.4f}')
-                print(f'Online-Agg-SGP Cov RMSE: {rmse:.4f}')
-                results[num_waypoints]['Online-Agg-SGP']['ParamTime'].append(gp_time)
-                results[num_waypoints]['Online-Agg-SGP']['IPPTime'].append(ipp_time)
-                results[num_waypoints]['Online-Agg-SGP']['RMSE'].append(rmse)
-
-            # ---------------------------------------------------------------------------------
-
-            # Online CMA-ES
-            start_time = time()
-            cma_es = CMA_ES(candidates, 
-                            noise_variance_opt,
-                            kernel_opt, 
-                            num_robots=num_robots,
-                            transform=transform)
-            cma_sol = cma_es.optimize(X_init=Xu_init, 
-                                      max_steps=5000)
-            cma_sol = cma_sol.reshape(num_robots, num_waypoints, 2)
-            end_time = time()
-            ipp_time = end_time-start_time
-
-            # Get RMSE from oracle hyperparameters
-            cma_X, cma_y = [], []
-            for r in range(num_robots):
-                X_new, y_new = path2data(cma_sol[r])
-                cma_X.extend(X_new)
-                cma_y.extend(y_new)
-            cma_X = np.array(cma_X)
-            cma_y = np.array(cma_y)
-            y_pred, _ = get_reconstruction((cma_X, cma_y), 
-                                           X_test, 
-                                           noise_variance_opt, 
-                                           kernel_opt)
-            rmse = get_rmse(y_pred, y_test)
-
-            print(f'\nOnline-CMA-ES Time: {ipp_time:.4f}')
-            print(f'Online-CMA-ES RMSE: {rmse:.4f}')
-            results[num_waypoints]['Online-CMA-ES']['ParamTime'].append(gp_time)
-            results[num_waypoints]['Online-CMA-ES']['IPPTime'].append(ipp_time)
-            results[num_waypoints]['Online-CMA-ES']['RMSE'].append(rmse)
-
-            # ---------------------------------------------------------------------------------
-
-            # Dump the results to a json file
+            # Log the results to a json file
             with open(f'{dataset}_{num_robots}R_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
                 json.dump(results, f, ensure_ascii=False, indent=4)
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description="SP/IPP benchmarking script")
+    parser=argparse.ArgumentParser(description="Online/Adaptive SP/IPP benchmarking script")
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
@@ -460,9 +472,21 @@ if __name__=='__main__':
     max_dist = 350 if args.num_robots==1 else 150
     max_range = 101 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
+
+    methods = ['Adaptive-SGP',
+               'Adaptive-CMA-ES',
+               'Adaptive-SGP-Agg',
+               'Online-SGP',
+               'Online-CMA-ES',
+               'Online-SGP-Agg',
+               'Online-BO',
+               'Online-Greedy-MI',
+               'Online-Greedy-SGP']
+
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
          max_dist, 
          args.sampling_rate, 
-         xrange)
+         xrange,
+         methods)
