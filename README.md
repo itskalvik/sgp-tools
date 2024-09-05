@@ -18,6 +18,11 @@ The library includes python code for the following:
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Dark" src="docs/assets/AIPP-non-point_sensing.gif" width="45%"></p>
 
+## Related Packages
+
+- The [ros_sgp_tools](https://github.com/itskalvik/ros_sgp_tools) package provides a ROS2 companion package for SGP-Tools that can be deployed on ArduPilot-based vehicles. 
+- The [docker-sgp-tools](https://github.com/itskalvik/docker-sgp-tools) package provides docker containers for running SGP-Tools in simulation and on ArduPilot-based vehicles.
+
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:
 
