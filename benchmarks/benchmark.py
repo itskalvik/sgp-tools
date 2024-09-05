@@ -475,14 +475,18 @@ if __name__=='__main__':
 
     methods = ['Adaptive-SGP',
                'Adaptive-CMA-ES',
-               'Adaptive-SGP-Agg',
                'Online-SGP',
-               'Online-CMA-ES',
-               'Online-SGP-Agg',
-               'Online-BO',
-               'Online-Greedy-MI',
-               'Online-Greedy-SGP']
+               'Online-CMA-ES']
 
+    if args.sampling_rate > 2:
+        methods.append('Adaptive-SGP-Agg')
+        methods.append('Online-SGP-Agg')
+    elif args.sampling_rate == 2:
+        methods.append('Online-BO')
+        if args.num_robots == 1:
+            methods.append('Online-Greedy-MI')
+            methods.append('Online-Greedy-SGP')
+              
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
