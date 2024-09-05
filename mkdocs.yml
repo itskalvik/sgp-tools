@@ -75,9 +75,9 @@ nav:
       - api/utils//Misc.md
       - api/utils/TSP.md
   - ROS 2:
-    - ros_sgp_tools.md
+    - "ros_sgp_tools": ros_sgp_tools.md
   - Docker:
-    - docker-sgp-tools.md
+    - "docker-sgp-tools": docker-sgp-tools.md
   - Examples:
       - examples/AIPP_non_point_FoV.ipynb  
       - examples/IPP.ipynb  
