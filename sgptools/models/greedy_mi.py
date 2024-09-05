@@ -70,7 +70,7 @@ class GreedyMI:
 
         if self.transform is not None:
             solution = self.S[x].reshape(-1, self.input_dim)
-            A_ = self.transform.expand(solution)
+            A_ = self.transform.expand(solution).numpy()
         else:
             A_ = self.S[x]
         A_rows = A_.view([('', V_.dtype)] * A_.shape[1])
