@@ -7,6 +7,8 @@ The [docker-sgp-tools](https://github.com/itskalvik/docker-sgp-tools) package pr
 * ```robot-compose.yml```: A minimal docker container used to run SGP-Tools ROS2 package on ArduPilot-based robots.
 * ```sitl-compose.yml```: A GUI-based docker container with ROS2, Gazebo, ArduPilot SITL, and SGP-Tools used for simulating ArduPilot vehicles and testing SGP-Tools IPP code. 
 
+![Image title](assets/docker_ros2_ardupilot.png)
+
 ### Prerequisites
 
 * [docker](https://docs.docker.com/engine/install/)
@@ -30,10 +32,7 @@ Use ```robot-compose.yml``` to run the minimal docker container.
 
 ### Running SGP-Tools Online/Adaptive IPP with Gazebo/ArduRover Simulator
 
-<div style="text-align:left">
-<img width="1000" src="assets/ros_demo.png">
-</a></p>
-</div>
+![Image title](assets/ros_demo.png)
 
 Use ```docker-compose -f sitl-compose.yml exec sgptools bash``` to get a new terminal. Run the following commands in separate terminals in the docker container:
 

@@ -9,12 +9,11 @@ The [ros_sgp_tools](https://github.com/itskalvik/ros_sgp_tools) package provides
 - The package can also be used with Gazebo/Ardupilot SITL.
 - To use our Docker container with the preconfigured development environment, please refer to the documentation [here](docker-sgp-tools.html). 
 
+![Image title](assets/ros2_ardupilot.png)
+
 ### Running SGP-Tools Online/Adaptive IPP with Gazebo/ArduRover Simulator
 
-<div style="text-align:left">
-<img width="1000" src="assets/ros_demo.png">
-</a></p>
-</div>
+![Image title](assets/ros_demo.png)
 
 Run the following commands in separate terminals:
 
