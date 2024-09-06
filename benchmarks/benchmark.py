@@ -319,6 +319,32 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
+                # Online Discrete SGP
+                if method=='Online-Discrete-SGP':
+                    start_time = time()
+                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
+                                                 X_train, 
+                                                 noise_variance_opt, 
+                                                 kernel_opt,
+                                                 transform,
+                                                 Xu_init=Xu_init.reshape(-1, 2), 
+                                                 optimizer='scipy')
+                    solution = ipp_sgpr.inducing_variable.Z.numpy()
+                    solution = cont2disc(solution, candidates)
+                    solution = solution.reshape(num_robots, num_waypoints, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
                 # Online SGP with covariance aggregation for continuous sensing
                 if method=='Online-SGP-Agg':
                     start_time = time()
@@ -481,12 +507,12 @@ if __name__=='__main__':
     if args.sampling_rate > 2:
         methods.append('Adaptive-SGP-Agg')
         methods.append('Online-SGP-Agg')
-    elif args.sampling_rate == 2:
-        methods.append('Online-BO')
-        if args.num_robots == 1:
+    elif args.sampling_rate == 2 and args.num_robots == 1:
+            methods.append('Online-BO')
             methods.append('Online-Greedy-MI')
             methods.append('Online-Greedy-SGP')
-              
+            methods.append('Online-Discrete-SGP')
+            
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
