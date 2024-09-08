@@ -68,12 +68,13 @@ class CMA_ES:
         X = np.array(X).reshape(-1, self.num_dim)
         constraints_loss = 0.0
         if self.transform is not None:
-            X = self.transform.expand(X).numpy()
+            X = self.transform.expand(X)
             constraints_loss = self.transform.constraints(X)
 
         try:
             mi = -get_mi(X, self.X_train, self.noise_variance, self.kernel)
             mi -= constraints_loss
+            mi = mi.numpy()
         except:
             mi = 0.0 # if the cholskey decomposition fails
         return mi
@@ -114,6 +115,6 @@ class CMA_ES:
         xopt = np.array(xopt).reshape(-1, self.num_dim)
         if self.transform is not None:
             xopt = self.transform.expand(xopt, 
-                                         expand_sensor_model=False).numpy()
+                                         expand_sensor_model=False)
 
         return xopt.reshape(-1, self.num_dim)

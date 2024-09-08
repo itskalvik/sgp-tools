@@ -56,12 +56,13 @@ class BayesianOpt:
             X.append(kwargs['x{}'.format(i)])
         X = np.array(X).reshape(-1, self.num_dim)
         if self.transform is not None:
-            X = self.transform.expand(X).numpy()
+            X = self.transform.expand(X)
             constraints_loss = self.transform.constraints(X)
 
         try:
             mi = get_mi(X, self.X_train, self.noise_variance, self.kernel)
             mi += constraints_loss
+            mi = mi.numpy()
         except:
             mi = -1e4 # if the cholskey decomposition fails
         return mi
@@ -108,5 +109,11 @@ class BayesianOpt:
         sol = []
         for i in range(self.num_dim*num_sensors):
             sol.append(optimizer.max['params']['x{}'.format(i)])
-        return np.array(sol).reshape(-1, self.num_dim)
+        sol = np.array(sol).reshape(-1, self.num_dim)
+        if self.transform is not None:
+            sol = self.transform.expand(sol,
+                                        expand_sensor_model=False)
+            
+        return sol.reshape(-1, self.num_dim)
+
 
