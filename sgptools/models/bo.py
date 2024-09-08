@@ -57,9 +57,11 @@ class BayesianOpt:
         X = np.array(X).reshape(-1, self.num_dim)
         if self.transform is not None:
             X = self.transform.expand(X).numpy()
+            constraints_loss = self.transform.constraints(X)
 
         try:
-            mi = get_mi(X, self.noise_variance, self.kernel, self.X_train)
+            mi = get_mi(X, self.X_train, self.noise_variance, self.kernel)
+            mi += constraints_loss
         except:
             mi = -1e4 # if the cholskey decomposition fails
         return mi

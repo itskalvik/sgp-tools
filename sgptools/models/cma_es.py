@@ -57,33 +57,6 @@ class CMA_ES:
         """
         self.noise_variance = noise_variance
         self.kernel = kernel
-
-    def constraint(self, X):
-        """Constraint function for the optimization problem (constraint to limit the boundary of the region)
-        Does not work well with CMA-ES as it is a step function and is not continuous
-
-        Args:
-            X (ndarray): (n, d); Current sensor placement locations
-        """
-        X = np.array(X).reshape(-1, self.num_dim)
-        lagrangian = [self.boundaries.contains(geometry.Point(x[0], x[1])) for x in X]
-        lagrangian = np.logical_not(lagrangian).astype(float)
-        return lagrangian
-    
-    def distance_constraint(self, X):
-        """Constraint function for the optimization problem (constraint to limit the total travel distance)
-        Does not work well with CMA-ES as it is a step function and is not continuous
-
-        Args:
-            X (ndarray): (n, d); Current sensor placement locations
-        """
-        X = np.array(X).reshape(self.num_robots, -1, self.num_dim)
-        dists = np.linalg.norm(X[:, 1:] - X[:, :-1], axis=-1)
-        lagrangian = dists - self.distance_budget
-        lagrangian_mask = np.logical_not(lagrangian <= 0)
-        lagrangian[lagrangian_mask] = 0
-        lagrangian = np.sum(lagrangian)
-        return lagrangian
     
     def objective(self, X):
         """Objective function (GP-based Mutual Information)
@@ -93,11 +66,14 @@ class CMA_ES:
         """
         # MI does not depend on waypoint order (reshape to -1, num_dim)
         X = np.array(X).reshape(-1, self.num_dim)
+        constraints_loss = 0.0
         if self.transform is not None:
             X = self.transform.expand(X).numpy()
+            constraints_loss = self.transform.constraints(X)
 
         try:
-            mi = -get_mi(X, self.noise_variance, self.kernel, self.X_train)
+            mi = -get_mi(X, self.X_train, self.noise_variance, self.kernel)
+            mi -= constraints_loss
         except:
             mi = 0.0 # if the cholskey decomposition fails
         return mi
@@ -105,7 +81,7 @@ class CMA_ES:
     def optimize(self, 
                  num_sensors=10, 
                  max_steps=5000, 
-                 tol=1e-11, 
+                 tol=1e-6, 
                  X_init=None,
                  verbose=0,
                  seed=1234):
@@ -140,53 +116,4 @@ class CMA_ES:
             xopt = self.transform.expand(xopt, 
                                          expand_sensor_model=False).numpy()
 
-        return xopt.reshape(-1, self.num_dim)
-    
-    def doptimize(self, num_sensors=10, max_steps=100, tol=1e-11):
-        """Optimizes the SP objective function using CMA-ES with a distance budget constraint
-
-        Args:
-            num_sensors (int): Number of sensor locations to optimize
-            max_steps (int): Maximum number of optimization steps
-            tol (float): Convergence tolerance to decide when to stop optimization
-
-        Returns:
-            Xu (ndarray): (m, d); Solution sensor placement locations
-        """
-        sigma0 = 1.0
-        idx = np.random.randint(len(self.X_train), size=num_sensors)
-        x_init = self.X_train[idx].reshape(-1)
-        cfun = cma.ConstrainedFitnessAL(self.objective, self.distance_constraint)
-        xopt, _ = cma.fmin2(cfun, x_init, sigma0, 
-                            options={'maxfevals': max_steps,
-                                     'verb_disp': 0,
-                                     'tolfun': tol,
-                                     'seed': 1234},
-                            callback=cfun.update,
-                            restarts=5)
-        return xopt.reshape(-1, self.num_dim)
-
-    def coptimize(self, num_sensors=10, max_steps=100, tol=1e-11):
-        """Optimizes the SP objective function using CMA-ES with the constraints
-        to ensure that the sensors are placed within the boundaries of the region
-
-        Args:
-            num_sensors (int): Number of sensor locations to optimize
-            max_steps (int): Maximum number of optimization steps
-            tol (float): Convergence tolerance to decide when to stop optimization
-
-        Returns:
-            Xu (ndarray): (m, d); Solution sensor placement locations
-        """
-        sigma0 = 1.0
-        idx = np.random.randint(len(self.X_train), size=num_sensors*self.num_robots)
-        x_init = self.X_train[idx].reshape(-1)
-        cfun = cma.ConstrainedFitnessAL(self.objective, self.constraint)
-        xopt, _ = cma.fmin2(cfun, x_init, sigma0, 
-                            options={'maxfevals': max_steps,
-                                     'verb_disp': 0,
-                                     'tolfun': tol,
-                                     'seed': 1234},
-                            callback=cfun.update,
-                            restarts=5)
         return xopt.reshape(-1, self.num_dim)

@@ -150,7 +150,7 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
                                                   expand_sensor_model=False).numpy()
         elif ipp_method == 'CMA':
             curr_sol = ipp_model.optimize(X_init=curr_sol,
-                                          max_steps=5000)
+                                          max_steps=500)
         curr_sol = curr_sol.reshape(num_robots, num_waypoints, 2)
         end_time = time()
         total_time_ipp += end_time - start_time
@@ -205,6 +205,7 @@ def main(dataset_path,
             _, noise_variance, kernel = get_model_params(X_train, y_train, 
                                                          max_steps=0,
                                                          print_params=False)
+            
             # Set lower and upper limits on the hyperparameters
             kernel.variance = gpflow.Parameter(
                 np.random.normal(1.0, 0.1),
@@ -381,7 +382,7 @@ def main(dataset_path,
                                     num_robots=num_robots,
                                     transform=transform)
                     solution = cma_es.optimize(X_init=Xu_init, 
-                                               max_steps=5000)
+                                               max_steps=500)
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
@@ -404,7 +405,7 @@ def main(dataset_path,
                                            kernel_opt, 
                                            transform=transform)
                     solution = bo_model.optimize(X_init=Xu_init,
-                                                 max_steps=100)
+                                                 max_steps=50)
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
