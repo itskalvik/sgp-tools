@@ -113,7 +113,6 @@ class BayesianOpt:
         if self.transform is not None:
             sol = self.transform.expand(sol,
                                         expand_sensor_model=False)
-            
+            if not isinstance(sol, np.ndarray):
+                sol = sol.numpy()
         return sol.reshape(-1, self.num_dim)
-
-

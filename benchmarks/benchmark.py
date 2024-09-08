@@ -154,8 +154,12 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
         curr_sol = curr_sol.reshape(num_robots, num_waypoints, 2)
         end_time = time()
         total_time_ipp += end_time - start_time
-        
-    return np.array(sol_data_X), np.array(sol_data_y), total_time_param, total_time_ipp 
+
+    budget_constraint = ipp_model.transform.constraints(curr_sol.reshape(-1, 2))
+    slack = -10 if num_robots==1 else -300
+    budget_satisfied = budget_constraint > slack
+
+    return np.array(sol_data_X), np.array(sol_data_y), total_time_param, total_time_ipp, budget_satisfied
 
 
 def main(dataset_path, 
@@ -164,7 +168,8 @@ def main(dataset_path,
          max_dist, 
          sampling_rate, 
          xrange,
-         methods):
+         methods,
+         distance_budget):
     dataset = dataset_path.split('/')[-1][:-4]
     print(f'Dataset: {dataset}')
     print(f'Num MC: {num_mc}')
@@ -172,6 +177,7 @@ def main(dataset_path,
     print(f'Sampling Rate: {sampling_rate}')
     print(f'Dataset Path: {dataset_path}')
     print(f'Range: {xrange}')
+    print(f'Distance Budget: {distance_budget}')
 
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
@@ -224,36 +230,43 @@ def main(dataset_path,
 
             # Generate initial paths
             Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
-            Xu_init, dist = run_tsp(Xu_init, 
-                                    num_vehicles=num_robots, 
-                                    max_dist=max_dist, 
-                                    resample=num_waypoints,
-                                    time_limit=30)
-            print(f"Path length(s): {dist}")
+            Xu_init, _ = run_tsp(Xu_init, 
+                                 num_vehicles=num_robots, 
+                                 max_dist=max_dist, 
+                                 resample=num_waypoints,
+                                 time_limit=30)
 
             # Setup the IPP Transform
             transform = IPPTransform(num_robots=num_robots,
                                      sampling_rate=sampling_rate)
-        
+            distances = transform.distance(Xu_init.reshape(-1, 2))
+            print(f"Path length(s): {distances}")
+    
+            if distance_budget:
+                budget = np.min(distances)-5.0
+                print(f'Distance Budget: {budget:.4f}')
+                transform.distance_budget = budget
+                transform.constraint_weight = 100. if num_robots == 1 else 20000.0
+
             # ---------------------------------------------------------------------------------
 
             for method in methods:
                 # Adaptive SGP
                 if method=='Adaptive-SGP':
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                X_train, 
-                                                noise_variance, 
-                                                kernel,
-                                                transform,
-                                                Xu_init=Xu_init.reshape(-1, 2), 
-                                                max_steps=0)
-                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
-                                                                            ipp_sgpr, 
-                                                                            Xu_init,
-                                                                            path2data,
-                                                                            continuous_ipp,
-                                                                            'SGP',
-                                                                            'SSGP' if continuous_ipp else 'GP')
+                                                 X_train, 
+                                                 noise_variance, 
+                                                 kernel,
+                                                 deepcopy(transform),
+                                                 Xu_init=Xu_init.reshape(-1, 2), 
+                                                 max_steps=0)
+                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
+                                                                                ipp_sgpr, 
+                                                                                Xu_init,
+                                                                                path2data,
+                                                                                continuous_ipp,
+                                                                                'SGP',
+                                                                                'SSGP' if continuous_ipp else 'GP')
 
                 # ---------------------------------------------------------------------------------
 
@@ -268,7 +281,7 @@ def main(dataset_path,
                                                             aggregate_fov=True),
                                                 Xu_init=Xu_init.reshape(-1, 2), 
                                                 max_steps=0)
-                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
+                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
                                                                             ipp_sgpr, 
                                                                             Xu_init,
                                                                             path2data,
@@ -284,8 +297,8 @@ def main(dataset_path,
                                     noise_variance, 
                                     kernel,
                                     num_robots=num_robots,
-                                    transform=transform)
-                    solution_X, solution_y, param_time, ipp_time = run_aipp(X_train, 
+                                    transform=deepcopy(transform))
+                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
                                                                             cma_es, 
                                                                             Xu_init,
                                                                             path2data,
@@ -309,6 +322,9 @@ def main(dataset_path,
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
+
+                    budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
+                    budget_satisfied = budget_constraint > -10.
 
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
@@ -335,6 +351,9 @@ def main(dataset_path,
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
+
+                    budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
+                    budget_satisfied = budget_constraint > -10.
 
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
@@ -363,6 +382,9 @@ def main(dataset_path,
                     end_time = time()
                     ipp_time = end_time-start_time
 
+                    budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
+                    budget_satisfied = budget_constraint > -10.
+
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
                         X_new, y_new = path2data(solution[r])
@@ -387,6 +409,9 @@ def main(dataset_path,
                     end_time = time()
                     ipp_time = end_time-start_time
 
+                    budget_constraint = cma_es.transform.constraints(solution.reshape(-1, 2))
+                    budget_satisfied = budget_constraint > -10.
+
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
                         X_new, y_new = path2data(solution[r])
@@ -409,6 +434,9 @@ def main(dataset_path,
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
+
+                    budget_constraint = bo_model.transform.constraints(solution.reshape(-1, 2))
+                    budget_satisfied = budget_constraint > -10.
 
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
@@ -477,10 +505,12 @@ def main(dataset_path,
                 results[num_waypoints][method]['ParamTime'].append(param_time)
                 results[num_waypoints][method]['IPPTime'].append(ipp_time)
                 results[num_waypoints][method]['RMSE'].append(rmse)
+                results[num_waypoints][method]['Constraint'].append(bool(budget_satisfied))
 
                 print(f'\n{method} Param Time: {param_time:.4f}')
                 print(f'{method} IPP Time: {ipp_time:.4f}')
                 print(f'{method} RMSE: {rmse:.4f}')
+                print(f'{method} Constraint: {budget_satisfied}')
 
             # Log the results to a json file
             with open(f'{dataset}_{num_robots}R_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
@@ -492,6 +522,7 @@ if __name__=='__main__':
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
+    parser.add_argument("--distance_budget", type=bool, default=False)
     parser.add_argument("--dataset_path", type=str, 
                         default='../datasets/bathymetry/bathymetry.tif')
     args=parser.parse_args()
@@ -508,16 +539,19 @@ if __name__=='__main__':
     if args.sampling_rate > 2:
         methods.append('Adaptive-SGP-Agg')
         methods.append('Online-SGP-Agg')
-    elif args.sampling_rate == 2 and args.num_robots == 1:
+    elif args.sampling_rate == 2 and \
+         args.num_robots == 1 and \
+         not args.distance_budget:
             methods.append('Online-BO')
             methods.append('Online-Greedy-MI')
             methods.append('Online-Greedy-SGP')
             methods.append('Online-Discrete-SGP')
-            
+     
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
          max_dist, 
          args.sampling_rate, 
          xrange,
-         methods)
+         methods,
+         args.distance_budget)

@@ -116,5 +116,6 @@ class CMA_ES:
         if self.transform is not None:
             xopt = self.transform.expand(xopt, 
                                          expand_sensor_model=False)
-
+            if not isinstance(xopt, np.ndarray):
+                xopt = xopt.numpy()
         return xopt.reshape(-1, self.num_dim)
