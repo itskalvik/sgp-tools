@@ -179,6 +179,10 @@ def main(dataset_path,
     print(f'Range: {xrange}')
     print(f'Distance Budget: {distance_budget}')
 
+    fname = f'{dataset}_{num_robots}R_{sampling_rate}S'
+    if distance_budget:
+        fname += '_B'
+
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
         continuous_ipp = True
@@ -513,7 +517,7 @@ def main(dataset_path,
                 print(f'{method} Constraint: {budget_satisfied}')
 
             # Log the results to a json file
-            with open(f'{dataset}_{num_robots}R_{sampling_rate}S.json', 'w', encoding='utf-8') as f:
+            with open(f'{fname}.json', 'w', encoding='utf-8') as f:
                 json.dump(results, f, ensure_ascii=False, indent=4)
 
 
@@ -546,7 +550,7 @@ if __name__=='__main__':
             methods.append('Online-Greedy-MI')
             methods.append('Online-Greedy-SGP')
             methods.append('Online-Discrete-SGP')
-     
+    
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
