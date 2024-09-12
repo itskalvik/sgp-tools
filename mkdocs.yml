@@ -81,7 +81,7 @@ nav:
   - Examples:
       - examples/AIPP_non_point_FoV.ipynb  
       - examples/IPP.ipynb  
-      - examples/IPPBaselines.ipynb  
+      - examples/Baselines.ipynb  
       - examples/non_point_FoV.ipynb
       - examples/non_stationary_kernel.ipynb  
       - examples/obstacles.ipynb
