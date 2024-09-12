@@ -276,27 +276,6 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Adaptive SGP with covariance aggregation for continuous sensing
-                if method=='Adaptive-SGP-Agg':
-                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                X_train, 
-                                                noise_variance, 
-                                                kernel,
-                                                IPPTransform(num_robots=num_robots,
-                                                            sampling_rate=sampling_rate,
-                                                            aggregate_fov=True),
-                                                Xu_init=Xu_init.reshape(-1, 2), 
-                                                max_steps=0)
-                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
-                                                                            ipp_sgpr, 
-                                                                            Xu_init,
-                                                                            path2data,
-                                                                            continuous_ipp,
-                                                                            'SGP',
-                                                                            'SSGP' if continuous_ipp else 'GP')
-
-                # ---------------------------------------------------------------------------------
-
                 # Adaptive CMA-ES
                 if method=='Adaptive-CMA-ES':
                     cma_es = CMA_ES(candidates, 
@@ -354,36 +333,6 @@ def main(dataset_path,
                                                  optimizer='scipy')
                     solution = ipp_sgpr.inducing_variable.Z.numpy()
                     solution = cont2disc(solution, candidates)
-                    solution = solution.reshape(num_robots, num_waypoints, 2)
-                    end_time = time()
-                    ipp_time = end_time-start_time
-
-                    budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
-                    budget_satisfied = budget_constraint > -10.
-
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
-                # ---------------------------------------------------------------------------------
-
-                # Online SGP with covariance aggregation for continuous sensing
-                if method=='Online-SGP-Agg':
-                    start_time = time()
-                    ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                 X_train, 
-                                                 noise_variance_opt, 
-                                                 kernel_opt,
-                                                 IPPTransform(num_robots=num_robots,
-                                                              sampling_rate=sampling_rate,
-                                                              aggregate_fov=True),
-                                                 Xu_init=Xu_init.reshape(-1, 2), 
-                                                 optimizer='scipy')
-                    solution = ipp_sgpr.inducing_variable.Z.numpy()
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
@@ -542,10 +491,7 @@ if __name__=='__main__':
                'Online-SGP',
                'Online-CMA-ES']
 
-    if args.sampling_rate > 2:
-        methods.append('Adaptive-SGP-Agg')
-        methods.append('Online-SGP-Agg')
-    elif args.sampling_rate == 2 and \
+    if args.sampling_rate == 2 and \
          args.num_robots == 1 and \
          not args.distance_budget:
             methods.append('Online-BO')
