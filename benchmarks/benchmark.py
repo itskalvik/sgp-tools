@@ -250,7 +250,9 @@ def main(dataset_path,
                 budget = np.min(distances)-5.0
                 print(f'Distance Budget: {budget:.4f}')
                 transform.distance_budget = budget
-                transform.constraint_weight = 100. if num_robots == 1 else 20000.0
+                transform.constraint_weight = 250.
+            else:
+                budget_satisfied=True
 
             # ---------------------------------------------------------------------------------
 
@@ -532,7 +534,7 @@ if __name__=='__main__':
     args=parser.parse_args()
 
     max_dist = 350 if args.num_robots==1 else 150
-    max_range = 101 if args.num_robots==1 and args.sampling_rate==2 else 51
+    max_range = 81 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
 
     methods = ['Adaptive-SGP',
