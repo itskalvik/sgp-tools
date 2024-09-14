@@ -1,5 +1,6 @@
 import os
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 import json
 import argparse
@@ -114,6 +115,7 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
                                                          print_params=False,
                                                          optimizer='scipy',
                                                          method='CG')
+            noise_variance = np.clip(noise_variance.numpy(), 1e-4, 5.0)
         elif param_method=='SSGP':
             param_model.update((np.array(data_X_batch), 
                                 np.array(data_y_batch)))
@@ -128,9 +130,11 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
 
         if plot:
             plt.figure()
-            plt.scatter(X_train[:, 0], X_train[:, 1])
+            plt.scatter(X_train[:, 0], X_train[:, 1], s=1)
             for i in range(num_robots):
-                plt.scatter(X_new[:, 0], X_new[:, 1])
+                plt.scatter(np.array(data_X_batch)[:, 0], 
+                            np.array(data_X_batch)[:, 1])
+                plt.plot(curr_sol[i, :, 0], curr_sol[i, :, 1])
             plt.savefig(f'{ipp_method}-{time_step}.png')
             plt.close()
 
@@ -257,7 +261,6 @@ def main(dataset_path,
             # ---------------------------------------------------------------------------------
 
             for method in methods:
-                # Adaptive SGP
                 if method=='Adaptive-SGP':
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                                  X_train, 
@@ -276,7 +279,6 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Adaptive CMA-ES
                 if method=='Adaptive-CMA-ES':
                     cma_es = CMA_ES(candidates, 
                                     noise_variance, 
@@ -293,8 +295,7 @@ def main(dataset_path,
                     
                 # ---------------------------------------------------------------------------------
 
-                # Online SGP
-                if method=='Online-SGP':
+                if method=='SGP':
                     start_time = time()
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                                  X_train, 
@@ -321,8 +322,7 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Online Discrete SGP
-                if method=='Online-Discrete-SGP':
+                if method=='Discrete-SGP':
                     start_time = time()
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
                                                  X_train, 
@@ -350,8 +350,7 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Online CMA-ES
-                if method=='Online-CMA-ES':
+                if method=='CMA-ES':
                     start_time = time()
                     cma_es = CMA_ES(candidates, 
                                     noise_variance_opt,
@@ -377,8 +376,7 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Online Bayesian Optimization
-                if method=='Online-BO':
+                if method=='BO':
                     start_time = time()
                     bo_model = BayesianOpt(candidates, 
                                            noise_variance_opt,
@@ -403,8 +401,7 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Online Greedy MI
-                if method=='Online-Greedy-MI':
+                if method=='Greedy-MI':
                     start_time = time()
                     solution = get_greedy_mi_sol(num_robots*num_waypoints,
                                                  candidates, 
@@ -426,8 +423,7 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
-                # Online Greedy SGP
-                if method=='Online-Greedy-SGP':
+                if method=='Greedy-SGP':
                     start_time = time()
                     solution = get_greedy_sgp_sol(num_robots*num_waypoints,
                                                   candidates, 
@@ -456,7 +452,7 @@ def main(dataset_path,
                                             kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
 
-                param_time = gp_time if 'Online' in method else param_time
+                param_time = gp_time if 'Adaptive' not in method else param_time
                 results[num_waypoints][method]['ParamTime'].append(param_time)
                 results[num_waypoints][method]['IPPTime'].append(ipp_time)
                 results[num_waypoints][method]['RMSE'].append(rmse)
@@ -473,7 +469,7 @@ def main(dataset_path,
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser(description="Online/Adaptive SP/IPP benchmarking script")
+    parser=argparse.ArgumentParser(description="SP/IPP benchmarking script")
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
@@ -483,22 +479,22 @@ if __name__=='__main__':
     args=parser.parse_args()
 
     max_dist = 350 if args.num_robots==1 else 150
-    max_range = 81 if args.num_robots==1 and args.sampling_rate==2 else 51
+    max_range = 101 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
 
     methods = ['Adaptive-SGP',
                'Adaptive-CMA-ES',
-               'Online-SGP',
-               'Online-CMA-ES']
+               'SGP',
+               'CMA-ES']
 
     if args.sampling_rate == 2 and \
          args.num_robots == 1 and \
          not args.distance_budget:
-            methods.append('Online-BO')
-            methods.append('Online-Greedy-MI')
-            methods.append('Online-Greedy-SGP')
-            methods.append('Online-Discrete-SGP')
-    
+            methods.append('BO')
+            methods.append('Greedy-MI')
+            methods.append('Greedy-SGP')
+            methods.append('Discrete-SGP')
+
     main(args.dataset_path, 
          args.num_mc, 
          args.num_robots, 
