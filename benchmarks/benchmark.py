@@ -101,8 +101,9 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
         if len(data_X_batch) == 0:
             continue
 
+        # Skip param and path update for the last waypoint
         if time_step == num_waypoints:
-            break # Skip param and path update for the last waypoint
+            break
 
         # Init/update hyperparameters model
         start_time = time()
@@ -115,6 +116,7 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
                                                          print_params=False,
                                                          optimizer='scipy',
                                                          method='CG')
+            # Clip to avoid floats being interpreted as NANs
             noise_variance = np.clip(noise_variance.numpy(), 1e-4, 5.0)
         elif param_method=='SSGP':
             param_model.update((np.array(data_X_batch), 
@@ -160,7 +162,7 @@ def run_aipp(X_train, ipp_model, Xu_init, path2data,
         total_time_ipp += end_time - start_time
 
     budget_constraint = ipp_model.transform.constraints(curr_sol.reshape(-1, 2))
-    slack = -10 if num_robots==1 else -300
+    slack = -10 if num_robots==1 else -300 # Use larger slack for multi-robot case
     budget_satisfied = budget_constraint > slack
 
     return np.array(sol_data_X), np.array(sol_data_y), total_time_param, total_time_ipp, budget_satisfied
@@ -182,6 +184,9 @@ def main(dataset_path,
     print(f'Dataset Path: {dataset_path}')
     print(f'Range: {xrange}')
     print(f'Distance Budget: {distance_budget}')
+    print('Methods:')
+    for method in methods:
+        print(f'-{method}')
 
     fname = f'{dataset}_{num_robots}R_{sampling_rate}S'
     if distance_budget:
@@ -220,16 +225,17 @@ def main(dataset_path,
                                                          max_steps=0,
                                                          print_params=False)
             
-            # Set lower and upper limits on the hyperparameters
+            # Sample random hyperparameters and
+            # set lower and upper limits on the hyperparameters
             kernel.variance = gpflow.Parameter(
-                np.random.normal(1.0, 0.1),
+                np.random.normal(1.0, 0.25),
                 transform=tfp.bijectors.SoftClip(
                     gpflow.utilities.to_default_float(0.1),
                     gpflow.utilities.to_default_float(20.0),
                 ),
             )
             kernel.lengthscales = gpflow.Parameter(
-                np.random.normal(1.0, 0.1),
+                np.random.normal(1.0, 0.25),
                 transform=tfp.bijectors.SoftClip(
                     gpflow.utilities.to_default_float(0.1),
                     gpflow.utilities.to_default_float(20.0),
@@ -251,6 +257,7 @@ def main(dataset_path,
             print(f"Path length(s): {distances}")
     
             if distance_budget:
+                # Set the distance budget to the length of the shortest path minus 5.0
                 budget = np.min(distances)-5.0
                 print(f'Distance Budget: {budget:.4f}')
                 transform.distance_budget = budget
@@ -456,12 +463,14 @@ def main(dataset_path,
                 results[num_waypoints][method]['ParamTime'].append(param_time)
                 results[num_waypoints][method]['IPPTime'].append(ipp_time)
                 results[num_waypoints][method]['RMSE'].append(rmse)
-                results[num_waypoints][method]['Constraint'].append(bool(budget_satisfied))
+                if distance_budget:
+                    results[num_waypoints][method]['Constraint'].append(bool(budget_satisfied))
 
                 print(f'\n{method} Param Time: {param_time:.4f}')
                 print(f'{method} IPP Time: {ipp_time:.4f}')
                 print(f'{method} RMSE: {rmse:.4f}')
-                print(f'{method} Constraint: {budget_satisfied}')
+                if distance_budget:
+                    print(f'{method} Constraint: {budget_satisfied}')
 
             # Log the results to a json file
             with open(f'{fname}.json', 'w', encoding='utf-8') as f:
@@ -473,27 +482,33 @@ if __name__=='__main__':
     parser.add_argument("--num_mc", type=int, default=10)
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
-    parser.add_argument("--distance_budget", type=bool, default=False)
+    parser.add_argument("--distance_budget", action='store_true')
+    parser.add_argument("--benchmark_discrete", action='store_true')
     parser.add_argument("--dataset_path", type=str, 
                         default='../datasets/bathymetry/bathymetry.tif')
     args=parser.parse_args()
 
+    # Set the maximum distance (for each path) for the TSP solver
     max_dist = 350 if args.num_robots==1 else 150
+
+    # Limit maximum waypoints/placements for multi robot case
     max_range = 101 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
 
+    # Methods to benchmark
     methods = ['Adaptive-SGP',
                'Adaptive-CMA-ES',
                'SGP',
                'CMA-ES']
 
-    if args.sampling_rate == 2 and \
-         args.num_robots == 1 and \
-         not args.distance_budget:
-            methods.append('BO')
-            methods.append('Greedy-MI')
-            methods.append('Greedy-SGP')
-            methods.append('Discrete-SGP')
+    # Benchmark BO & discrete methods if benchmark_discrete is True
+    # and the remaining parameters are in their base cases
+    if args.sampling_rate == 2 and args.num_robots == 1 and \
+       not args.distance_budget and args.benchmark_discrete:
+        methods = ['BO', 
+                   'Greedy-MI',
+                   'Greedy-SGP',
+                   'Discrete-SGP']
 
     main(args.dataset_path, 
          args.num_mc, 
