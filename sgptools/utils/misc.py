@@ -86,6 +86,7 @@ def plot_paths(paths, candidates=None, title=None):
             plt.legend(bbox_to_anchor=(1.0, 1.02))
     if title is not None:
         plt.title(title)
+    plt.gca().set_aspect('equal')
     plt.xlabel('X')
     plt.ylabel('Y')
 
