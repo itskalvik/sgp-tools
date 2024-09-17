@@ -192,6 +192,9 @@ def main(dataset_path,
     if distance_budget:
         fname += '_B'
 
+    if 'Greedy' in ''.join(methods):
+        fname += '_D'
+
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
         continuous_ipp = True
