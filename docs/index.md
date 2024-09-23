@@ -10,7 +10,12 @@ The library includes python code for the following:
 - Genetic algorithm-based approaches
 - Sparse Gaussian process (SGP)-based approaches
 
-<p align="center"><img src="assets/point_sensing.gif"><img src="assets/non-point_sensing.gif"><img src="assets/AIPP-non-point_sensing.gif"></p>
+<p align="center">
+    <img src="assets/point_sensing.gif">
+    <img src="assets/non-point_sensing.gif">
+    <img src="assets/AIPP-4R.gif">
+    <img src="assets/AIPP-non-point_sensing.gif">
+</p>
 
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:

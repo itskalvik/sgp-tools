@@ -16,7 +16,10 @@ The library includes python code for the following:
 &nbsp; &nbsp; &nbsp; &nbsp;
   <img alt="Dark" src="docs/assets/non-point_sensing.gif" width="45%">
 &nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="docs/assets/AIPP-non-point_sensing.gif" width="45%"></p>
+  <img alt="Dark" src="docs/assets/AIPP-4R.gif" width="45%">
+&nbsp; &nbsp; &nbsp; &nbsp;
+  <img alt="Dark" src="docs/assets/AIPP-non-point_sensing.gif" width="45%">
+</p>
 
 ## Related Packages
 
