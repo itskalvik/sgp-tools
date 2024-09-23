@@ -12,13 +12,10 @@ The library includes python code for the following:
 - Sparse Gaussian process (SGP)-based approaches
 
 <p align="center">
-  <img alt="Light" src="docs/assets/point_sensing.gif" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="docs/assets/non-point_sensing.gif" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="docs/assets/AIPP-4R.gif" width="45%">
-&nbsp; &nbsp; &nbsp; &nbsp;
-  <img alt="Dark" src="docs/assets/AIPP-non-point_sensing.gif" width="45%">
+  <img src="docs/assets/point_sensing.gif" width="49%">
+  <img src="docs/assets/non-point_sensing.gif" width="49%">
+  <img src="docs/assets/AIPP-4R.gif" width="49%">
+  <img src="docs/assets/AIPP-non-point_sensing.gif" width="49%">
 </p>
 
 ## Related Packages
