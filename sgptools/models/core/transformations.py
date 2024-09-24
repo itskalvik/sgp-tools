@@ -159,7 +159,6 @@ class IPPTransform(Transform):
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(Xu_fixed)
         else:
-            # ToDo: Use binary mask of fixed size to avoid retracing
             self.Xu_fixed = tf.Variable(Xu_fixed, 
                                         shape=tf.TensorShape(None), 
                                         trainable=False)
@@ -325,23 +324,8 @@ class SquareTransform(Transform):
                                       self.num_side, axis=1))
         xy = tf.concat(points, axis=1)
         xy = tf.transpose(xy, [2, 1, 0])
-        xy = self._reshape(xy)
+        xy = tf.reshape(xy, (-1, 2))
         return xy
-    
-    def _reshape(self, X):
-        """Reorder the inducing points to be in the correct order for aggregation with square FoV.
-
-        Args:
-            X (ndarray): (mp, 2); Inducing points in input space. `p` is the number of points each 
-                        inducing point is mapped to in order to form the FoV.
-                            
-        Returns:
-            Xu (ndarray): (mp, 2); Reorder inducing points
-        """
-        X = tf.reshape(X, (-1, self.num_side, self.num_side, 2))
-        X = tf.transpose(X, (1, 0, 2, 3))
-        X = tf.reshape(X, (-1, 2))
-        return X
     
     def distance(self, Xu):
         """Computes the distance incured by sequentially visiting the inducing points
