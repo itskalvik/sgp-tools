@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 
 setup(
     name='sgptools',
@@ -18,7 +18,7 @@ setup(
                       'pandas',
                       'scikit-learn',
                       'scipy',
-                      'numpy',
+                      'numpy<2.0.0',
                       'ortools',
                       'scikit-image',
                       'shapely',
