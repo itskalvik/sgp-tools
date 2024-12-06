@@ -4,7 +4,24 @@ on:
   release:
     types: [released]
 
+permissions:
+  contents: write
+
 jobs:
+  set-package-version:
+    name: Set python version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set package version
+        run: sed -i "s/__version__ = .*/$(grep "__version__ = " setup.py)/" sgptools/__init__.py
+  
+      - name: Commit the changed file back to the repository
+        uses: stefanzweifel/git-auto-commit-action@v5
+
   build:
     name: Build distribution 📦
     runs-on: ubuntu-latest
@@ -13,6 +30,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Set package version
+      run: |
+        sed -i "s/__version__ = .*/$(grep "__version__ = " setup.py)/" sgptools/__init__.py
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
