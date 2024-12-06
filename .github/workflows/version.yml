@@ -2,6 +2,9 @@ name: Set python package version
 
 on: push
 
+permissions:
+  contents: write
+  
 jobs:
   run-linters:
     name: Set python version
