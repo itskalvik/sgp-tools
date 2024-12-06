@@ -1,0 +1,18 @@
+name: Set python package version
+
+on: push
+
+jobs:
+  run-linters:
+    name: Set python version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set package version
+        run: sed -i "s/__version__ = .*/$(grep "__version__ = " setup.py)/" sgptools/__init__.py
+  
+      # Commit all changed files back to the repository
+      - uses: stefanzweifel/git-auto-commit-action@v5
