@@ -171,8 +171,14 @@ def resample_path(waypoints, num_inducing=10):
     Returns:
         points (ndarray): (num_inducing, n_dim); Resampled path
     """
+    ndim = np.shape(waypoints)[-1]
+    if not (ndim==2 or ndim==3):
+        raise Exception(f"ndim={ndim} is not supported for path resampling!")
     line = LineString(waypoints)
     distances = np.linspace(0, line.length, num_inducing)
     points = [line.interpolate(distance) for distance in distances]
-    points = np.array([[p.x, p.y] for p in points])
+    if ndim==2:
+        points = np.array([[p.x, p.y] for p in points])
+    elif ndim==3:
+        points = np.array([[p.x, p.y, p.z] for p in points])
     return points
