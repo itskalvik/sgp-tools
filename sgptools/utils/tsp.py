@@ -74,14 +74,14 @@ def run_tsp(nodes,
 
     # Get start and end node indices for ortools
     if start_nodes is None:
-        start_idx = [0]*num_vehicles
+        start_idx = np.zeros(num_vehicles, dtype=int)
         num_start_nodes = 0
     else:
         start_idx = np.arange(num_vehicles)+int(trim_paths)
         num_start_nodes = len(start_nodes)
 
     if end_nodes is None:
-        end_idx = [0]*num_vehicles
+        end_idx = np.zeros(num_vehicles, dtype=int)
     else:
         end_idx = np.arange(num_vehicles)+num_start_nodes+int(trim_paths)
 
