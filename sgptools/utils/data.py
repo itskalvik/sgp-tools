@@ -120,6 +120,7 @@ def prep_synthetic_dataset(shape=(50, 50),
                            min_height=0.0, 
                            max_height=30.0, 
                            roughness=0.5,
+                           random_seed=None,
                            **kwargs):
     '''Generates a 50x50 grid of synthetic elevation data using the diamond square algorithm.
     
@@ -131,6 +132,7 @@ def prep_synthetic_dataset(shape=(50, 50),
         min_height (float): Minimum allowed height in the sampled data
         max_height (float): Maximum allowed height in the sampled data
         roughness (float): Roughness of the sampled data
+        random_seed (int): Random seed for reproducibility
 
     Returns:
        X (ndarray): (n, d); Dataset input features
@@ -140,6 +142,7 @@ def prep_synthetic_dataset(shape=(50, 50),
                           min_height=min_height, 
                           max_height=max_height, 
                           roughness=roughness,
+                          random_seed=random_seed,
                           **kwargs)
 
     # create x and y coordinates from the extent

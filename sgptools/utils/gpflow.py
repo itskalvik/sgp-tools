@@ -53,6 +53,8 @@ def get_model_params(X_train, y_train,
                      noise_variance=0.1,
                      kernel=None,
                      return_gp=False,
+                     train_inducing_pts=False,
+                     num_inducing_pts=500,
                      **kwargs):
     """Train a GP on the given training set. 
     Trains a sparse GP if the training set is larger than 1000 samples.
@@ -69,6 +71,10 @@ def get_model_params(X_train, y_train,
         noise_variance (float): Data noise variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
         return_gp (bool): If True, returns the trained GP model
+        train_inducing_pts (bool): If True, trains the inducing points when
+                                   using a sparse GP model
+        num_inducing_pts (int): Number of inducing points to use when training
+                                a sparse GP model
 
     Returns:
         loss (list): Loss values obtained during training
@@ -88,12 +94,15 @@ def get_model_params(X_train, y_train,
                                 noise_variance=noise_variance)
         trainable_variables=gpr.trainable_variables
     else:
-        inducing_pts = get_inducing_pts(X_train, 500)
+        inducing_pts = get_inducing_pts(X_train, num_inducing_pts)
         gpr = gpflow.models.SGPR(data=(X_train, y_train), 
                                  kernel=kernel,
                                  inducing_variable=inducing_pts,
                                  noise_variance=noise_variance)
-        trainable_variables=gpr.trainable_variables[1:]
+        if train_inducing_pts:
+            trainable_variables=gpr.trainable_variables
+        else:
+            trainable_variables=gpr.trainable_variables[1:]
 
     if max_steps > 0:
         loss = optimize_model(gpr, max_steps=max_steps, lr=lr, 

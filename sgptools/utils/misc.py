@@ -3,6 +3,8 @@ from .metrics import get_distance
 from scipy.optimize import linear_sum_assignment
 from sklearn.metrics import pairwise_distances
 from scipy.cluster.vq import kmeans2
+from shapely import geometry
+import geopandas as gpd
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -138,3 +140,23 @@ def project_waypoints(waypoints, candidates):
     waypoints_disc = cont2disc(waypoints, candidates)
     waypoints_valid = _reoder_path(waypoints, waypoints_disc)
     return waypoints_valid
+
+def ploygon2candidats(vertices, 
+                      num_samples=5000, 
+                      random_seed=2024):
+    """Sample unlabeled candidates within a polygon
+
+    Args:
+        vertices (ndarray): (v, 2) of vertices that define the polygon
+        num_samples (int): Number of samples to generate
+        random_seed (int): Random seed for reproducibility
+
+    Returns:
+       candidates (ndarray): (n, 2); Candidate sensor placement locations
+    """
+    poly = geometry.Polygon(vertices)
+    sampler = gpd.GeoSeries([poly])
+    candidates = sampler.sample_points(size=num_samples,
+                                       rng=random_seed)
+    candidates = candidates.get_coordinates().to_numpy()
+    return candidates
