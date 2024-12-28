@@ -78,6 +78,8 @@ nav:
     - "ros_sgp_tools": ros_sgp_tools.md
   - Docker:
     - "docker-sgp-tools": docker-sgp-tools.md
+  - BlueOS:
+    - "blueos-sgp-tools": blueos-sgp-tools.md
   - Examples:
       - examples/AIPP_non_point_FoV.ipynb  
       - examples/IPP.ipynb  

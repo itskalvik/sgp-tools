@@ -1,7 +1,3 @@
-![Image title](assets/SGP-Tools.png#only-light)
-![Image title](assets/logo_dark.png#only-dark)
-
-
 # [ros_sgp_tools :simple-github:](https://github.com/itskalvik/ros_sgp_tools)
 The [ros_sgp_tools](https://github.com/itskalvik/ros_sgp_tools) package provides a [ROS2](https://github.com/ros2) companion package for the SGP-Tools python library that can be deployed on [ArduPilot-based vehicles](https://ardupilot.org/copter/docs/common-use-cases-and-applications.html). 
 
@@ -9,7 +5,9 @@ The [ros_sgp_tools](https://github.com/itskalvik/ros_sgp_tools) package provides
 - The package can also be used with Gazebo/Ardupilot SITL.
 - To use our Docker container with the preconfigured development environment, please refer to the documentation [here](docker-sgp-tools.html). 
 
-![Image title](assets/ros2_ardupilot.png)
+<div style="text-align:left">
+<img height="60" src="assets/ros2_ardupilot.png">
+</div>
 
 ### Running SGP-Tools Online/Adaptive IPP with Gazebo/ArduRover Simulator
 

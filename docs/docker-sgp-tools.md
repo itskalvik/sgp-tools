@@ -1,13 +1,12 @@
-![Image title](assets/SGP-Tools.png#only-light)
-![Image title](assets/logo_dark.png#only-dark)
-
 # [docker-sgp-tools :simple-github:](https://github.com/itskalvik/docker-sgp-tools)
 The [docker-sgp-tools](https://github.com/itskalvik/docker-sgp-tools) package provides the following docker-compose scripts:
 
-* ```robot-compose.yml```: A minimal docker container used to run SGP-Tools ROS2 package on ArduPilot-based robots.
-* ```sitl-compose.yml```: A GUI-based docker container with ROS2, Gazebo, ArduPilot SITL, and SGP-Tools used for simulating ArduPilot vehicles and testing SGP-Tools IPP code. 
+* ```robot-compose.yml```: A minimal docker container used to run [SGP-Tools](http://itskalvik.com/sgp-tools) [ROS2 package](https://github.com/itskalvik/ros_sgp_tools) on ArduPilot-based robots.
+* ```sitl-compose.yml```: A GUI-based docker container with ROS2, Gazebo, ArduPilot SITL, and [SGP-Tools](http://itskalvik.com/sgp-tools) used for simulating ArduPilot vehicles and testing SGP-Tools IPP code. 
 
-![Image title](assets/docker_ros2_ardupilot.png)
+<div style="text-align:left">
+<img height="60" src="assets/docker_ros2_ardupilot.png">
+</div>
 
 ### Prerequisites
 
