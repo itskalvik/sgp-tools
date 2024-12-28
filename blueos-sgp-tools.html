@@ -10,13 +10,13 @@
         <meta name="author" content="Kalvik Jakkala">
       
       
-        <link rel="canonical" href="https://www.itskalvik.com/sgp-tools/docker-sgp-tools.html">
+        <link rel="canonical" href="https://www.itskalvik.com/sgp-tools/blueos-sgp-tools.html">
       
       
-        <link rel="prev" href="ros_sgp_tools.html">
+        <link rel="prev" href="docker-sgp-tools.html">
       
       
-        <link rel="next" href="blueos-sgp-tools.html">
+        <link rel="next" href="examples/AIPP_non_point_FoV.html">
       
       
       <link rel="icon" href="assets/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>docker-sgp-tools - SGP-Tools</title>
+        <title>blueos-sgp-tools - SGP-Tools</title>
       
     
     
@@ -92,7 +92,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#docker-sgp-tools" class="md-skip">
+        <a href="#blueos-sgp-tools" class="md-skip">
           Skip to content
         </a>
       
@@ -166,7 +166,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              docker-sgp-tools
+              blueos-sgp-tools
             
           </span>
         </div>
@@ -352,12 +352,10 @@
         
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
+      <li class="md-tabs__item">
         <a href="docker-sgp-tools.html" class="md-tabs__link">
           
   
@@ -374,10 +372,12 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="blueos-sgp-tools.html" class="md-tabs__link">
           
   
@@ -1259,6 +1259,78 @@
       
   
   
+  
+  
+    
+    
+      
+        
+      
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Docker
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Docker
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="docker-sgp-tools.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    docker-sgp-tools
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -1283,24 +1355,24 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   <span class="md-ellipsis">
-    Docker
+    BlueOS
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            Docker
+            BlueOS
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1324,18 +1396,18 @@
           
   
   <span class="md-ellipsis">
-    docker-sgp-tools
+    blueos-sgp-tools
   </span>
   
 
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="docker-sgp-tools.html" class="md-nav__link md-nav__link--active">
+      <a href="blueos-sgp-tools.html" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    docker-sgp-tools
+    blueos-sgp-tools
   </span>
   
 
@@ -1357,37 +1429,37 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#what-does-it-do" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisites
+      What Does It Do?
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-started" class="md-nav__link">
+  <a href="#usage" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Started
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Getting Started">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#starting-the-containers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Starting the Containers
+      Usage
     </span>
   </a>
   
 </li>
+      
+        <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      Parameters
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Parameters">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#running-sgp-tools-onlineadaptive-ipp-with-gazeboardurover-simulator" class="md-nav__link">
+  <a href="#available-parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      Running SGP-Tools Online/Adaptive IPP with Gazebo/ArduRover Simulator
+      Available Parameters:
     </span>
   </a>
   
@@ -1399,27 +1471,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#building-the-docker-containers-from-scratch" class="md-nav__link">
+  <a href="#hardware-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Building the Docker Containers from Scratch
+      Hardware Configuration
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#other-commands" class="md-nav__link">
+  <a href="#disclaimer" class="md-nav__link">
     <span class="md-ellipsis">
-      Other commands
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#references" class="md-nav__link">
-    <span class="md-ellipsis">
-      References
+      Disclaimer ⚠️
     </span>
   </a>
   
@@ -1429,78 +1492,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    BlueOS
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            BlueOS
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="blueos-sgp-tools.html" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    blueos-sgp-tools
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1718,86 +1709,125 @@
   
 
 
-<h1 id="docker-sgp-tools"><a href="https://github.com/itskalvik/docker-sgp-tools">docker-sgp-tools <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></h1>
-<p>The <a href="https://github.com/itskalvik/docker-sgp-tools">docker-sgp-tools</a> package provides the following docker-compose scripts:</p>
-<ul>
-<li><code>robot-compose.yml</code>: A minimal docker container used to run <a href="http://itskalvik.com/sgp-tools">SGP-Tools</a> <a href="https://github.com/itskalvik/ros_sgp_tools">ROS2 package</a> on ArduPilot-based robots.</li>
-<li><code>sitl-compose.yml</code>: A GUI-based docker container with ROS2, Gazebo, ArduPilot SITL, and <a href="http://itskalvik.com/sgp-tools">SGP-Tools</a> used for simulating ArduPilot vehicles and testing SGP-Tools IPP code. </li>
-</ul>
+<h1 id="blueos-sgp-tools"><a href="https://github.com/itskalvik/docker-sgp-tools/tree/main/robot-docker">BlueOS SGP-Tools <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></h1>
+<p>A <a href="https://blueos.cloud/">BlueOS</a> Extension for Autonomous Approximate Bathymetric Surveys</p>
 <div style="text-align:left">
-<img height="60" src="assets/docker_ros2_ardupilot.png">
+<img height="60" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/blueos_sgptools.png">
 </div>
 
-<h3 id="prerequisites">Prerequisites</h3>
+<h2 id="what-does-it-do">What Does It Do?</h2>
+<p>Autonomous Surface Vehicles (ASVs), such as the <a href="https://bluerobotics.com/store/boat/blueboat/blueboat/">BlueRobotics BlueBoat</a>, are well-suited for bathymetric surveys. However, it is often the case that an exhaustive survey mapping the depth at every location in an area is infeasible or unnecessary. In such cases, we can leverage variations in the underwater terrain to determine a few critical locations for data collection, which would result in a good approximation of the area's bathymetry.</p>
+<p>The <a href="https://www.itskalvik.com/sgp-tools">SGP-Tools python library</a> provides path planners to address the above problem, known as the informative path planning problem. The BlueOS SGP-Tools extension uses this library to determine ideal locations for the ASV to collect data and controls the ASV to autonomously visit the selected locations.</p>
+<p>The following shows the path planner adaptively planning paths for four robots tasked with surveying a given area:</p>
+<div style="text-align:left">
+<p><a href="http://itskalvik.com/sgp-tools">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-4R.gif">
+</a></p>
+</div>
+
+<h2 id="usage">Usage</h2>
+<ol>
+<li>
+<p>First, we need to define the survey area and the robot launch location. The extension can read this data from <a href="https://docs.qgroundcontrol.com/Stable_V4.3/en/qgc-user-guide/plan_view/plan_geofence.html">QGC plan files</a>. The survey area and launch position must be defined using a <strong>polygon-shaped</strong> geofence drawn in <a href="https://qgroundcontrol.com/">QGC</a> and saved as <code>mission.plan</code>.</p>
+<p><div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/generate_plan.gif">
+</a></p>
+</div></p>
+</li>
+<li>
+<p>Once you have the plan file, copy it to the robot using the <code>File Browser</code> feature in BlueOS's <a href="https://blueos.cloud/docs/1.0/usage/advanced/"><code>Pirate Mode</code></a>. The <code>mission.plan</code> file should be uploaded to the following directory: <code>/extensions/sgptools/</code></p>
+<p>Once the <code>mission.plan</code> file is uploaded, restart the extension to ensure that the new file is used for the mission.</p>
+<p><div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/upload_mission.gif">
+</a></p>
+</div></p>
+</li>
+<li>
+<p>Finally, use the terminal provided by the SGP-Tools extension to start the mission with the following command:
+    <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ros2 launch ros_sgp_tools single_robot.launch.py
+</span></code></pre></div></p>
+<p><div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/start_mission.gif">
+</a></p>
+</div></p>
+</li>
+<li>
+<p>The sensor data, along with the corresponding GPS coordinates, will be logged to an <a href="https://docs.h5py.org/en/stable/">HDF5</a> file in the <code>DATA_FOLDER</code>, where the <code>mission.plan</code> was uploaded. </p>
+<p>We can estimate the bathymetry of the entire survey area using the collected data and visualize a normalized version with the following command (⚠️ Do not run this during the mission, as it will disrupt the path planner):
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py
+</span></code></pre></div></p>
+<p>The above command will publish a point cloud that can be viewed using <a href="https://foxglove.dev/product">foxglove</a>. You can access it from a web browser at <a href="https://app.foxglove.dev/">https://app.foxglove.dev/</a>. Use the <code>open connection</code> feature and change the address from <code>localhost</code> to the IP address of the ASV.</p>
+<p><div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/data_viz.gif">
+</a></p>
+</div></p>
+<p>You can control the point cloud density using the <code>num_samples</code> parameter. You can set this from foxglove's <code>Parameters</code> panel.</p>
+<p>By default, the latest mission log will be visualized. You can visualize a specific mission log using the following command (replace <code>&lt;log folder name&gt;</code> with  the log folder name):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=&lt;log folder name&gt;
+</span></code></pre></div>
+</li>
+</ol>
+<h2 id="parameters">Parameters</h2>
+<p>You can control the following extension parameters by running the following command in the terminal provided by the SGP-Tools extension:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>export &lt;parameter_name&gt;=&lt;parameter_value&gt;
+</span></code></pre></div>
+<p>The parameters reset to their default values after rebooting. They can be made permanent by configuring the parameters using the app environment variables on the BlueOS extensions page in pirate mode.</p>
+<h4 id="available-parameters">Available Parameters:</h4>
 <ul>
-<li><a href="https://docs.docker.com/engine/install/">docker</a></li>
-<li><a href="https://docs.docker.com/compose/install/">docker-compose</a></li>
-<li>(Optional) <a href="https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps">WSLg</a></li>
+<li>
+<p><code>PING2_PORT</code> (<code>default: /dev/ttyUSB0</code>): </p>
+<p>Specifies the device to which the Ping2 sonar is mounted. </p>
+</li>
+<li>
+<p><code>NUM_WAYPOINTS</code> (<code>default: 20</code>): </p>
+<p>The number of waypoints optimized by the path planner. Increasing the number of waypoints gives a more complex path which potentally covers a larger area but also requires more compute and could result in slower online path updates. </p>
+</li>
+<li>
+<p><code>SAMPLING_RATE</code> (<code>default: 2</code>): </p>
+<p>The number of points to sample along each edge of the path during path planning. Increasing the samping rate results in the planner being aware of the data being collected along the whole path instead of assuming that the data is collected only at the vertices. This method requires relatively less compute then increasing the number of waypints, but still adds to the overall compute cost.</p>
+</li>
+<li>
+<p><code>START_FOXGLOVE</code> (<code>default: False</code>): </p>
+<p>Enables <a href="https://foxglove.dev/product">foxglove</a>, a web-based data visualization platform similar to <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html">RViz</a>.</p>
+</li>
+<li>
+<p><code>ADAPTIVE_IPP</code> (<code>default: True</code>): </p>
+<p>Enables adaptive IPP, which uses the data streaming from the sonar to learn the correlations in the underwater bathymetry and further optimizes the future waypoints to maximize collecting new informative data.</p>
+</li>
+<li>
+<p><code>NAMESPACE</code> (<code>default: robot_0</code>): </p>
+<p>ROS2 namespace, useful when multiple ROS2 robots are operating on the same network.</p>
+</li>
+<li>
+<p><code>DATA_TYPE</code> (<code>default: Ping2</code>): </p>
+<p>Type of sensor to be used by the path planner. Currently, only the <a href="https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/">BlueRobotics Ping Sonar</a> is supported.</p>
+</li>
+<li>
+<p><code>FAKE_DATA</code> (<code>default: False</code>):</p>
+<p>Enables a fake sensor data publisher used for testing. Requires <code>DATA_TYPE=SerialPing2</code>.</p>
+</li>
 </ul>
-<h2 id="getting-started">Getting Started</h2>
-<h3 id="starting-the-containers">Starting the Containers</h3>
-<p>Run the following commands to start the SITL docker container:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/itskalvik/docker-sgp-tools.git
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>docker-sgp-tools
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span>pull
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span>up<span class="w"> </span>-d
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>sgptools<span class="w"> </span>bash
-</span></code></pre></div>
-<p>Use <code>robot-compose.yml</code> to run the minimal docker container. </p>
-<h3 id="running-sgp-tools-onlineadaptive-ipp-with-gazeboardurover-simulator">Running SGP-Tools Online/Adaptive IPP with Gazebo/ArduRover Simulator</h3>
-<p><img alt="Image title" src="assets/ros_demo.png" /></p>
-<p>Use <code>docker-compose -f sitl-compose.yml exec sgptools bash</code> to get a new terminal. Run the following commands in separate terminals in the docker container:</p>
+<h2 id="hardware-configuration">Hardware Configuration</h2>
 <ul>
 <li>
-<p>Launch Gazebo with the <a href="https://github.com/ArduPilot/SITL_Models/blob/master/Gazebo/docs/AionR1.md">AION R1 UGV</a>:
-    <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>gz sim -v4 -r r1_rover_runway.sdf
-</span></code></pre></div>
-    To simulate a BlueBoat refer to this <a href="https://github.com/ArduPilot/SITL_Models/blob/master/Gazebo/docs/BlueBoat.md">documentation</a>. Note that the container already has Wave Sim installed in it.</p>
-</li>
-<li>
-<p>Launch <a href="https://ardupilot.org/dev/docs/sitl-simulator-software-in-the-loop.html">ArduRover SITL</a>:
-    <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>sim_vehicle.py -v Rover -f rover-skid --model JSON --add-param-file=$HOME/SITL_Models/Gazebo/config/r1_rover.param --console --map -N -l 35.30371178789218,-80.73099267294185,0.,0.
-</span></code></pre></div>
-    Note: Restart sim_vechile.py if you get the following message: <code>paramftp: bad count 1294 should be 1284</code></p>
-</li>
-<li>
-<p>Launch the SGP-Tools Online/Adaptive IPP method:
-    <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2 launch ros_sgp_tools single_robot.launch.py
+<p>This extension works only on 64-bit operating systems. You can install the latest version of <a href="https://github.com/bluerobotics/BlueOS">BlueOS</a> on <a href="https://www.raspberrypi.com/software/operating-systems/">64-bit Raspberry Pi OS Lite</a> by running the following command on the Pi (ensure the username is set to <code>pi</code>):
+    <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>sudo su -c &#39;curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash&#39;
 </span></code></pre></div></p>
 </li>
-</ul>
-<h2 id="building-the-docker-containers-from-scratch">Building the Docker Containers from Scratch</h2>
-<p>First, setup buildx to build the containers for both arm64 and amd64 platforms: 
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>buildx<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>multi-arch<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>--platform<span class="w"> </span><span class="s2">&quot;linux/arm64,linux/amd64&quot;</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>--driver<span class="w"> </span><span class="s2">&quot;docker-container&quot;</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>docker<span class="w"> </span>buildx<span class="w"> </span>use<span class="w"> </span>multi-arch
-</span></code></pre></div></p>
-<p>Next, clone the repo and build the container. 
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/itskalvik/docker-sgp-tools.git
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">cd</span><span class="w"> </span>docker-sgp-tools
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span>build<span class="w"> </span>
-</span></code></pre></div></p>
-<p>Use <code>robot-compose.yml</code> to build the minimal docker container.</p>
-<h2 id="other-commands">Other commands</h2>
-<ul>
 <li>
-<p>The docker-compose down command stops and removes containers, networks, volumes, and images, making it suitable for completely clearing all resources deployed by an application.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span>down
-</span></code></pre></div>
-</li>
-<li>
-<p>The docker-compose stop command just pauses running containers without removing them, which is ideal for temporary halts.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker-compose<span class="w"> </span>-f<span class="w"> </span>sitl-compose.yml<span class="w"> </span>stop
-</span></code></pre></div>
+<p>The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script <code>config_swap.sh</code> to <code>/usr/blueos/extensions/sgptools/</code> folder on the underlying device. You can use this script to increase the swap size before starting the path planner. </p>
+<p>You will have to use <a href="https://blueos.cloud/docs/1.0/usage/advanced/"><code>Pirate Mode</code></a> to access BlueOS's built-in terminal and run the script on the underlying device via the <code>red-pill</code> utility. Use the following commands to enable <code>red-pill</code> and increase the swap size: 
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>red-pill
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>sudo bash /usr/blueos/extensions/sgptools/config_swap.sh
+</span></code></pre></div></p>
+<p><div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/upload_mission.gif">
+</a></p>
+</div></p>
 </li>
 </ul>
-<h2 id="references">References</h2>
-<p>Based on Dockerfiles from the following repos:</p>
-<ul>
-<li>https://github.com/Robotic-Decision-Making-Lab/blue</li>
-<li>https://github.com/ryomo/ros2-gazebo-docker</li>
-</ul>
+<h2 id="disclaimer">Disclaimer ⚠️</h2>
+<p>This extension, when executed properly, will take control of the ASV and could potentially collide the vehicle with obstacles in the environment. Please use it with caution.</p>
 
 
 
