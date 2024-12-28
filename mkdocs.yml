@@ -75,11 +75,11 @@ nav:
       - api/utils//Misc.md
       - api/utils/TSP.md
   - ROS 2:
-    - "ros_sgp_tools": ros_sgp_tools.md
+    - "": ros2.md
   - Docker:
-    - "docker-sgp-tools": docker-sgp-tools.md
+    - "": docker.md
   - BlueOS:
-    - "blueos-sgp-tools": blueos-sgp-tools.md
+    - "": blueos.md
   - Examples:
       - examples/AIPP_non_point_FoV.ipynb  
       - examples/IPP.ipynb  
