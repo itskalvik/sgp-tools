@@ -261,8 +261,8 @@ def init_osgpr(X_train,
     
     # Initialize the OSGPR model using the parameters from the SGPR model
     # The X_train and y_train here will be overwritten in the online phase 
-    X_train = np.array([[0, 0], [0, 0]])
-    y_train = np.array([0, 0]).reshape(-1, 1)
+    X_train = np.array([[0., 0.], [0., 0.]], dtype=X_train.dtype)
+    y_train = np.array([0., 0.], dtype=y_train.dtype).reshape(-1, 1)
     Zopt = init_param.inducing_variable.Z.numpy()
     mu, Su = init_param.predict_f(Zopt, full_cov=True)
     Kaa = init_param.kernel(Zopt)
