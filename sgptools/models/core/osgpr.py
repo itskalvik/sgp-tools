@@ -66,21 +66,24 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         Z = np.vstack((old_Z, new_Z))
         return Z
 
-    def update(self, data, inducing_variable=None):
+    def update(self, data, inducing_variable=None, update_inducing=True):
         """Configure the OSGPR to adapt to a new batch of data. 
         Note: The OSGPR needs to be trained using gradient-based approaches after update.
 
         Args:
             data (tuple): (X, y) ndarrays with new batch of inputs (n, d) and labels (n, ndim)
+            inducing_variable (ndarray): (m_new, d): New initial inducing points
+            update_inducing (bool): Whether to update the inducing points
         """
         self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
         self.num_data = self.X.shape[0]
 
         # Update the inducing points        
         self.Z_old.assign(self.inducing_variable.Z.numpy())
-        if inducing_variable is None:
+        if inducing_variable is None and update_inducing:
             inducing_variable = self.init_Z()
-        self.inducing_variable.Z.assign(inducing_variable)
+        if inducing_variable is not None:
+            self.inducing_variable.Z.assign(inducing_variable)
 
         # Get posterior mean and covariance for the old inducing points
         mu_old, Su_old = self.predict_f(self.Z_old, full_cov=True)
