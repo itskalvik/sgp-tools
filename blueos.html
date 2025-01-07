@@ -1751,11 +1751,14 @@
 <h2 id="what-does-it-do">What Does It Do?</h2>
 <p>Autonomous Surface Vehicles (ASVs), such as the <a href="https://bluerobotics.com/store/boat/blueboat/blueboat/">BlueRobotics BlueBoat</a>, are well-suited for bathymetric surveys. However, it is often the case that an exhaustive survey mapping the depth at every location in an area is infeasible or unnecessary. In such cases, we can leverage variations in the underwater terrain to determine a few critical locations for data collection, which would result in a good approximation of the area's bathymetry.</p>
 <p>The <a href="https://www.itskalvik.com/sgp-tools">SGP-Tools python library</a> provides path planners to address the above problem, known as the informative path planning problem. The BlueOS SGP-Tools extension uses this library to determine ideal locations for the ASV to collect data and controls the ASV to autonomously visit the selected locations.</p>
-<p>The following shows the path planner adaptively planning a path for an aerial drone with a downward-facing camera tasked with surveying a given area:</p>
+<p>The following shows our path planner adaptively planning a path for an aerial drone with a downward-facing camera tasked with surveying a given area:</p>
 <div style="text-align:left">
-<p><a href="http://itskalvik.com/sgp-tools">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-non-point_sensing.gif">
-</a></p>
+</div>
+
+<p>The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping2 sonar:</p>
+<div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/reconstruction.gif">
 </div>
 
 <h2 id="usage">Usage</h2>
