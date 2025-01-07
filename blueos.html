@@ -1429,6 +1429,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#a-blueos-extension-for-autonomous-approximate-bathymetric-surveys" class="md-nav__link">
+    <span class="md-ellipsis">
+      A BlueOS Extension for Autonomous Approximate Bathymetric Surveys
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#what-does-it-do" class="md-nav__link">
     <span class="md-ellipsis">
       What Does It Do?
@@ -1443,6 +1452,30 @@
       Usage
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#starting-a-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      Starting a Mission
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#viewing-the-data-after-a-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing the Data after a Mission
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1710,7 +1743,7 @@
 
 
 <h1 id="blueos-sgp-tools"><a href="https://github.com/itskalvik/docker-sgp-tools/tree/main/robot-docker">BlueOS SGP-Tools <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></h1>
-<p>A <a href="https://blueos.cloud/">BlueOS</a> Extension for Autonomous Approximate Bathymetric Surveys</p>
+<h4 id="a-blueos-extension-for-autonomous-approximate-bathymetric-surveys">A <a href="https://blueos.cloud/">BlueOS</a> Extension for Autonomous Approximate Bathymetric Surveys</h4>
 <div style="text-align:left">
 <img height="60" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/blueos_sgptools.png">
 </div>
@@ -1718,14 +1751,15 @@
 <h2 id="what-does-it-do">What Does It Do?</h2>
 <p>Autonomous Surface Vehicles (ASVs), such as the <a href="https://bluerobotics.com/store/boat/blueboat/blueboat/">BlueRobotics BlueBoat</a>, are well-suited for bathymetric surveys. However, it is often the case that an exhaustive survey mapping the depth at every location in an area is infeasible or unnecessary. In such cases, we can leverage variations in the underwater terrain to determine a few critical locations for data collection, which would result in a good approximation of the area's bathymetry.</p>
 <p>The <a href="https://www.itskalvik.com/sgp-tools">SGP-Tools python library</a> provides path planners to address the above problem, known as the informative path planning problem. The BlueOS SGP-Tools extension uses this library to determine ideal locations for the ASV to collect data and controls the ASV to autonomously visit the selected locations.</p>
-<p>The following shows the path planner adaptively planning paths for four robots tasked with surveying a given area:</p>
+<p>The following shows the path planner adaptively planning a path for an aerial drone with a downward-facing camera tasked with surveying a given area:</p>
 <div style="text-align:left">
 <p><a href="http://itskalvik.com/sgp-tools">
-<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-4R.gif">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-non-point_sensing.gif">
 </a></p>
 </div>
 
 <h2 id="usage">Usage</h2>
+<h3 id="starting-a-mission">Starting a Mission</h3>
 <ol>
 <li>
 <p>First, we need to define the survey area and the robot launch location. The extension can read this data from <a href="https://docs.qgroundcontrol.com/Stable_V4.3/en/qgc-user-guide/plan_view/plan_geofence.html">QGC plan files</a>. The survey area and launch position must be defined using a <strong>polygon-shaped</strong> geofence drawn in <a href="https://qgroundcontrol.com/">QGC</a> and saved as <code>mission.plan</code>.</p>
@@ -1751,60 +1785,110 @@
 </a></p>
 </div></p>
 </li>
-<li>
+</ol>
+<h3 id="viewing-the-data-after-a-mission">Viewing the Data after a Mission</h3>
 <p>The sensor data, along with the corresponding GPS coordinates, will be logged to an <a href="https://docs.h5py.org/en/stable/">HDF5</a> file in the <code>DATA_FOLDER</code>, where the <code>mission.plan</code> was uploaded. </p>
-<p>We can estimate the bathymetry of the entire survey area using the collected data and visualize a normalized version with the following command (⚠️ Do not run this during the mission, as it will disrupt the path planner):
+<p>We can estimate the bathymetry of the entire survey area using the collected data and visualize a normalized version with the following command:</p>
+<p>⚠️ Do not run this during the mission, as it will disrupt the path planner
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py
 </span></code></pre></div></p>
 <p>The above command will publish a point cloud that can be viewed using <a href="https://foxglove.dev/product">foxglove</a>. You can access it from a web browser at <a href="https://app.foxglove.dev/">https://app.foxglove.dev/</a>. Use the <code>open connection</code> feature and change the address from <code>localhost</code> to the IP address of the ASV.</p>
-<p><div style="text-align:left">
+<div style="text-align:left">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/data_viz.gif">
 </a></p>
-</div></p>
+</div>
+
 <p>You can control the point cloud density using the <code>num_samples</code> parameter. You can set this from foxglove's <code>Parameters</code> panel.</p>
 <p>By default, the latest mission log will be visualized. You can visualize a specific mission log using the following command (replace <code>&lt;log folder name&gt;</code> with  the log folder name):</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=&lt;log folder name&gt;
 </span></code></pre></div>
-</li>
-</ol>
 <h2 id="parameters">Parameters</h2>
 <p>You can control the following extension parameters by running the following command in the terminal provided by the SGP-Tools extension:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>export &lt;parameter_name&gt;=&lt;parameter_value&gt;
 </span></code></pre></div>
 <p>The parameters reset to their default values after rebooting. They can be made permanent by configuring the parameters using the app environment variables on the BlueOS extensions page in pirate mode.</p>
-<h4 id="available-parameters">Available Parameters:</h4>
+<h3 id="available-parameters">Available Parameters:</h3>
 <ul>
 <li>
-<p><code>PING2_PORT</code> (<code>default: /dev/ttyUSB0</code>): </p>
-<p>Specifies the device to which the Ping2 sonar is mounted. </p>
+<p><code>PING2_PORT</code> (<code>default: /dev/ttyUSB0</code>):</p>
+<ul>
+<li>Specifies the device to which the Ping2 sonar is mounted. You can get the device port from the <code>Ping Sonar Devices</code> page in BlueOS.</li>
+</ul>
 </li>
 <li>
-<p><code>NUM_WAYPOINTS</code> (<code>default: 20</code>): </p>
-<p>The number of waypoints optimized by the path planner. Increasing the number of waypoints gives a more complex path which potentally covers a larger area but also requires more compute and could result in slower online path updates. </p>
+<p><code>NUM_WAYPOINTS</code> (<code>default: 20</code>):</p>
+<ul>
+<li>The number of waypoints optimized by the path planner.</li>
+<li>Increasing the number of waypoints results in a more complex path that covers a larger area.</li>
+<li>Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.</li>
+</ul>
 </li>
 <li>
 <p><code>SAMPLING_RATE</code> (<code>default: 2</code>): </p>
-<p>The number of points to sample along each edge of the path during path planning. Increasing the samping rate results in the planner being aware of the data being collected along the whole path instead of assuming that the data is collected only at the vertices. This method requires relatively less compute then increasing the number of waypints, but still adds to the overall compute cost.</p>
+<ul>
+<li>The number of points to sample along each edge of the path during path planning. The default value of <code>2</code>  means that only the vertices of the path are used.</li>
+<li>The path planner assumes the data is collected only at the sampled points. Increasing the sampling rate allows the planner to better approximate the information along the entire path, thereby resulting in more informative paths.</li>
+<li>Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.</li>
+</ul>
+</li>
+<li>
+<p><code>DATA_BUFFER_SIZE</code> (<code>default: 100</code>):</p>
+<ul>
+<li>The number of sensor data samples to collect before using the data to update the model parameters, which, in turn, will be used to update future waypoints.</li>
+<li>Increasing the buffer size will allow the planner to compute better parameter estimates, which will result in more informative paths.</li>
+<li>Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.</li>
+</ul>
+</li>
+<li>
+<p><code>TRAIN_PARAM_INDUCING</code> (<code>default: False</code>):</p>
+<ul>
+<li>Enables training the inducing points of the parameter model (sparse Gaussian process) in addition to the kernel parameters during the path update.</li>
+<li>Enabling this feature will result in more accurate parameter estimates and more informative paths.</li>
+<li>Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.</li>
+</ul>
+</li>
+<li>
+<p><code>NUM_PARAM_INDUCING</code> (<code>default: 40</code>):</p>
+<ul>
+<li>The number of inducing points used in the parameter model (sparse Gaussian process).</li>
+<li>Increasing the number of inducing points will result in more accurate parameter estimates and more informative paths.</li>
+<li>Recommend enabling only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.</li>
+</ul>
 </li>
 <li>
 <p><code>START_FOXGLOVE</code> (<code>default: False</code>): </p>
-<p>Enables <a href="https://foxglove.dev/product">foxglove</a>, a web-based data visualization platform similar to <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html">RViz</a>.</p>
+<ul>
+<li>Enables <a href="https://foxglove.dev/product">foxglove</a>, a web-based data visualization platform similar to <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html">RViz</a>.</li>
+<li>Currently it does not publish any new information that is not available through Cockpit or QGC.</li>
+</ul>
 </li>
 <li>
-<p><code>ADAPTIVE_IPP</code> (<code>default: True</code>): </p>
-<p>Enables adaptive IPP, which uses the data streaming from the sonar to learn the correlations in the underwater bathymetry and further optimizes the future waypoints to maximize collecting new informative data.</p>
+<p><code>ADAPTIVE_IPP</code> (<code>default: True</code>):</p>
+<ul>
+<li>Enables adaptive informative path planning.</li>
+<li>When enabled, it uses the data streaming from the sonar to learn the correlations in the underwater bathymetry and further optimizes the future waypoints to collect even more informative data.</li>
+<li>Recommend disabling it if the onboard sonar is currently unsuppored by this package. </li>
+</ul>
 </li>
 <li>
 <p><code>NAMESPACE</code> (<code>default: robot_0</code>): </p>
-<p>ROS2 namespace, useful when multiple ROS2 robots are operating on the same network.</p>
+<ul>
+<li>ROS2 namespace, useful when multiple ROS2 robots are operating on the same network.</li>
+<li>Currently, only the single robot planner is fully supported.</li>
+</ul>
 </li>
 <li>
 <p><code>DATA_TYPE</code> (<code>default: Ping2</code>): </p>
-<p>Type of sensor to be used by the path planner. Currently, only the <a href="https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/">BlueRobotics Ping Sonar</a> is supported.</p>
+<ul>
+<li>Type of sensor to be used by the path planner. </li>
+<li>Currently, only the <a href="https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/">BlueRobotics Ping Sonar</a> is supported.</li>
+</ul>
 </li>
 <li>
 <p><code>FAKE_DATA</code> (<code>default: False</code>):</p>
-<p>Enables a fake sensor data publisher used for testing. Requires <code>DATA_TYPE=SerialPing2</code>.</p>
+<ul>
+<li>Enables a fake sensor data publisher used only for testing. Requires <code>DATA_TYPE=SerialPing2</code>.</li>
+</ul>
 </li>
 </ul>
 <h2 id="hardware-configuration">Hardware Configuration</h2>
