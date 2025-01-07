@@ -1743,11 +1743,11 @@
 
 
 <h1 id="blueos-sgp-tools"><a href="https://github.com/itskalvik/docker-sgp-tools/tree/main/robot-docker">BlueOS SGP-Tools <span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></span></a></h1>
-<h4 id="a-blueos-extension-for-autonomous-approximate-bathymetric-surveys">A <a href="https://blueos.cloud/">BlueOS</a> Extension for Autonomous Approximate Bathymetric Surveys</h4>
 <div style="text-align:left">
 <img height="60" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/blueos_sgptools.png">
 </div>
 
+<h3 id="a-blueos-extension-for-autonomous-approximate-bathymetric-surveys">A <a href="https://blueos.cloud/">BlueOS</a> Extension for Autonomous Approximate Bathymetric Surveys</h3>
 <h2 id="what-does-it-do">What Does It Do?</h2>
 <p>Autonomous Surface Vehicles (ASVs), such as the <a href="https://bluerobotics.com/store/boat/blueboat/blueboat/">BlueRobotics BlueBoat</a>, are well-suited for bathymetric surveys. However, it is often the case that an exhaustive survey mapping the depth at every location in an area is infeasible or unnecessary. In such cases, we can leverage variations in the underwater terrain to determine a few critical locations for data collection, which would result in a good approximation of the area's bathymetry.</p>
 <p>The <a href="https://www.itskalvik.com/sgp-tools">SGP-Tools python library</a> provides path planners to address the above problem, known as the informative path planning problem. The BlueOS SGP-Tools extension uses this library to determine ideal locations for the ASV to collect data and controls the ASV to autonomously visit the selected locations.</p>
