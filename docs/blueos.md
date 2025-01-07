@@ -11,11 +11,14 @@ Autonomous Surface Vehicles (ASVs), such as the [BlueRobotics BlueBoat](https://
 
 The [SGP-Tools python library](https://www.itskalvik.com/sgp-tools) provides path planners to address the above problem, known as the informative path planning problem. The BlueOS SGP-Tools extension uses this library to determine ideal locations for the ASV to collect data and controls the ASV to autonomously visit the selected locations.
 
-The following shows the path planner adaptively planning a path for an aerial drone with a downward-facing camera tasked with surveying a given area:
+The following shows our path planner adaptively planning a path for an aerial drone with a downward-facing camera tasked with surveying a given area:
 <div style="text-align:left">
-<p><a href="http://itskalvik.com/sgp-tools">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-non-point_sensing.gif">
-</a></p>
+</div>
+
+The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping2 sonar:
+<div style="text-align:left">
+<img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/reconstruction.gif">
 </div>
 
 
