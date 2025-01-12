@@ -21,6 +21,24 @@ The following shows the underwater terrain estimated using data collected by our
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/reconstruction.gif">
 </div>
 
+## Setup
+- This extension works only on 64-bit operating systems. You can install the latest version of [BlueOS](https://github.com/bluerobotics/BlueOS) on [64-bit Raspberry Pi OS Lite](https://www.raspberrypi.com/software/operating-systems/) by running the following command on the Pi (ensure the username is set to ```pi```):
+    ```
+    sudo su -c 'curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash'
+    ```
+
+- The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script ```config_swap.sh``` to ```/usr/blueos/extensions/sgptools/``` folder on the underlying device. You can use this script to increase the swap size before starting the path planner. 
+
+    You will have to use [```Pirate Mode```](https://blueos.cloud/docs/1.0/usage/advanced/) to access BlueOS's built-in terminal and run the script on the underlying device via the ```red-pill``` utility. Use the following commands to enable ```red-pill``` and increase the swap size: 
+    ```
+    red-pill
+    sudo bash /usr/blueos/extensions/sgptools/config_swap.sh
+    ```
+
+    <div style="text-align:left">
+    <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/upload_mission.gif">
+    </a></p>
+    </div>
 
 ## Usage
 
@@ -134,25 +152,6 @@ The parameters reset to their default values after rebooting. They can be made p
 
 * ```FAKE_DATA``` (```default: False```):
     - Enables a fake sensor data publisher used only for testing. Requires ```DATA_TYPE=SerialPing2```.
-
-## Hardware Configuration
-- This extension works only on 64-bit operating systems. You can install the latest version of [BlueOS](https://github.com/bluerobotics/BlueOS) on [64-bit Raspberry Pi OS Lite](https://www.raspberrypi.com/software/operating-systems/) by running the following command on the Pi (ensure the username is set to ```pi```):
-    ```
-    sudo su -c 'curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash'
-    ```
-
-- The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script ```config_swap.sh``` to ```/usr/blueos/extensions/sgptools/``` folder on the underlying device. You can use this script to increase the swap size before starting the path planner. 
-
-    You will have to use [```Pirate Mode```](https://blueos.cloud/docs/1.0/usage/advanced/) to access BlueOS's built-in terminal and run the script on the underlying device via the ```red-pill``` utility. Use the following commands to enable ```red-pill``` and increase the swap size: 
-    ```
-    red-pill
-    sudo bash /usr/blueos/extensions/sgptools/config_swap.sh
-    ```
-
-    <div style="text-align:left">
-    <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/upload_mission.gif">
-    </a></p>
-    </div>
 
 ## Disclaimer ⚠️
 This extension, when executed properly, will take control of the ASV and could potentially collide the vehicle with obstacles in the environment. Please use it with caution.
