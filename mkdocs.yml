@@ -75,11 +75,11 @@ nav:
       - api/utils//Misc.md
       - api/utils/TSP.md
   - ROS 2:
-    - "": ros2.md
+    - "ROS 2": ros2.md
   - Docker:
-    - "": docker.md
+    - "Docker": docker.md
   - BlueOS:
-    - "": blueos.md
+    - "BlueOS": blueos.md
   - Examples:
       - examples/AIPP_non_point_FoV.ipynb  
       - examples/IPP.ipynb  
