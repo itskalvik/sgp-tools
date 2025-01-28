@@ -1764,15 +1764,13 @@
 <h2 id="setup">Setup</h2>
 <ul>
 <li>
-<p>This extension works only on 64-bit operating systems. You can install the latest version of <a href="https://github.com/bluerobotics/BlueOS">BlueOS</a> on <a href="https://www.raspberrypi.com/software/operating-systems/">64-bit Raspberry Pi OS Lite</a> by running the following command on the Pi (ensure the username is set to <code>pi</code>):
-    <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sudo su -c &#39;curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash&#39;
-</span></code></pre></div></p>
+<p>This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from <a href="https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.10/BlueOS-raspberry-linux-arm64-v8-bookworm.zip">here</a>.</p>
 </li>
 <li>
 <p>The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script <code>config_swap.sh</code> to <code>/usr/blueos/extensions/sgptools/</code> folder on the underlying device. You can use this script to increase the swap size before starting the path planner. </p>
 <p>You will have to use <a href="https://blueos.cloud/docs/1.0/usage/advanced/"><code>Pirate Mode</code></a> to access BlueOS's built-in terminal and run the script on the underlying device via the <code>red-pill</code> utility. Use the following commands to enable <code>red-pill</code> and increase the swap size: 
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>red-pill
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>sudo bash /usr/blueos/extensions/sgptools/config_swap.sh
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>red-pill
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sudo bash /usr/blueos/extensions/sgptools/config_swap.sh
 </span></code></pre></div></p>
 <p><div style="text-align:left">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/upload_mission.gif">
@@ -1800,7 +1798,7 @@
 </li>
 <li>
 <p>Finally, use the terminal provided by the SGP-Tools extension to start the mission with the following command:
-    <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2 launch ros_sgp_tools single_robot.launch.py
+    <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2 launch ros_sgp_tools single_robot.launch.py
 </span></code></pre></div></p>
 <p><div style="text-align:left">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/start_mission.gif">
@@ -1812,7 +1810,7 @@
 <p>The sensor data, along with the corresponding GPS coordinates, will be logged to an <a href="https://docs.h5py.org/en/stable/">HDF5</a> file in the <code>DATA_FOLDER</code>, where the <code>mission.plan</code> was uploaded. </p>
 <p>We can estimate the bathymetry of the entire survey area using the collected data and visualize a normalized version with the following command:</p>
 <p>⚠️ Do not run this during the mission, as it will disrupt the path planner
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py
 </span></code></pre></div></p>
 <p>The above command will publish a point cloud that can be viewed using <a href="https://foxglove.dev/product">foxglove</a>. You can access it from a web browser at <a href="https://app.foxglove.dev/">https://app.foxglove.dev/</a>. Use the <code>open connection</code> feature and change the address from <code>localhost</code> to the IP address of the ASV.</p>
 <div style="text-align:left">
@@ -1822,11 +1820,11 @@
 
 <p>You can control the point cloud density using the <code>num_samples</code> parameter. You can set this from foxglove's <code>Parameters</code> panel.</p>
 <p>By default, the latest mission log will be visualized. You can visualize a specific mission log using the following command (replace <code>&lt;log folder name&gt;</code> with  the log folder name):</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=&lt;log folder name&gt;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=&lt;log folder name&gt;
 </span></code></pre></div>
 <h2 id="parameters">Parameters</h2>
 <p>You can control the following extension parameters by running the following command in the terminal provided by the SGP-Tools extension:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>export &lt;parameter_name&gt;=&lt;parameter_value&gt;
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>export &lt;parameter_name&gt;=&lt;parameter_value&gt;
 </span></code></pre></div>
 <p>The parameters reset to their default values after rebooting. They can be made permanent by configuring the parameters using the app environment variables on the BlueOS extensions page in pirate mode.</p>
 <h3 id="available-parameters">Available Parameters:</h3>
@@ -1878,13 +1876,6 @@
 </ul>
 </li>
 <li>
-<p><code>START_FOXGLOVE</code> (<code>default: False</code>): </p>
-<ul>
-<li>Enables <a href="https://foxglove.dev/product">foxglove</a>, a web-based data visualization platform similar to <a href="https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html">RViz</a>.</li>
-<li>Currently it does not publish any new information that is not available through Cockpit or QGC.</li>
-</ul>
-</li>
-<li>
 <p><code>ADAPTIVE_IPP</code> (<code>default: True</code>):</p>
 <ul>
 <li>Enables adaptive informative path planning.</li>
@@ -1910,6 +1901,12 @@
 <p><code>FAKE_DATA</code> (<code>default: False</code>):</p>
 <ul>
 <li>Enables a fake sensor data publisher used only for testing. Requires <code>DATA_TYPE=SerialPing2</code>.</li>
+</ul>
+</li>
+<li>
+<p><code>FCU_URL</code> (<code>default: tcp://0.0.0.0:5777@</code>):</p>
+<ul>
+<li>URL of the flight controller. This should only be changed if running the package on a non-BlueOS platform.</li>
 </ul>
 </li>
 </ul>
