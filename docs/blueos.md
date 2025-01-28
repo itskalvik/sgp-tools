@@ -22,10 +22,7 @@ The following shows the underwater terrain estimated using data collected by our
 </div>
 
 ## Setup
-- This extension works only on 64-bit operating systems. You can install the latest version of [BlueOS](https://github.com/bluerobotics/BlueOS) on [64-bit Raspberry Pi OS Lite](https://www.raspberrypi.com/software/operating-systems/) by running the following command on the Pi (ensure the username is set to ```pi```):
-    ```
-    sudo su -c 'curl -fsSL https://raw.githubusercontent.com/bluerobotics/blueos-docker/master/install/install.sh | bash'
-    ```
+- This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from [here](https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.10/BlueOS-raspberry-linux-arm64-v8-bookworm.zip).
 
 - The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script ```config_swap.sh``` to ```/usr/blueos/extensions/sgptools/``` folder on the underlying device. You can use this script to increase the swap size before starting the path planner. 
 
@@ -133,10 +130,6 @@ The parameters reset to their default values after rebooting. They can be made p
     - Increasing the number of inducing points will result in more accurate parameter estimates and more informative paths.
     - Recommend enabling only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.
 
-* ```START_FOXGLOVE``` (```default: False```): 
-    - Enables [foxglove](https://foxglove.dev/product), a web-based data visualization platform similar to [RViz](https://docs.ros.org/en/humble/Tutorials/Intermediate/RViz/RViz-User-Guide/RViz-User-Guide.html).
-    - Currently it does not publish any new information that is not available through Cockpit or QGC.
-
 * ```ADAPTIVE_IPP``` (```default: True```):
     - Enables adaptive informative path planning.
     - When enabled, it uses the data streaming from the sonar to learn the correlations in the underwater bathymetry and further optimizes the future waypoints to collect even more informative data.
@@ -152,6 +145,9 @@ The parameters reset to their default values after rebooting. They can be made p
 
 * ```FAKE_DATA``` (```default: False```):
     - Enables a fake sensor data publisher used only for testing. Requires ```DATA_TYPE=SerialPing2```.
+
+* ```FCU_URL``` (```default: tcp://0.0.0.0:5777@```):
+    - URL of the flight controller. This should only be changed if running the package on a non-BlueOS platform.
 
 ## Disclaimer ⚠️
 This extension, when executed properly, will take control of the ASV and could potentially collide the vehicle with obstacles in the environment. Please use it with caution.
