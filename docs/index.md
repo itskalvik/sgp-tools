@@ -1,7 +1,7 @@
 ![Image title](assets/SGP-Tools.png#only-light)
 ![Image title](assets/logo_dark.png#only-dark)
 
-SGP-Tools is a software suite for [Sensor Placement](https://itskalvik.com/publication/sgp-sp) and [Informative Path Planning](https://itskalvik.com/publication/sgp-ipp).
+SGP-Tools is a software suite for [Sensor Placement](https://www.itskalvik.com/research/publication/sgp-sp/) and [Informative Path Planning](https://www.itskalvik.com/research/publication/sgp-ipp/).
 
 The library includes python code for the following:
 
@@ -54,7 +54,7 @@ AUTHOR={Kalvik Jakkala and Srinivas Akella},
 TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
 NOTE= {Preprint},
 YEAR={2023},
-URL={https://itskalvik.github.io/publication/sgp-sp},
+URL={https://www.itskalvik.com/research/publication/sgp-sp/},
 }
 
 @inproceedings{JakkalaA24IPP,
@@ -63,7 +63,16 @@ TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussia
 booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
 YEAR={2024},
 PUBLISHER = {{IEEE}},
-URL={https://itskalvik.github.io/publication/sgp-ipp}
+URL={https://www.itskalvik.com/research/publication/sgp-ipp/}
+}
+
+@inproceedings{JakkalaA25AIPP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Fully Differentiable Adaptive Informative Path Planning},
+booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+YEAR={2025},
+PUBLISHER = {{IEEE}},
+URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
 }
 ``` 
 
