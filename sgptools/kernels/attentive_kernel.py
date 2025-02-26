@@ -38,12 +38,13 @@ class AttentiveKernel(gpflow.kernels.Kernel):
         lengthscales (List): List of lengthscales to use in the mixture components. The lengthscales are not trained.
         amplitude (int): Initial amplitude of the kernel function
         dim_hidden (int): Number of MLP hidden layer nodes (The NN will have two of these layers)
+        num_dim (int): Number of dimensions of the data points
     """
     def __init__(self, 
                  lengthscales, 
                  dim_hidden=10,
                  amplitude=1.0,
-                 ndim=2): 
+                 num_dim=2): 
         super().__init__()
         with self.name_scope:
             self.num_lengthscales = len(lengthscales)
@@ -56,7 +57,7 @@ class AttentiveKernel(gpflow.kernels.Kernel):
                                             trainable=False,
                                             dtype=float_type)
             
-            self.nn = NN([ndim, dim_hidden, dim_hidden, self.num_lengthscales])
+            self.nn = NN([num_dim, dim_hidden, dim_hidden, self.num_lengthscales])
 
     def get_representations(self, X):
         Z = self.nn(X)

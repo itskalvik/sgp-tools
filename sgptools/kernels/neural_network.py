@@ -28,9 +28,20 @@ def xavier(dim_in, dim_out):
     return np.random.randn(dim_in, dim_out)*(2./(dim_in+dim_out))**0.5
 
 class NN(gpflow.base.Module):
-    def __init__(self, dims):
+    """Multi Layer Perceptron Model that is compatible with GPFlow
+
+    Args:
+        dims (List): List of each layer's size, needs input layer dimensions as well
+        activation_fn (str): Activation function for each layer
+        output_activation_fn (str): Activation function for the last layer
+    """
+    def __init__(self, dims, 
+                 activation_fn='selu', 
+                 output_activation_fn='softmax'):
         super().__init__()
         self.dims = dims
+        self.activation_fn = tf.keras.activations.get(activation_fn)
+        self.output_activation_fn = tf.keras.activations.get(output_activation_fn)
         for i, (dim_in, dim_out) in enumerate(zip(dims[:-1], dims[1:])):
             setattr(self, 'W_{}'.format(i), tf.Variable(xavier(dim_in, dim_out),
                                                         dtype=float_type))
@@ -42,8 +53,8 @@ class NN(gpflow.base.Module):
             for i in range(len(self.dims) - 2):
                 W = getattr(self, 'W_{}'.format(i))
                 b = getattr(self, 'b_{}'.format(i))
-                X = tf.nn.selu(tf.matmul(X, W) + b)
+                X = self.activation_fn(tf.matmul(X, W) + b)
             W = getattr(self, 'W_{}'.format(i+1))
             b = getattr(self, 'b_{}'.format(i+1))
-            X = tf.nn.softmax(tf.matmul(X, W) + b)
+            X = self.output_activation_fn(tf.matmul(X, W) + b)
             return X

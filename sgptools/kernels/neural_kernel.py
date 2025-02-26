@@ -15,12 +15,10 @@
 """Provides a neural spectral kernel function along with an initialization function
 """
 
+import tensorflow as tf
 import numpy as np
 import gc
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 import gpflow
 from gpflow.config import default_jitter, default_float
@@ -29,6 +27,8 @@ from gpflow.models.util import data_input_to_tensor
 
 gpflow.config.set_default_float(np.float32)
 float_type = default_float()
+
+from .neural_network import NN
 
 
 class NeuralSpectralKernel(gpflow.kernels.Kernel):
@@ -55,12 +55,12 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
         self.length = []
         self.var = []
         for q in range(self.Q):
-            freq = keras.Sequential([layers.Dense(hidden_sizes[i], activation='selu') for i in range(self.num_hidden)] + 
-                                    [layers.Dense(input_dim, activation='softplus')])
-            length = keras.Sequential([layers.Dense(hidden_sizes[i], activation='selu') for i in range(self.num_hidden)] +
-                                   [layers.Dense(input_dim, activation='softplus')])
-            var = keras.Sequential([layers.Dense(hidden_sizes[i], activation='selu') for i in range(self.num_hidden)] +
-                                   [layers.Dense(1, activation='softplus')])
+            freq = NN([input_dim]+[hidden_sizes[i] for i in range(self.num_hidden)]+[input_dim],
+                     output_activation_fn='softplus')
+            length = NN([input_dim]+[hidden_sizes[i] for i in range(self.num_hidden)]+[input_dim],
+                        output_activation_fn='softplus')
+            var = NN([input_dim]+[hidden_sizes[i] for i in range(self.num_hidden)]+[1],
+                     output_activation_fn='softplus')
             self.freq.append(freq)
             self.length.append(length)
             self.var.append(var)
@@ -155,9 +155,9 @@ def init_neural_kernel(x, y, inducing_variable, Q, n_inits=1, hidden_sizes=None)
     for k in range(n_inits):
         # gpflow.reset_default_graph_and_session()
         k = NeuralSpectralKernel(input_dim=input_dim, Q=Q, 
-                                    hidden_sizes=hidden_sizes)
+                                 hidden_sizes=hidden_sizes)
         model = SGPR((x, y), inducing_variable=inducing_variable, 
-                        kernel=k)
+                     kernel=k)
         loglik = model.elbo()
         if loglik > best_loglik:
             best_loglik = loglik
