@@ -67,6 +67,8 @@ nav:
     - kernels: 
       - "": api/kernels/index.md
       - api/kernels/Neural-Kernel.md
+      - api/kernels/Attentive-Kernel.md
+      - api/kernels/Neural-Network.md
     - utils:
       - "": api/utils/index.md
       - api/utils/Data.md
@@ -85,7 +87,7 @@ nav:
       - examples/IPP.ipynb  
       - examples/Baselines.ipynb  
       - examples/non_point_FoV.ipynb
-      - examples/non_stationary_kernel.ipynb  
+      - examples/non_stationary_kernels.ipynb  
       - examples/obstacles.ipynb
 
 extra_css:

@@ -29,7 +29,7 @@ from .neural_network import NN
 
 class AttentiveKernel(gpflow.kernels.Kernel):
     """Attentive Kernel function (non-stationary kernel function). 
-    Based on the implementation from the following [repo](https://github.com/Weizhe-Chen/attentive_kernels)
+    Based on the implementation from this [repo](https://github.com/Weizhe-Chen/attentive_kernels)
 
     Refer to the following papers for more details:
         - AK: Attentive Kernel for Information Gathering [Chen et al., 2022]
@@ -65,6 +65,16 @@ class AttentiveKernel(gpflow.kernels.Kernel):
         return representations
 
     def K(self, X, X2=None):
+        """Computes the covariances between/amongst the input variables
+
+        Args:
+            X (ndarray): Variables to compute the covariance matrix
+            X2 (ndarray): If passed, the covariance between X and X2 is computed. Otherwise, 
+                          the covariance between X and X is computed.
+
+        Returns:
+            cov (ndarray): covariance matrix
+        """
         if X2 is None:
             X2 = X
 
@@ -89,6 +99,9 @@ class AttentiveKernel(gpflow.kernels.Kernel):
     def K_diag(self, X):
         return self._free_amplitude * tf.ones((X.shape[0]), dtype=X.dtype)
     
+'''
+Helper functions
+'''
 def rbf(dist, lengthscale):
     '''
     RBF kernel function

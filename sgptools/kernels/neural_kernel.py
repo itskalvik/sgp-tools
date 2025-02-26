@@ -33,7 +33,7 @@ from .neural_network import NN
 
 class NeuralSpectralKernel(gpflow.kernels.Kernel):
     """Neural Spectral Kernel function (non-stationary kernel function). 
-    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
+    Based on the implementation from this [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
 
     Refer to the following papers for more details:
         - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
@@ -132,7 +132,7 @@ def robust_kernel(kern, shape_X):
 
 def init_neural_kernel(x, y, inducing_variable, Q, n_inits=1, hidden_sizes=None):
     """Helper function to initialize a Neural Spectral Kernel function (non-stationary kernel function). 
-    Based on the implementation from the following [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
+    Based on the implementation from this [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file)
 
     Refer to the following papers for more details:
         - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
