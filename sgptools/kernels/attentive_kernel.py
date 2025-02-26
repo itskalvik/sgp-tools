@@ -16,16 +16,15 @@
 """
 
 import numpy as np
-
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
 
 import gpflow
 from gpflow.config import default_float
 
 gpflow.config.set_default_float(np.float32)
 float_type = default_float()
+
+from .neural_network import NN
 
 
 class AttentiveKernel(gpflow.kernels.Kernel):
@@ -42,22 +41,22 @@ class AttentiveKernel(gpflow.kernels.Kernel):
     """
     def __init__(self, 
                  lengthscales, 
-                 amplitude=1.0, 
-                 dim_hidden=10):
+                 dim_hidden=10,
+                 amplitude=1.0,
+                 ndim=2): 
         super().__init__()
-
-        self.num_lengthscales = len(lengthscales)
-        self._free_amplitude = tf.Variable(amplitude, 
-                                           shape=[],
-                                           trainable=True,
-                                           dtype=float_type)
-        self.lengthscales = tf.Variable(lengthscales, 
-                                        shape=[self.num_lengthscales], 
-                                        trainable=False,
-                                        dtype=float_type)
-        self.nn = keras.Sequential([layers.Dense(dim_hidden, activation='selu'), 
-                                    layers.Dense(dim_hidden, activation='selu'),
-                                    layers.Dense(self.num_lengthscales, activation='softmax')])
+        with self.name_scope:
+            self.num_lengthscales = len(lengthscales)
+            self._free_amplitude = tf.Variable(amplitude, 
+                                               shape=[],
+                                               trainable=True,
+                                               dtype=float_type)
+            self.lengthscales = tf.Variable(lengthscales, 
+                                            shape=[self.num_lengthscales], 
+                                            trainable=False,
+                                            dtype=float_type)
+            
+            self.nn = NN([ndim, dim_hidden, dim_hidden, self.num_lengthscales])
 
     def get_representations(self, X):
         Z = self.nn(X)
@@ -71,12 +70,19 @@ class AttentiveKernel(gpflow.kernels.Kernel):
         dist = cdist(X, X2)
         repre1 = self.get_representations(X)
         repre2 = self.get_representations(X2)
-        cov_mat = tf.zeros_like(dist)
-        for i in range(self.num_lengthscales):
+
+        def get_mixture_component(i):
             attention_lengthscales = tf.tensordot(repre1[:, i], repre2[:, i], axes=0)
-            cov_mat += rbf(dist, self.lengthscales[i]) * attention_lengthscales
+            cov_mat = rbf(dist, self.lengthscales[i]) * attention_lengthscales   
+            return cov_mat
+        
+        cov_mat = tf.map_fn(fn=get_mixture_component, 
+                            elems=tf.range(self.num_lengthscales, dtype=tf.int64), 
+                            fn_output_signature=dist.dtype)
+        cov_mat = tf.math.reduce_sum(cov_mat, axis=0)
         attention_inputs = repre1 @ tf.transpose(repre2)
         cov_mat *= self._free_amplitude * attention_inputs
+
         return cov_mat
     
     def K_diag(self, X):
@@ -98,5 +104,4 @@ def cdist(x, y):
     dist = tf.map_fn(fn=per_x_dist, 
                      elems=tf.range(tf.shape(x)[0], dtype=tf.int64), 
                      fn_output_signature=x.dtype)
-    # Re-arrange stacks of distances.
     return dist
