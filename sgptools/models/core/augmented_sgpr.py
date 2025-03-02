@@ -79,8 +79,9 @@ class AugmentedSGPR(SGPR):
             kernel (gpflow.kernels.Kernel): gpflow kernel function
         """
         self.likelihood.variance.assign(noise_variance)
-        self.kernel.lengthscales.assign(kernel.lengthscales)
-        self.kernel.variance.assign(kernel.variance)
+        for self_var, var in zip(self.kernel.trainable_variables, 
+                                 kernel.trainable_variables):
+            self_var.assign(var)
 
     def _common_calculation(self) -> "SGPR.CommonTensors":
         """

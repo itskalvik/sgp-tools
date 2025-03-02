@@ -20,8 +20,6 @@ import tensorflow as tf
 
 import gpflow
 from gpflow.config import default_float
-
-gpflow.config.set_default_float(np.float32)
 float_type = default_float()
 
 from .neural_network import NN

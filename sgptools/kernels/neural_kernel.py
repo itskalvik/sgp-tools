@@ -24,8 +24,6 @@ import gpflow
 from gpflow.config import default_jitter, default_float
 from gpflow.models import SGPR
 from gpflow.models.util import data_input_to_tensor
-
-gpflow.config.set_default_float(np.float32)
 float_type = default_float()
 
 from .neural_network import NN

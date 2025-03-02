@@ -20,8 +20,6 @@ import tensorflow as tf
 
 import gpflow
 from gpflow.config import default_float
-
-gpflow.config.set_default_float(np.float32)
 float_type = default_float()
 
 def xavier(dim_in, dim_out):
