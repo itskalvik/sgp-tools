@@ -12,7 +12,7 @@ The library includes python code for the following:
 
 """
 
-__version__ = "1.1.8"
+__version__ = "1.2.0"
 __author__ = 'Kalvik'
 
 from .models.core import *

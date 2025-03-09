@@ -56,7 +56,9 @@ Please refer to the [examples](https://www.itskalvik.com/sgp-tools/examples/IPP.
     - `obstacles.ipynb`: SP in an environment with obstacles
 - `sgptools/`: SGP-Tools library
     - `kernels/`: Kernel functions
+        - `attentive_kernel.py`: Attentive Kernel (Non-Stationary Kernel)
         - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
+        - `neural_network.py`: GPFlow compatible Neural Network
     - `models/`: Sensor placement and IPP methods
         - `core/`: GP/SGP models used for sensor placement and IPP
             - `augmented_gpr.py`: GPflow's GP that supports transforms (expansion and aggregation)

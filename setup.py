@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "1.1.8"
+__version__ = "1.2.0"
 
 setup(
     name='sgptools',
@@ -28,6 +28,7 @@ setup(
                       'tensorflow-probability[tf]>=0.21.0',
                       'tensorflow>=2.13.0; platform_machine!="arm64"',
                       'tensorflow-aarch64>=2.13.0; platform_machine=="arm64"',
+                      'tensorflow-macos>=2.13.0; platform_system=="Darwin" and platform_machine=="arm64"',
                       'typing_extensions',
                       'gpflow>=2.7.0',
                       'pillow'
