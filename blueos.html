@@ -1529,6 +1529,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simulator
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1562,6 +1571,33 @@
   <a href="#disclaimer" class="md-nav__link">
     <span class="md-ellipsis">
       Disclaimer ⚠️
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      About
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acknowledgements
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      License
     </span>
   </a>
   
@@ -1802,7 +1838,7 @@
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-non-point_sensing.gif">
 </div>
 
-<p>The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping2 sonar:</p>
+<p>The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping1D sonar:</p>
 <div style="text-align:left">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/reconstruction.gif">
 </div>
@@ -1810,7 +1846,7 @@
 <h2 id="setup">Setup</h2>
 <ul>
 <li>
-<p>This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from <a href="https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.10/BlueOS-raspberry-linux-arm64-v8-bookworm.zip">here</a>.</p>
+<p>This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from <a href="https://github.com/bluerobotics/BlueOS/releases/tag/1.4.0-beta.17">here</a>.</p>
 </li>
 <li>
 <p>The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script <code>config_swap.sh</code> to <code>/usr/blueos/extensions/sgptools/</code> folder on the underlying device. You can use this script to increase the swap size before starting the path planner. </p>
@@ -1868,6 +1904,8 @@
 <p>By default, the latest mission log will be visualized. You can visualize a specific mission log using the following command (replace <code>&lt;log folder name&gt;</code> with  the log folder name):</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=&lt;log folder name&gt;
 </span></code></pre></div>
+<h3 id="simulator">Simulator</h3>
+<p>You can test your mission or develop new algorithms in our companion ROS2/Gazebo <a href="https://www.itskalvik.com/sgp-tools/docker.html">simulator</a></p>
 <h2 id="parameters">Parameters</h2>
 <p>You can control the following extension parameters by running the following command in the terminal provided by the SGP-Tools extension:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>export &lt;parameter_name&gt;=&lt;parameter_value&gt;
@@ -1876,9 +1914,9 @@
 <h3 id="available-parameters">Available Parameters:</h3>
 <ul>
 <li>
-<p><code>PING2_PORT</code> (<code>default: /dev/ttyUSB0</code>):</p>
+<p><code>PING1D_PORT</code> (<code>default: /dev/ttyUSB0</code>):</p>
 <ul>
-<li>Specifies the device to which the Ping2 sonar is mounted. You can get the device port from the <code>Ping Sonar Devices</code> page in BlueOS.</li>
+<li>Specifies the device to which the Ping1D sonar is mounted. You can get the device port from the <code>Ping Sonar Devices</code> page in BlueOS.</li>
 </ul>
 </li>
 <li>
@@ -1898,7 +1936,15 @@
 </ul>
 </li>
 <li>
-<p><code>DATA_BUFFER_SIZE</code> (<code>default: 100</code>):</p>
+<p><code>KERNEL</code> (<code>default: RBF</code>): </p>
+<ul>
+<li>The kernel function used in the IPP approach for online IPP updates. Currently available options: <code>RBF</code>, <code>Attentive</code>, and <code>Neural</code></li>
+<li>The default <code>RBF</code> stationary kernel function is fast enough to run on a Raspberry Pi 4. The non-stationary kernel functions <code>Attentive</code> and <code>Neural</code> can result in more informative paths but require more computational power.</li>
+<li>Recommend using a non-stationary kernel only when running BlueOS on a high-performance SoC, such as the Nvidia Jetson platform.</li>
+</ul>
+</li>
+<li>
+<p><code>DATA_BUFFER_SIZE</code> (<code>default: 200</code>):</p>
 <ul>
 <li>The number of sensor data samples to collect before using the data to update the model parameters, which, in turn, will be used to update future waypoints.</li>
 <li>Increasing the buffer size will allow the planner to compute better parameter estimates, which will result in more informative paths.</li>
@@ -1937,16 +1983,10 @@
 </ul>
 </li>
 <li>
-<p><code>DATA_TYPE</code> (<code>default: Ping2</code>): </p>
+<p><code>DATA_TYPE</code> (<code>default: Ping1D</code>): </p>
 <ul>
 <li>Type of sensor to be used by the path planner. </li>
 <li>Currently, only the <a href="https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/">BlueRobotics Ping Sonar</a> is supported.</li>
-</ul>
-</li>
-<li>
-<p><code>FAKE_DATA</code> (<code>default: False</code>):</p>
-<ul>
-<li>Enables a fake sensor data publisher used only for testing. Requires <code>DATA_TYPE=SerialPing2</code>.</li>
 </ul>
 </li>
 <li>
@@ -1958,6 +1998,39 @@
 </ul>
 <h2 id="disclaimer">Disclaimer ⚠️</h2>
 <p>This extension, when executed properly, will take control of the ASV and could potentially collide the vehicle with obstacles in the environment. Please use it with caution.</p>
+<h2 id="about">About</h2>
+<p>Please consider citing the following papers if you use this extension in your academic work <img alt="😄" class="twemoji" src="https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.0.3/assets/svg/1f604.svg" title=":smile:" /></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>@misc{JakkalaA23SP,
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>AUTHOR={Kalvik Jakkala and Srinivas Akella},
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>NOTE= {Preprint},
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>YEAR={2023},
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>URL={https://www.itskalvik.com/research/publication/sgp-sp/},
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>}
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>@inproceedings{JakkalaA24IPP,
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>AUTHOR={Kalvik Jakkala and Srinivas Akella},
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes},
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>YEAR={2024},
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>PUBLISHER = {{IEEE}},
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>URL={https://www.itskalvik.com/research/publication/sgp-ipp/}
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>}
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>@inproceedings{JakkalaA25AIPP,
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>AUTHOR={Kalvik Jakkala and Srinivas Akella},
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>TITLE={Fully Differentiable Adaptive Informative Path Planning},
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>YEAR={2025},
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>PUBLISHER = {{IEEE}},
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a>URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
+</span><span id="__span-5-25"><a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>}
+</span></code></pre></div>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<p>This work was funded in part by the UNC Charlotte Office of Research and Economic Development and by NSF under Award Number IIP-1919233.</p>
+<h2 id="license">License</h2>
+<p>The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.
+See LICENSE for more information.</p>
 
 
 
