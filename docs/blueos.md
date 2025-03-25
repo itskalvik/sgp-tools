@@ -16,13 +16,13 @@ The following shows our path planner adaptively planning a path for an aerial dr
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/AIPP-non-point_sensing.gif">
 </div>
 
-The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping2 sonar:
+The following shows the underwater terrain estimated using data collected by our package running on an autonomous surface vehicle equipped with the Ping1D sonar:
 <div style="text-align:left">
 <img width="472" src="https://raw.githubusercontent.com/itskalvik/docker-sgp-tools/refs/heads/main/.assets/reconstruction.gif">
 </div>
 
 ## Setup
-- This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from [here](https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.10/BlueOS-raspberry-linux-arm64-v8-bookworm.zip).
+- This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from [here](https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.17/BlueOS-raspberry-linux-arm64-v8-bookworm-pi5.zip).
 
 - The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script ```config_swap.sh``` to ```/usr/blueos/extensions/sgptools/``` folder on the underlying device. You can use this script to increase the swap size before starting the path planner. 
 
@@ -91,6 +91,9 @@ By default, the latest mission log will be visualized. You can visualize a speci
 ros2 launch ros_sgp_tools visualize_data.launch.py mission_log:=<log folder name>
 ```
 
+### Simulator
+You can test your mission or develop new algorithms in our companion ROS2/Gazebo [simulator](https://www.itskalvik.com/sgp-tools/docker.html)
+
 ## Parameters
 You can control the following extension parameters by running the following command in the terminal provided by the SGP-Tools extension:
 
@@ -102,8 +105,8 @@ The parameters reset to their default values after rebooting. They can be made p
 
 ### Available Parameters: 
 
-* ```PING2_PORT``` (```default: /dev/ttyUSB0```):
-    - Specifies the device to which the Ping2 sonar is mounted. You can get the device port from the ```Ping Sonar Devices``` page in BlueOS.
+* ```PING_1D_PORT``` (```default: /dev/ttyUSB0```):
+    - Specifies the device to which the Ping1D sonar is mounted. You can get the device port from the ```Ping Sonar Devices``` page in BlueOS.
 
 * ```NUM_WAYPOINTS``` (```default: 20```):
     - The number of waypoints optimized by the path planner.
@@ -115,7 +118,12 @@ The parameters reset to their default values after rebooting. They can be made p
     - The path planner assumes the data is collected only at the sampled points. Increasing the sampling rate allows the planner to better approximate the information along the entire path, thereby resulting in more informative paths.
     - Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.
 
-* ```DATA_BUFFER_SIZE``` (```default: 100```):
+* ```KERNEL``` (```default: RBF```): 
+    - The kernel function used in the IPP approach for online IPP updates. Currently available options: `RBF`, `Attentive`, and `Neural`
+    - The default `RBF` stationary kernel function is fast enough to run on a Raspberry Pi 4. The non-stationary kernel functions `Attentive` and `Neural` can result in more informative paths but require more computational power.
+    - Recommend using a non-stationary kernel only when running BlueOS on a high-performance SoC, such as the Nvidia Jetson platform.
+
+* ```DATA_BUFFER_SIZE``` (```default: 200```):
     - The number of sensor data samples to collect before using the data to update the model parameters, which, in turn, will be used to update future waypoints.
     - Increasing the buffer size will allow the planner to compute better parameter estimates, which will result in more informative paths.
     - Recommend increasing only when the default setting results in a poor reconstruction of the environment, as this increases the computational cost and leads to slower online path updates.
@@ -143,11 +151,46 @@ The parameters reset to their default values after rebooting. They can be made p
     - Type of sensor to be used by the path planner. 
     - Currently, only the [BlueRobotics Ping Sonar](https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/) is supported.
 
-* ```FAKE_DATA``` (```default: False```):
-    - Enables a fake sensor data publisher used only for testing. Requires ```DATA_TYPE=SerialPing2```.
-
 * ```FCU_URL``` (```default: tcp://0.0.0.0:5777@```):
     - URL of the flight controller. This should only be changed if running the package on a non-BlueOS platform.
 
 ## Disclaimer ⚠️
 This extension, when executed properly, will take control of the ASV and could potentially collide the vehicle with obstacles in the environment. Please use it with caution.
+
+## About
+Please consider citing the following papers if you use this extension in your academic work :smile:
+
+```
+@misc{JakkalaA23SP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
+NOTE= {Preprint},
+YEAR={2023},
+URL={https://www.itskalvik.com/research/publication/sgp-sp/},
+}
+
+@inproceedings{JakkalaA24IPP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes},
+booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+YEAR={2024},
+PUBLISHER = {{IEEE}},
+URL={https://www.itskalvik.com/research/publication/sgp-ipp/}
+}
+
+@inproceedings{JakkalaA25AIPP,
+AUTHOR={Kalvik Jakkala and Srinivas Akella},
+TITLE={Fully Differentiable Adaptive Informative Path Planning},
+booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
+YEAR={2025},
+PUBLISHER = {{IEEE}},
+URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
+}
+``` 
+
+## Acknowledgements
+This work was funded in part by the UNC Charlotte Office of Research and Economic Development and by NSF under Award Number IIP-1919233.
+
+## License
+The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.
+See LICENSE for more information.
