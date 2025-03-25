@@ -22,7 +22,7 @@ The following shows the underwater terrain estimated using data collected by our
 </div>
 
 ## Setup
-- This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from [here](https://github.com/bluerobotics/BlueOS/releases/download/1.4.0-beta.17/BlueOS-raspberry-linux-arm64-v8-bookworm-pi5.zip).
+- This extension works only on 64-bit operating systems.  You can get the 64-bit image of BlueOS for Raspberry Pi from [here](https://github.com/bluerobotics/BlueOS/releases/tag/1.4.0-beta.17).
 
 - The extension requires over 4GB of memory+swap. Please ensure that the swap size is large enough to accommodate the extension. The extension will copy the shell script ```config_swap.sh``` to ```/usr/blueos/extensions/sgptools/``` folder on the underlying device. You can use this script to increase the swap size before starting the path planner. 
 
@@ -105,7 +105,7 @@ The parameters reset to their default values after rebooting. They can be made p
 
 ### Available Parameters: 
 
-* ```PING_1D_PORT``` (```default: /dev/ttyUSB0```):
+* ```PING1D_PORT``` (```default: /dev/ttyUSB0```):
     - Specifies the device to which the Ping1D sonar is mounted. You can get the device port from the ```Ping Sonar Devices``` page in BlueOS.
 
 * ```NUM_WAYPOINTS``` (```default: 20```):
@@ -147,7 +147,7 @@ The parameters reset to their default values after rebooting. They can be made p
     - ROS2 namespace, useful when multiple ROS2 robots are operating on the same network.
     - Currently, only the single robot planner is fully supported.
     
-* ```DATA_TYPE``` (```default: Ping2```): 
+* ```DATA_TYPE``` (```default: Ping1D```): 
     - Type of sensor to be used by the path planner. 
     - Currently, only the [BlueRobotics Ping Sonar](https://bluerobotics.com/store/sonars/echosounders/ping-sonar-r2-rp/) is supported.
 
