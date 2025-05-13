@@ -31,6 +31,7 @@ setup(
                       'tensorflow-macos>=2.13.0; platform_system=="Darwin" and platform_machine=="arm64"',
                       'typing_extensions',
                       'gpflow>=2.7.0',
-                      'pillow'
+                      'pillow',
+                      'geopandas'
                      ]
 )
