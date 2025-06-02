@@ -457,22 +457,28 @@ def main(dataset_path,
                 # ---------------------------------------------------------------------------------
 
                 # Get RMSE using the oracle hyperparameters
-                y_pred, _ = get_reconstruction((solution_X, solution_y), 
-                                            X_test, 
-                                            noise_variance_opt, 
-                                            kernel_opt)
+                y_pred, y_var = get_reconstruction((solution_X, solution_y), 
+                                                    X_test, 
+                                                    noise_variance_opt, 
+                                                    kernel_opt)
                 rmse = get_rmse(y_pred, y_test)
+                nlpd = get_nlpd(y_pred, y_test, y_var)
+                smse = get_smse(y_pred, y_test, y_var)
 
                 param_time = gp_time if 'Adaptive' not in method else param_time
                 results[num_waypoints][method]['ParamTime'].append(param_time)
                 results[num_waypoints][method]['IPPTime'].append(ipp_time)
                 results[num_waypoints][method]['RMSE'].append(rmse)
+                results[num_waypoints][method]['NLPD'].append(nlpd)
+                results[num_waypoints][method]['SMSE'].append(smse)
                 if distance_budget:
                     results[num_waypoints][method]['Constraint'].append(bool(budget_satisfied))
 
                 print(f'\n{method} Param Time: {param_time:.4f}')
                 print(f'{method} IPP Time: {ipp_time:.4f}')
                 print(f'{method} RMSE: {rmse:.4f}')
+                print(f'{method} SMSE: {smse:.4f}')
+                print(f'{method} NLPD: {nlpd:.4f}')
                 if distance_budget:
                     print(f'{method} Constraint: {budget_satisfied}')
 

@@ -120,7 +120,8 @@ def get_rmse(y_pred, y_test):
     Returns:
         rmse (float): Computed RMSE
     """
-    return np.sqrt(np.mean(np.square(y_pred - y_test)))
+    error = y_pred - y_test
+    return np.sqrt(np.mean(np.square(error)))
 
 def get_reconstruction(sensor_data, X_test, noise_variance, kernel):
     """Computes the GP-based data field estimates with the solution placements as the training set
@@ -144,6 +145,7 @@ def get_reconstruction(sensor_data, X_test, noise_variance, kernel):
                             kernel=kernel)
     y_pred, y_var = gpr.predict_f(X_test)
     y_pred = y_pred.numpy().reshape(-1, 1)
+    y_var = y_var.numpy().reshape(-1, 1)
 
     return y_pred, y_var
 
@@ -159,6 +161,35 @@ def get_distance(X):
     dist = np.linalg.norm(X[1:] - X[:-1], axis=-1)
     dist = np.sum(dist)
     return dist
+
+def get_smse(y_pred, y_test, var):
+    """Computes the standardized-mean-square error between `y_pred` and `y_test`
+
+    Args:
+        y_pred (ndarray): (n, 1); Predicted data field estimate
+        y_test (ndarray): (n, 1); Ground truth data field 
+        var (ndarray): (n, 1); Predicted variance
+
+    Returns:
+        smse (float): Computed SMSE
+    """
+    error = y_pred - y_test
+    return np.mean(np.square(error)/var)
+
+def get_nlpd(y_pred, y_test, var):
+    """Computes the negative log predictive density (NLPD). error between `y_pred` and `y_test`
+
+    Args:
+        y_pred (ndarray): (n, 1); Predicted data field estimate
+        y_test (ndarray): (n, 1); Ground truth data field 
+        var (ndarray): (n, 1); Predicted variance
+
+    Returns:
+        nlpd (float): Computed NLPD
+    """
+    error = y_pred - y_test
+    nlpd = 0.5 * np.log(2 * np.pi) + 0.5 * np.log(var) + 0.5 * np.square(error) / var
+    return np.mean(nlpd)
 
 
 if __name__=='__main__':
