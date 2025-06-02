@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from scipy.stats import multivariate_normal
+from .mutual_information import SLogMI
 import tensorflow as tf
 import numpy as np
 import gpflow
@@ -43,19 +44,9 @@ def get_mi(Xu, candidate_locs, noise_variance, kernel):
     """
     Xu = np.array(Xu)
     candidate_locs = np.array(candidate_locs)
-
-    gp = gpflow.models.GPR(data=(Xu, np.zeros((len(Xu), 1))),
-                           kernel=kernel,
-                           noise_variance=noise_variance)
-    _, sigma_a = gp.predict_f(candidate_locs, full_cov=True)
-    sigma_a = sigma_a.numpy()[0]
-    cond_entropy = gaussian_entropy(sigma_a)
-
-    K = kernel(candidate_locs, full_cov=True).numpy()
-    K += noise_variance * np.eye(len(candidate_locs))
-    entropy = gaussian_entropy(K)
-    
-    return float(entropy - cond_entropy)
+    mi_model = SLogMI(kernel, candidate_locs, 
+                      jitter=1e-6+noise_variance)
+    return mi_model(Xu).numpy()
 
 def get_elbo(Xu, X_env, noise_variance, kernel, baseline=False):
     """Computes the ELBO of the SGP, corrected to be positive

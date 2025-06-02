@@ -394,6 +394,7 @@ def main(dataset_path,
                                            transform=transform)
                     solution = bo_model.optimize(X_init=Xu_init,
                                                  max_steps=50)
+                    solution = cont2disc(solution, candidates)
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time

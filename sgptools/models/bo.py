@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import numpy as np
-from ..utils.metrics import get_mi
 from ..utils.data import get_inducing_pts
 from bayes_opt import BayesianOptimization
+from ..utils.mutual_information import SLogMI
 
 
-class BayesianOpt:
+class BayesianOpt(SLogMI):
     """Class for optimizing sensor placements using Bayesian Optimization
 
     Refer to the following papers for more details:
@@ -33,11 +33,11 @@ class BayesianOpt:
     """
     def __init__(self, X_train, noise_variance, kernel,
                  transform=None):
-        self.X_train = X_train
         self.noise_variance = noise_variance
-        self.kernel = kernel
         self.num_dim = X_train.shape[-1]
         self.transform = transform
+
+        super().__init__(kernel, X_train, jitter=1e-6+noise_variance)
 
         # use the boundaries of the region as the search space
         self.pbounds_dim = []
@@ -59,12 +59,8 @@ class BayesianOpt:
             X = self.transform.expand(X)
             constraints_loss = self.transform.constraints(X)
 
-        try:
-            mi = get_mi(X, self.X_train, self.noise_variance, self.kernel)
-            mi += constraints_loss
-            mi = mi.numpy()
-        except:
-            mi = -1e4 # if the cholskey decomposition fails
+        mi = super().__call__(X).numpy()
+        mi += constraints_loss
         return mi
 
     def optimize(self, 
