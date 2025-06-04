@@ -46,7 +46,7 @@ def get_mi(Xu, candidate_locs, noise_variance, kernel):
     candidate_locs = np.array(candidate_locs)
     mi_model = SLogMI(kernel, candidate_locs, 
                       jitter=1e-6+noise_variance)
-    return mi_model(Xu).numpy()
+    return mi_model.get_mi(Xu).numpy()
 
 def get_elbo(Xu, X_env, noise_variance, kernel, baseline=False):
     """Computes the ELBO of the SGP, corrected to be positive

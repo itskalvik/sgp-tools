@@ -50,7 +50,7 @@ class GreedyMI(SLogMI):
         # Apply transform if available
         if self.transform is not None:
             X = self.transform.expand(X)
-        return super().__call__(X).numpy()
+        return self.get_mi(X).numpy()
 
 
 def get_greedy_mi_sol(num_sensors, candidates, X_train, noise_variance, kernel, 

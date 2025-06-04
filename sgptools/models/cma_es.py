@@ -15,11 +15,11 @@
 import cma
 import numpy as np
 from shapely import geometry
-from ..utils.metrics import get_mi
 from ..utils.data import get_inducing_pts
+from ..utils.mutual_information import SLogMI, jitter_fn
 
 
-class CMA_ES:
+class CMA_ES(SLogMI):
     """Class for optimizing sensor placements using CMA-ES (a genetic algorithm)
 
     Refer to the following paper for more details:
@@ -29,24 +29,19 @@ class CMA_ES:
         X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
         noise_variance (float): data variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
-        distance_budget (float): Distance budget for when treating the inducing points 
-                                 as waypoints of a path
         num_robots (int): Number of robots, used when modeling 
                           multi-robot IPP with a distance budget
         transform (Transform): Transform object
     """
     def __init__(self, X_train, noise_variance, kernel,
-                 distance_budget=None,
                  num_robots=1,
                  transform=None):
         self.boundaries = geometry.MultiPoint([[p[0], p[1]] for p in X_train]).convex_hull
-        self.X_train = X_train
-        self.noise_variance = noise_variance
-        self.kernel = kernel
         self.num_dim = X_train.shape[-1]
-        self.distance_budget = distance_budget
         self.num_robots = num_robots
         self.transform = transform
+
+        super().__init__(kernel, X_train, jitter=1e-6+noise_variance)
 
     def update(self, noise_variance, kernel):
         """Update GP noise variance and kernel function parameters
@@ -55,7 +50,7 @@ class CMA_ES:
             noise_variance (float): data variance
             kernel (gpflow.kernels.Kernel): gpflow kernel function
         """
-        self.noise_variance = noise_variance
+        self.jitter = lambda x: jitter_fn(x, jitter=1e-6+noise_variance)
         self.kernel = kernel
     
     def objective(self, X):
@@ -71,12 +66,8 @@ class CMA_ES:
             X = self.transform.expand(X)
             constraints_loss = self.transform.constraints(X)
 
-        try:
-            mi = -get_mi(X, self.X_train, self.noise_variance, self.kernel)
-            mi -= constraints_loss
-            mi = mi.numpy()
-        except:
-            mi = 0.0 # if the cholskey decomposition fails
+        mi = -self.get_mi(X).numpy()
+        mi -= constraints_loss
         return mi
     
     def optimize(self, 

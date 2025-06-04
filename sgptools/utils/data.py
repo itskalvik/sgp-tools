@@ -19,7 +19,7 @@ from sklearn.preprocessing import StandardScaler
 from hkb_diamondsquare.DiamondSquare import diamond_square
 
 import PIL
-PIL.Image.MAX_IMAGE_PIXELS = 317500000
+PIL.Image.MAX_IMAGE_PIXELS = 900000000
 
 ####################################################
 # Utils used to prepare synthetic datasets  
