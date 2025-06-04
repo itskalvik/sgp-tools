@@ -21,6 +21,7 @@ from sgptools.models.cma_es import *
 from sgptools.models.greedy_mi import *
 from sgptools.models.greedy_sgp import *
 from sgptools.models.core.osgpr import *
+from sgptools.models.myopic_planner import *
 from sgptools.models.continuous_sgp import *
 from sgptools.models.core.augmented_gpr import *
 from sgptools.models.core.transformations import *
@@ -186,7 +187,7 @@ def main(dataset_path,
     print(f'Distance Budget: {distance_budget}')
     print('Methods:')
     for method in methods:
-        print(f'-{method}')
+        print(f'- {method}')
 
     fname = f'{dataset}_{num_robots}R_{sampling_rate}S'
     if distance_budget:
@@ -456,6 +457,29 @@ def main(dataset_path,
 
                 # ---------------------------------------------------------------------------------
 
+                if method=='Myopic':
+                    start_time = time()
+                    myopic = MyopicPlanner(candidates, 
+                                           noise_variance_opt,
+                                           kernel_opt,
+                                           distance_budget=budget)
+                    solution = myopic.optimize(num_waypoints)
+                    solution = solution.reshape(num_robots, -1, 2)
+                    end_time = time()
+                    ipp_time = end_time-start_time
+
+                    budget_satisfied = True
+
+                    solution_X, solution_y = [], []
+                    for r in range(num_robots):
+                        X_new, y_new = path2data(solution[r])
+                        solution_X.extend(X_new)
+                        solution_y.extend(y_new)
+                    solution_X = np.array(solution_X)
+                    solution_y = np.array(solution_y)
+
+                # ---------------------------------------------------------------------------------
+
                 # Get RMSE using the oracle hyperparameters
                 y_pred, y_var = get_reconstruction((solution_X, solution_y), 
                                                     X_test, 
@@ -506,19 +530,39 @@ if __name__=='__main__':
     xrange = range(5, max_range, 5)
 
     # Methods to benchmark
-    methods = ['Adaptive-SGP',
-               'Adaptive-CMA-ES',
-               'SGP',
-               'CMA-ES']
+    '''
+    'Adaptive-SGP',
+    'Adaptive-CMA-ES',
+    'BO', 
+    'Greedy-MI',
+    'Greedy-SGP',
+    'Discrete-SGP',
+    'myopic',
+    'SGP',
+    'CMA-ES',
+    '''
+
+    # Benchmark BO & discrete methods if benchmark_discrete is True
+    # and the remaining parameters are in their base cases
+    if args.sampling_rate == 2 and args.num_robots == 1 and \
+       args.distance_budget and args.benchmark_discrete:
+        methods = ['BO', 
+                   'CMA-ES', 
+                   'Myopic',
+                   'Discrete-SGP',
+                   'SGP']
 
     # Benchmark BO & discrete methods if benchmark_discrete is True
     # and the remaining parameters are in their base cases
     if args.sampling_rate == 2 and args.num_robots == 1 and \
        not args.distance_budget and args.benchmark_discrete:
         methods = ['BO', 
+                   'CMA-ES'
+                   'Myopic',
                    'Greedy-MI',
                    'Greedy-SGP',
-                   'Discrete-SGP']
+                   'Discrete-SGP',
+                   'SGP']
 
     main(args.dataset_path, 
          args.num_mc, 

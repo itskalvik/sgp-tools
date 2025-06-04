@@ -57,7 +57,7 @@ class BayesianOpt(SLogMI):
         X = np.array(X).reshape(-1, self.num_dim)
         if self.transform is not None:
             X = self.transform.expand(X)
-            constraints_loss = self.transform.constraints(X)
+            constraints_loss = self.transform.constraints(X).numpy()
 
         mi = self.get_mi(X).numpy()
         mi += constraints_loss

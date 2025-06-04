@@ -64,7 +64,7 @@ class CMA_ES(SLogMI):
         constraints_loss = 0.0
         if self.transform is not None:
             X = self.transform.expand(X)
-            constraints_loss = self.transform.constraints(X)
+            constraints_loss = self.transform.constraints(X).numpy()
 
         mi = -self.get_mi(X).numpy()
         mi -= constraints_loss
