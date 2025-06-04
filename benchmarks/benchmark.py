@@ -205,7 +205,8 @@ def main(dataset_path,
         path2data = lambda x : cont2disc(x, X, y)
 
     # Get the data
-    X_train, y_train, X_test, y_test, candidates, X, y = get_dataset(dataset_path)
+    X_train, y_train, X_test, y_test, candidates, X, y = get_dataset(dataset_path,
+                                                                     downsample=10)
     
     # Get oracle hyperparameters to benchmark rmse
     start_time = time()

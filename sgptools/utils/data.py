@@ -78,7 +78,8 @@ def point_pos(point, d, theta):
 
 ####################################################
 
-def prep_tif_dataset(dataset_path):
+def prep_tif_dataset(dataset_path, 
+                     downsample=1):
     '''Load and preprocess a dataset from a GeoTIFF file (.tif file). The input features 
     are set to the x and y pixel block coordinates and the labels are read from the file.
     The method also removes all invalid points.
@@ -89,13 +90,14 @@ def prep_tif_dataset(dataset_path):
 
     Args:
         dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
+        downsample (int): Downsampling factor for the dataset. Default is 1 (no downsampling).
 
     Returns:
        X (ndarray): (n, d); Dataset input features
        y (ndarray): (n, 1); Dataset labels
     '''
     data = PIL.Image.open(dataset_path)
-    data = np.array(data)
+    data = np.array(data)[::downsample, ::downsample]
 
     # create x and y coordinates from the extent
     x_coords = np.arange(0, data.shape[1])/10
@@ -161,6 +163,7 @@ def get_dataset(dataset_path=None,
                 num_train=1000,
                 num_test=2500, 
                 num_candidates=150,
+                downsample=1,
                 **kwargs):
     """Method to generate/load datasets and preprocess them for SP/IPP. The method uses kmeans to 
     generate train and test sets.
@@ -170,6 +173,7 @@ def get_dataset(dataset_path=None,
         num_train (int): Number of training samples to generate.
         num_test (int): Number of testing samples to generate.
         num_candidates (int): Number of candidate locations to generate.
+        downsample (int): Downsampling factor for the dataset. Default is 1 (no downsampling).
 
     Returns:
        X_train (ndarray): (n, d); Training set inputs
@@ -182,7 +186,8 @@ def get_dataset(dataset_path=None,
     """
     # Load the data
     if dataset_path is not None:
-        X, y = prep_tif_dataset(dataset_path=dataset_path)
+        X, y = prep_tif_dataset(dataset_path=dataset_path,
+                                downsample=downsample)
     else:
         X, y = prep_synthetic_dataset(**kwargs)
 
