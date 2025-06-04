@@ -64,11 +64,11 @@ class CMA_ES(SLogMI):
         constraints_loss = 0.0
         if self.transform is not None:
             X = self.transform.expand(X)
-            constraints_loss = self.transform.constraints(X).numpy()
+            constraints_loss = self.transform.constraints(X)
 
-        mi = -self.get_mi(X).numpy()
+        mi = -self.get_mi(X)
         mi -= constraints_loss
-        return mi
+        return mi.numpy()
     
     def optimize(self, 
                  num_sensors=10, 
