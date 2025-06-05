@@ -143,6 +143,27 @@ class Dataset:
                  num_test=2500, 
                  num_candidates=150,
                  **kwargs):
+        """Class to load and preprocess a dataset. 
+
+        This includes:
+        - loading the dataset from a tif file or generating a synthetic dataset
+        - Sampling training, testing, and candidate points
+        - Standardizing the dataset
+
+        The class also provides methods to retrieve the training, testing, and candidate points,
+        as well as to get sensor data at specified locations or along a path.
+
+        The dataset can be either a GeoTIFF file or a synthetic dataset generated using the diamond square algorithm.
+        The dataset is expected to be a 2D array where each element represents a label (e.g., elevation, temperature, etc.).
+        The training, testing, and candidate points are sampled from the valid points in the dataset, i.e., points where the label is not NaN.
+
+        Args:
+            dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
+            num_train (int): Number of training points to sample from the dataset.
+            num_test (int): Number of testing points to sample from the dataset.
+            num_candidates (int): Number of candidate points to sample from the dataset.
+            **kwargs: Additional keyword arguments for synthetic dataset preparation (hkb_diamondsquare.DiamondSquare.diamond_square).
+        """
         
         # Load/Create the data
         if dataset_path is not None:
@@ -219,9 +240,19 @@ class Dataset:
         return self.candidates
         
     def get_sensor_data(self, locations, 
-                        continuous_sening=False):
+                        continuous_sening=False,
+                        max_samples=500):
         """
-        Get data from the dataset at the specified locations
+        Method to get sensor data at specified locations or along a path.
+        Args:
+            locations (ndarray): (n, 2); Array of locations where sensor data is to be sampled.
+                                 Each location is specified as normalized (x, y) coordinates.
+            continuous_sening (bool): If True, interpolate between points to simulate continuous sensing.
+            max_samples (int): Maximum number of samples to return.
+        Returns:
+            locations (ndarray): (m, 2); Normalized locations where sensor data was sampled.
+                                 Each location is specified as normalized (x, y) coordinates.
+            data (ndarray): (m, 1); Sensor data sampled at the specified locations.
         """
         # Convert normalized locations back to original pixel coordinates
         locations = self.X_scaler.inverse_transform(locations)
@@ -251,5 +282,13 @@ class Dataset:
         if len(locations) == 0:
             return np.empty((0, 2)), np.empty((0, 1))
         locations = self.X_scaler.transform(locations)
+
+        # Limit the number of samples to max_samples
+        if len(locations) > max_samples:
+            indices = np.random.choice(len(locations), max_samples, replace=False)
+            locations = locations[indices]
+            data = data[indices]
+        else:
+            indices = np.arange(len(locations))
 
         return locations, data
