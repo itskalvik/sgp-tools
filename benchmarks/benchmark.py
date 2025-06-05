@@ -199,18 +199,15 @@ def main(dataset_path,
     # Configure discrete/continuous sensing robot model
     if sampling_rate > 2:
         continuous_ipp = True
-        path2data = lambda x : cont2disc(interpolate_path(x, sampling_rate=0.2), X, y)
     else:
         continuous_ipp = False
-        path2data = lambda x : cont2disc(x, X, y)
 
-    # Get the data
-    X_train, y_train, X_test, y_test, candidates, X, y = get_dataset(dataset_path,
-                                                                     downsample=10)
+    # Load the dataset
+    dataset = Dataset(dataset_path)
     
     # Get oracle hyperparameters to benchmark rmse
     start_time = time()
-    _, noise_variance_opt, kernel_opt = get_model_params(X_train, y_train, 
+    _, noise_variance_opt, kernel_opt = get_model_params(*dataset.get_train(), 
                                                          print_params=True,
                                                          optimizer='scipy')
     end_time = time()
@@ -226,7 +223,7 @@ def main(dataset_path,
             print(f'\nNum Waypoints: {num_waypoints}', flush=True)
 
             # Get random hyperparameters
-            _, noise_variance, kernel = get_model_params(X_train, y_train, 
+            _, noise_variance, kernel = get_model_params(*dataset.get_train(), 
                                                          max_steps=0,
                                                          print_params=False)
             
@@ -248,7 +245,9 @@ def main(dataset_path,
             )
 
             # Generate initial paths
-            Xu_init = get_inducing_pts(X_train, num_waypoints*num_robots)
+            Xu_init = get_inducing_pts(dataset.X_train, 
+                                       num_waypoints*num_robots,
+                                       random=True)
             Xu_init, _ = run_tsp(Xu_init, 
                                  num_vehicles=num_robots, 
                                  max_dist=max_dist, 
@@ -269,22 +268,22 @@ def main(dataset_path,
                 transform.constraint_weight = 250.
             else:
                 budget_satisfied=True
+                budget = np.inf
 
             # ---------------------------------------------------------------------------------
 
             for method in methods:
                 if method=='Adaptive-SGP':
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                 X_train, 
+                                                 dataset.X_train,
                                                  noise_variance, 
                                                  kernel,
                                                  deepcopy(transform),
                                                  Xu_init=Xu_init.reshape(-1, 2), 
                                                  max_steps=0)
-                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
+                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(dataset, 
                                                                                 ipp_sgpr, 
                                                                                 Xu_init,
-                                                                                path2data,
                                                                                 continuous_ipp,
                                                                                 'SGP',
                                                                                 'SSGP' if continuous_ipp else 'GP')
@@ -292,15 +291,14 @@ def main(dataset_path,
                 # ---------------------------------------------------------------------------------
 
                 if method=='Adaptive-CMA-ES':
-                    cma_es = CMA_ES(candidates, 
+                    cma_es = CMA_ES(dataset.candidates, 
                                     noise_variance, 
                                     kernel,
                                     num_robots=num_robots,
                                     transform=deepcopy(transform))
-                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(X_train, 
+                    solution_X, solution_y, param_time, ipp_time, budget_satisfied = run_aipp(dataset, 
                                                                             cma_es, 
                                                                             Xu_init,
-                                                                            path2data,
                                                                             continuous_ipp,
                                                                             'CMA',
                                                                             'SSGP' if continuous_ipp else 'GP')
@@ -310,7 +308,7 @@ def main(dataset_path,
                 if method=='SGP':
                     start_time = time()
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                 X_train, 
+                                                 dataset.X_train, 
                                                  noise_variance_opt, 
                                                  kernel_opt,
                                                  transform,
@@ -323,28 +321,20 @@ def main(dataset_path,
 
                     budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
                     budget_satisfied = budget_constraint > -10.
-
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
 
                 # ---------------------------------------------------------------------------------
 
                 if method=='Discrete-SGP':
                     start_time = time()
                     ipp_sgpr, _ = continuous_sgp(num_waypoints, 
-                                                 X_train, 
+                                                 dataset.X_train, 
                                                  noise_variance_opt, 
                                                  kernel_opt,
                                                  transform,
                                                  Xu_init=Xu_init.reshape(-1, 2), 
                                                  optimizer='scipy')
                     solution = ipp_sgpr.inducing_variable.Z.numpy()
-                    solution = cont2disc(solution, candidates)
+                    solution = cont2disc(solution, dataset.candidates)
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
@@ -352,19 +342,11 @@ def main(dataset_path,
                     budget_constraint = ipp_sgpr.transform.constraints(ipp_sgpr.inducing_variable.Z)
                     budget_satisfied = budget_constraint > -10.
 
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
                 # ---------------------------------------------------------------------------------
 
                 if method=='CMA-ES':
                     start_time = time()
-                    cma_es = CMA_ES(candidates, 
+                    cma_es = CMA_ES(dataset.candidates, 
                                     noise_variance_opt,
                                     kernel_opt, 
                                     num_robots=num_robots,
@@ -378,25 +360,17 @@ def main(dataset_path,
                     budget_constraint = cma_es.transform.constraints(solution.reshape(-1, 2))
                     budget_satisfied = budget_constraint > -10.
 
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
                 # ---------------------------------------------------------------------------------
 
                 if method=='BO':
                     start_time = time()
-                    bo_model = BayesianOpt(candidates, 
+                    bo_model = BayesianOpt(dataset.get_candidates(), 
                                            noise_variance_opt,
                                            kernel_opt, 
                                            transform=transform)
                     solution = bo_model.optimize(X_init=Xu_init,
                                                  max_steps=50)
-                    solution = cont2disc(solution, candidates)
+                    solution = cont2disc(solution, dataset.get_candidates())
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
@@ -404,21 +378,13 @@ def main(dataset_path,
                     budget_constraint = bo_model.transform.constraints(solution.reshape(-1, 2))
                     budget_satisfied = budget_constraint > -10.
 
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
                 # ---------------------------------------------------------------------------------
 
                 if method=='Greedy-MI':
                     start_time = time()
                     solution = get_greedy_mi_sol(num_robots*num_waypoints,
-                                                 candidates, 
-                                                 candidates, 
+                                                 dataset.get_candidates(), 
+                                                 dataset.get_candidates(), 
                                                  noise_variance_opt,
                                                  kernel_opt, 
                                                  transform=transform)
@@ -426,21 +392,13 @@ def main(dataset_path,
                     end_time = time()
                     ipp_time = end_time-start_time
 
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
                 # ---------------------------------------------------------------------------------
 
                 if method=='Greedy-SGP':
                     start_time = time()
                     solution = get_greedy_sgp_sol(num_robots*num_waypoints,
-                                                  candidates, 
-                                                  candidates, 
+                                                  dataset.get_candidates(), 
+                                                  dataset.get_candidates(), 
                                                   noise_variance_opt,
                                                   kernel_opt, 
                                                   transform=transform)
@@ -448,22 +406,14 @@ def main(dataset_path,
                     end_time = time()
                     ipp_time = end_time-start_time
 
-                    solution_X, solution_y = [], []
-                    for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
-                        solution_X.extend(X_new)
-                        solution_y.extend(y_new)
-                    solution_X = np.array(solution_X)
-                    solution_y = np.array(solution_y)
-
                 # ---------------------------------------------------------------------------------
 
                 if method=='Myopic':
                     start_time = time()
-                    myopic = MyopicPlanner(candidates, 
+                    myopic = MyopicPlanner(dataset.get_candidates(), 
                                            noise_variance_opt,
                                            kernel_opt,
-                                           distance_budget=budget)
+                                           transform=transform)
                     solution = myopic.optimize(num_waypoints)
                     solution = solution.reshape(num_robots, -1, 2)
                     end_time = time()
@@ -471,24 +421,33 @@ def main(dataset_path,
 
                     budget_satisfied = True
 
+                # ---------------------------------------------------------------------------------
+
+                # Get the solution sensed data
+                if not 'Adaptive' in method:
                     solution_X, solution_y = [], []
                     for r in range(num_robots):
-                        X_new, y_new = path2data(solution[r])
+                        X_new, y_new = dataset.get_sensor_data(solution[r], 
+                                                               continuous_sening=continuous_ipp,
+                                                               max_samples=1500)
                         solution_X.extend(X_new)
                         solution_y.extend(y_new)
                     solution_X = np.array(solution_X)
                     solution_y = np.array(solution_y)
 
-                # ---------------------------------------------------------------------------------
-
                 # Get RMSE using the oracle hyperparameters
-                y_pred, y_var = get_reconstruction((solution_X, solution_y), 
-                                                    X_test, 
-                                                    noise_variance_opt, 
-                                                    kernel_opt)
-                rmse = get_rmse(y_pred, y_test)
-                nlpd = get_nlpd(y_pred, y_test, y_var)
-                smse = get_smse(y_pred, y_test, y_var)
+                if len(solution_X) > 0:
+                    y_pred, y_var = get_reconstruction((solution_X, solution_y), 
+                                                        dataset.X_test, 
+                                                        noise_variance_opt, 
+                                                        kernel_opt)
+                    rmse = get_rmse(y_pred, dataset.y_test)
+                    nlpd = get_nlpd(y_pred, dataset.y_test, y_var)
+                    smse = get_smse(y_pred, dataset.y_test, y_var)
+                else:
+                    rmse = np.nan
+                    nlpd = np.nan
+                    smse = np.nan
 
                 param_time = gp_time if 'Adaptive' not in method else param_time
                 results[num_waypoints][method]['ParamTime'].append(param_time)
@@ -545,8 +504,9 @@ if __name__=='__main__':
 
     # Benchmark BO & discrete methods if benchmark_discrete is True
     # and the remaining parameters are in their base cases
-    if args.sampling_rate == 2 and args.num_robots == 1 and \
-       args.distance_budget and args.benchmark_discrete:
+    if args.num_robots == 1 and \
+       args.distance_budget and \
+       args.benchmark_discrete:
         methods = ['BO', 
                    'CMA-ES', 
                    'Myopic',
@@ -558,7 +518,7 @@ if __name__=='__main__':
     if args.sampling_rate == 2 and args.num_robots == 1 and \
        not args.distance_budget and args.benchmark_discrete:
         methods = ['BO', 
-                   'CMA-ES'
+                   'CMA-ES',
                    'Myopic',
                    'Greedy-MI',
                    'Greedy-SGP',

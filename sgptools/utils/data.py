@@ -101,7 +101,7 @@ def prep_tif_dataset(dataset_path,
     if downsample <= 1:
         downsample = 1
     else:
-        print(f'Downsampling by a factor of {downsample} to fit the maximum dimension of {dim_max}.')
+        print(f'Downsampling by a factor of {downsample} to fit the maximum dimension of {dim_max}')
     data = data[::downsample, ::downsample].astype(float)
     data[np.where(data==-999999.0)] = np.nan
     return data
@@ -162,7 +162,7 @@ class Dataset:
             num_train (int): Number of training points to sample from the dataset.
             num_test (int): Number of testing points to sample from the dataset.
             num_candidates (int): Number of candidate points to sample from the dataset.
-            **kwargs: Additional keyword arguments for synthetic dataset preparation (hkb_diamondsquare.DiamondSquare.diamond_square).
+            **kwargs: Additional keyword arguments for dataset preparation methods (prep_tif_dataset, prep_synthetic_dataset).
         """
         
         # Load/Create the data
@@ -268,6 +268,8 @@ class Dataset:
             for loc1, loc2 in zip(locations[1:], locations[:-1]):
                 rr, cc = line(loc1[1], loc1[0], loc2[1], loc2[0])
                 locs.append(np.column_stack((cc, rr)))
+            if len(locs) == 0:
+                return np.empty((0, 2)), np.empty((0, 1))
             locations = np.concatenate(locs, axis=0)
 
         # Extract data at the specified locations

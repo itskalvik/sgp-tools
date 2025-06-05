@@ -27,11 +27,12 @@ class MyopicPlanner(SLogMI):
         X_train (ndarray): (n, d); Locations in the environment used to approximate the monitoring regions
         noise_variance (float): data variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
-        distance_budget (float): Distance budget for when treating the inducing points 
-                                 as waypoints of a path
+        transform (Transform): Transform object
     """
-    def __init__(self, X_train, noise_variance, kernel, distance_budget):
-        self.distance_budget = distance_budget
+    def __init__(self, X_train, noise_variance, kernel, 
+                 transform=None):
+        self.transform = transform
+        self.distance_budget = transform.distance_budget
         super().__init__(kernel, X_train, jitter=1e-6+noise_variance)
 
     def plan_waypoint(self, X):
@@ -40,11 +41,14 @@ class MyopicPlanner(SLogMI):
         Args:
             X (ndarray): (n, d); Past robot waypoints
         """
-        # Evaluate candidates
+        # Evaluate the candidates
         mi_values = []
         for X_sample in self.X_train:
             if len(X) > 0: 
-                mi_values.append(self.get_mi(np.vstack([X, X_sample])))
+                locs = np.vstack([X, X_sample])
+                if self.transform is not None and len(X) > 1:
+                    locs = self.transform.expand(locs).numpy().reshape(-1, 2)
+                mi_values.append(self.get_mi(locs))
             else:
                 mi_values.append(self.get_mi(np.array([X_sample])))
         mi_values = np.array(mi_values)       
