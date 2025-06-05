@@ -14,7 +14,8 @@
 
 import numpy as np
 from matplotlib import path
-from .misc import get_inducing_pts, cont2disc
+from skimage.draw import line
+from .misc import get_inducing_pts
 from sklearn.preprocessing import StandardScaler
 from hkb_diamondsquare.DiamondSquare import diamond_square
 
@@ -79,46 +80,33 @@ def point_pos(point, d, theta):
 ####################################################
 
 def prep_tif_dataset(dataset_path, 
-                     downsample=1):
-    '''Load and preprocess a dataset from a GeoTIFF file (.tif file). The input features 
-    are set to the x and y pixel block coordinates and the labels are read from the file.
-    The method also removes all invalid points.
+                     dim_max=2500):
+    '''Load and preprocess a dataset from a GeoTIFF file (.tif file).
 
     Large tif files 
-    need to be downsampled using the following command: 
+    need to be downsampled using the following terminal command: 
     ```gdalwarp -tr 50 50 <input>.tif <output>.tif```
 
     Args:
         dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
-        downsample (int): Downsampling factor for the dataset. Default is 1 (no downsampling).
+        dim_max (int): Maximum dimension of the dataset. If the dataset exceeds this size, it will be downsampled.
 
     Returns:
-       X (ndarray): (n, d); Dataset input features
        y (ndarray): (n, 1); Dataset labels
     '''
     data = PIL.Image.open(dataset_path)
-    data = np.array(data)[::downsample, ::downsample]
+    data = np.array(data)
+    print(f"Loaded dataset from {dataset_path} with shape {data.shape}")
+    downsample = np.ceil(np.max(data.shape) / dim_max).astype(int)
+    if downsample <= 1:
+        downsample = 1
+    else:
+        print(f'Downsampling by a factor of {downsample} to fit the maximum dimension of {dim_max}.')
+    data = data[::downsample, ::downsample].astype(float)
+    data[np.where(data==-999999.0)] = np.nan
+    return data
 
-    # create x and y coordinates from the extent
-    x_coords = np.arange(0, data.shape[1])/10
-    y_coords = np.arange(data.shape[0], 0, -1)/10
-    xx, yy = np.meshgrid(x_coords, y_coords)
-    X = np.c_[xx.ravel(), yy.ravel()]
-    y = data.ravel()
-
-    # Remove invalid labels
-    y[np.where(y==-999999.0)] = np.nan
-    X = X[~np.isnan(y)]
-    y = y[~np.isnan(y)]
-
-    X = X.reshape(-1, 2)
-    y = y.reshape(-1, 1)
-
-    return X.astype(float), y.astype(float)
-
-####################################################
-
-def prep_synthetic_dataset(shape=(50, 50), 
+def prep_synthetic_dataset(shape=(1000, 1000), 
                            min_height=0.0, 
                            max_height=30.0, 
                            roughness=0.5,
@@ -146,72 +134,122 @@ def prep_synthetic_dataset(shape=(50, 50),
                           roughness=roughness,
                           random_seed=random_seed,
                           **kwargs)
+    return data.astype(float)
 
-    # create x and y coordinates from the extent
-    x_coords = np.arange(0, data.shape[0])/10
-    y_coords = np.arange(0, data.shape[1])/10
-    xx, yy = np.meshgrid(x_coords, y_coords)
-    X = np.c_[xx.ravel(), yy.ravel()]
-    y = data.ravel()
-    y = y.reshape(-1, 1)
+class Dataset:
+    def __init__(self, 
+                 dataset_path=None,
+                 num_train=1000, 
+                 num_test=2500, 
+                 num_candidates=150,
+                 **kwargs):
+        
+        # Load/Create the data
+        if dataset_path is not None:
+            self.y = prep_tif_dataset(dataset_path=dataset_path, **kwargs)
+        else:
+            self.y = prep_synthetic_dataset(**kwargs)
 
-    return X.astype(float), y.astype(float)
+        w, h = self.y.shape[0], self.y.shape[1]
 
-####################################################
+        ########################################################
+        
+        # Create image coordinates array
+        xx, yy = np.meshgrid(
+            np.arange(self.y.shape[0]), 
+            np.arange(self.y.shape[1])
+        )
+        X = np.stack((xx, yy), axis=-1).astype(int)
+        print(f"Dataset shape: {self.y.shape}")
 
-def get_dataset(dataset_path=None,
-                num_train=1000,
-                num_test=2500, 
-                num_candidates=150,
-                downsample=1,
-                **kwargs):
-    """Method to generate/load datasets and preprocess them for SP/IPP. The method uses kmeans to 
-    generate train and test sets.
+        ########################################################
+
+        # Get valid points, i.e., points where the label is not NaN
+        mask = np.where(np.isfinite(self.y))
+        X_valid = np.column_stack((mask[0], mask[1]))
+
+        # Get training points
+        X_train = get_inducing_pts(X_valid, num_train, random=True)
+        y_train = self.y[X_train[:, 0], X_train[:, 1]].reshape(-1, 1)
+
+        # Get testing points
+        X_test = get_inducing_pts(X_valid, num_test, random=True)
+        y_test = self.y[X_test[:, 0], X_test[:, 1]].reshape(-1, 1)
+
+        # Get candidate points
+        X_candidates = get_inducing_pts(X_valid, num_candidates, random=True)
+
+        ########################################################
+
+        # Standardize dataset X coordinates
+        self.X_scaler = StandardScaler()
+        self.X_scaler.fit(X_train)
+
+        # Change variance/scale parameter to ensure all axis are scaled to the same value
+        # Additionally, scale the data to have an extent of at least 10.0 in each dimension
+        ind = np.argmax(self.X_scaler.var_)
+        self.X_scaler.var_ = np.ones_like(self.X_scaler.var_)*self.X_scaler.var_[ind]
+        self.X_scaler.scale_ = np.ones_like(self.X_scaler.scale_)*self.X_scaler.scale_[ind]
+        self.X_scaler.scale_ /= 10.0
+
+        self.X_train = self.X_scaler.transform(X_train)
+        self.X_test = self.X_scaler.transform(X_test)
+        self.candidates = self.X_scaler.transform(X_candidates)
+
+        # Standardize dataset labels
+        self.y_scaler = StandardScaler()
+        self.y_scaler.fit(y_train)
+
+        self.y_train = self.y_scaler.transform(y_train)
+        self.y_test = self.y_scaler.transform(y_test)
+        self.y = self.y_scaler.transform(self.y.reshape(-1, 1)).reshape(w, h)
+
+        print(f"Training data shape: {self.X_train.shape}, {self.y_train.shape}")
+        print(f"Testing data shape: {self.X_test.shape}, {self.y_test.shape}")
+        print(f"Candidate data shape: {self.candidates.shape}")
+        print(f"Dataset loaded and preprocessed successfully.")
+
+    def get_train(self):
+        return self.X_train, self.y_train
     
-    Args:
-        dataset_path (str): Path to a tif dataset file. If None, the method will generate synthetic data.
-        num_train (int): Number of training samples to generate.
-        num_test (int): Number of testing samples to generate.
-        num_candidates (int): Number of candidate locations to generate.
-        downsample (int): Downsampling factor for the dataset. Default is 1 (no downsampling).
+    def get_test(self):
+        return self.X_test, self.y_test
+    
+    def get_candidates(self):
+        return self.candidates
+        
+    def get_sensor_data(self, locations, 
+                        continuous_sening=False):
+        """
+        Get data from the dataset at the specified locations
+        """
+        # Convert normalized locations back to original pixel coordinates
+        locations = self.X_scaler.inverse_transform(locations)
 
-    Returns:
-       X_train (ndarray): (n, d); Training set inputs
-       y_train (ndarray): (n, 1); Training set labels
-       X_test (ndarray): (n, d); Testing set inputs
-       y_test (ndarray): (n, 1); Testing set labels
-       candidates (ndarray): (n, d); Candidate sensor placement locations
-       X (ndarray): (n, d); Full dataset inputs
-       y (ndarray): (n, 1); Full dataset labels
-    """
-    # Load the data
-    if dataset_path is not None:
-        X, y = prep_tif_dataset(dataset_path=dataset_path,
-                                downsample=downsample)
-    else:
-        X, y = prep_synthetic_dataset(**kwargs)
+        # Round locations to nearest integer and clip to valid range
+        locations = np.round(locations).astype(int)
+        locations[:, 0] = np.clip(locations[:, 0], 0, self.y.shape[0] - 1)
+        locations[:, 1] = np.clip(locations[:, 1], 0, self.y.shape[1] - 1)
 
-    X_train = get_inducing_pts(X, num_train)
-    X_train, y_train = cont2disc(X_train, X, y)
+        # If continuous sensing is enabled, interpolate between points
+        if continuous_sening:
+            locs = []
+            for loc1, loc2 in zip(locations[1:], locations[:-1]):
+                rr, cc = line(loc1[1], loc1[0], loc2[1], loc2[0])
+                locs.append(np.column_stack((cc, rr)))
+            locations = np.concatenate(locs, axis=0)
 
-    X_test = get_inducing_pts(X, num_test)
-    X_test, y_test = cont2disc(X_test, X, y)
+        # Extract data at the specified locations
+        data = self.y[locations[:, 0], locations[:, 1]].reshape(-1, 1)
+        
+        # Drop NaN values from data
+        valid_mask = np.isfinite(data.ravel())
+        locations = locations[valid_mask]
+        data = data[valid_mask]
 
-    candidates = get_inducing_pts(X, num_candidates)
-    candidates = cont2disc(candidates, X)
+        # Re-normalize locations
+        if len(locations) == 0:
+            return np.empty((0, 2)), np.empty((0, 1))
+        locations = self.X_scaler.transform(locations)
 
-    # Standardize data
-    X_scaler = StandardScaler()
-    X_scaler.fit(X_train)
-    X_train = X_scaler.transform(X_train)*10.0
-    X_test = X_scaler.transform(X_test)*10.0
-    X = X_scaler.transform(X)*10.0
-    candidates = X_scaler.transform(candidates)*10.0
-
-    y_scaler = StandardScaler()
-    y_scaler.fit(y_train)
-    y_train = y_scaler.transform(y_train)
-    y_test = y_scaler.transform(y_test)
-    y = y_scaler.transform(y)
-
-    return X_train, y_train, X_test, y_test, candidates, X, y
+        return locations, data
