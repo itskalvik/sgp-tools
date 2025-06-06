@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import tensorflow as tf
 from ..utils.metrics import get_distance
 from ..utils.mutual_information import SLogMI
 
@@ -32,7 +33,10 @@ class MyopicPlanner(SLogMI):
     def __init__(self, X_train, noise_variance, kernel, 
                  transform=None):
         self.transform = transform
-        self.distance_budget = transform.distance_budget
+        if transform.distance_budget is None:
+            self.distance_budget = np.inf
+        else:
+            self.distance_budget = transform.distance_budget
         super().__init__(kernel, X_train, jitter=1e-6+noise_variance)
 
     def plan_waypoint(self, X):
@@ -47,7 +51,10 @@ class MyopicPlanner(SLogMI):
             if len(X) > 0: 
                 locs = np.vstack([X, X_sample])
                 if self.transform is not None and len(X) > 1:
-                    locs = self.transform.expand(locs).numpy().reshape(-1, 2)
+                    locs = self.transform.expand(locs)
+                    if tf.is_tensor(locs):
+                        locs = locs.numpy()
+                    locs = locs.reshape(-1, 2)
                 mi_values.append(self.get_mi(locs))
             else:
                 mi_values.append(self.get_mi(np.array([X_sample])))
