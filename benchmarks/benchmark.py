@@ -501,7 +501,10 @@ if __name__=='__main__':
     'SGP',
     'CMA-ES',
     '''
-
+    methods = ['BO', 
+               'CMA-ES', 
+               'SGP']
+    
     # Benchmark BO & discrete methods if benchmark_discrete is True
     # and the remaining parameters are in their base cases
     if args.num_robots == 1 and \
