@@ -370,7 +370,6 @@ def main(dataset_path,
                                            transform=transform)
                     solution = bo_model.optimize(X_init=Xu_init,
                                                  max_steps=50)
-                    solution = cont2disc(solution, dataset.get_candidates())
                     solution = solution.reshape(num_robots, num_waypoints, 2)
                     end_time = time()
                     ipp_time = end_time-start_time
@@ -477,7 +476,6 @@ if __name__=='__main__':
     parser.add_argument("--num_robots", type=int, default=1)
     parser.add_argument("--sampling_rate", type=int, default=2)
     parser.add_argument("--distance_budget", action='store_true')
-    parser.add_argument("--benchmark_discrete", action='store_true')
     parser.add_argument("--dataset_path", type=str, 
                         default='../datasets/bathymetry/bathymetry.tif')
     args=parser.parse_args()
@@ -501,25 +499,22 @@ if __name__=='__main__':
     'SGP',
     'CMA-ES',
     '''
+    
     methods = ['BO', 
                'CMA-ES', 
                'SGP']
-    
-    # Benchmark BO & discrete methods if benchmark_discrete is True
-    # and the remaining parameters are in their base cases
-    if args.num_robots == 1 and \
-       args.distance_budget and \
-       args.benchmark_discrete:
+
+    if args.sampling_rate == 2 and \
+       args.num_robots == 1 and \
+       args.distance_budget:
         methods = ['BO', 
                    'CMA-ES', 
                    'Myopic',
-                   'Discrete-SGP',
                    'SGP']
 
-    # Benchmark BO & discrete methods if benchmark_discrete is True
-    # and the remaining parameters are in their base cases
-    if args.sampling_rate == 2 and args.num_robots == 1 and \
-       not args.distance_budget and args.benchmark_discrete:
+    if args.sampling_rate == 2 and \
+       args.num_robots == 1 and \
+       not args.distance_budget:
         methods = ['BO', 
                    'CMA-ES',
                    'Myopic',
