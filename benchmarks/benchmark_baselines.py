@@ -249,7 +249,7 @@ def main(dataset_path,
                                  num_vehicles=num_robots, 
                                  max_dist=max_dist, 
                                  resample=num_waypoints,
-                                 time_limit=30)
+                                 time_limit=120)
 
             # Setup the IPP Transform
             transform = IPPTransform(num_robots=num_robots,
