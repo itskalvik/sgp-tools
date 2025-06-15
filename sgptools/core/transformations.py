@@ -230,7 +230,7 @@ class IPPTransform(Transform):
             Xu (ndarray): Inducing points from which to compute the distance constraints
 
         Returns:
-            loss (float): distance constraint term
+            penality (float): distance constraint term
         """
         if self.distance_budget is None:
             return 0.
@@ -239,8 +239,8 @@ class IPPTransform(Transform):
             Xu = self.expand(Xu, expand_sensor_model=False)
             dist = self.distance(Xu)-self.distance_budget
             dist = tf.reduce_sum(tf.nn.relu(dist))
-            loss = -dist*self.constraint_weight
-            return loss
+            penality = -dist*self.constraint_weight
+            return penality
 
     def distance(self, Xu):
         """Computes the distance incured by sequentially visiting the inducing points

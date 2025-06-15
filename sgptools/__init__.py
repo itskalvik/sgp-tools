@@ -15,6 +15,6 @@ The library includes python code for the following:
 __version__ = "1.2.0"
 __author__ = 'Kalvik'
 
-from .models.core import *
-from .models import *
+from .core import *
+from .kernels import *
 from .utils import *

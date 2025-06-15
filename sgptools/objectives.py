@@ -10,23 +10,38 @@ def jitter_fn(cov, jitter=1e-6):
     cov = tf.linalg.set_diag(cov, tf.linalg.diag_part(cov) + jitter)
     return cov
 
-class MI:
+
+class Objective:
+    """
+    Base class for objectives.
+    """
+    def __init__(self, candidates, kernel, noise_variance, **kwargs):
+        pass
+
+    def __call__(self, X):
+        raise NotImplementedError
+
+
+class MI(Objective):
     """
     Mutual information between X_train and X.
 
     Jitter is added to the diagonal of the covariance matrices to ensure
     numerical stability.
     """
-    def __init__(self, kernel, X_train,
-                 jitter=1e-6):
+    def __init__(self, candidates, kernel, noise_variance, 
+                 jitter=1e-6,
+                 **kwargs):
+        self.candidates = candidates
         self.kernel = kernel
-        self.X_train = X_train
+        self.noise_variance = noise_variance
+        jitter += noise_variance
         self.jitter = lambda x: jitter_fn(x, jitter=jitter)
 
-    def get_mi(self, X):
-        A = self.kernel(self.X_train)
+    def __call__(self, X):
+        A = self.kernel(self.candidates)
         D = self.kernel(X)
-        M = self.kernel(tf.concat([self.X_train, X], axis=0))
+        M = self.kernel(tf.concat([self.candidates, X], axis=0))
 
         A_det = tf.math.log(tf.linalg.det(self.jitter(A)))
         D_det = tf.math.log(tf.linalg.det(self.jitter(D)))
@@ -35,6 +50,7 @@ class MI:
         mi = A_det + D_det - M_det
 
         return mi
+    
     
 class SLogMI(MI):
     """
@@ -47,10 +63,10 @@ class SLogMI(MI):
     Jitter is also added to the diagonal of the covariance matrices to 
     to further ensure numerical stability.
     """
-    def get_mi(self, X):
-        A = self.kernel(self.X_train)
+    def __call__(self, X):
+        A = self.kernel(self.candidates)
         D = self.kernel(X)
-        M = self.kernel(tf.concat([self.X_train, X], axis=0))
+        M = self.kernel(tf.concat([self.candidates, X], axis=0))
 
         _, A_det = tf.linalg.slogdet(self.jitter(A))
         _, D_det = tf.linalg.slogdet(self.jitter(D))
@@ -59,3 +75,12 @@ class SLogMI(MI):
         mi = A_det + D_det - M_det
 
         return mi
+    
+
+OBJECTIVES = {
+	'MI' : MI,
+	'SLogMI' : SLogMI,
+}
+
+def get_objective(objective):
+    return OBJECTIVES[objective]

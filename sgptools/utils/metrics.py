@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from scipy.stats import multivariate_normal
-from .mutual_information import SLogMI
+from ..objectives import SLogMI
 import tensorflow as tf
 import numpy as np
 import gpflow
