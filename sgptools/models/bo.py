@@ -60,7 +60,7 @@ class BayesianOpt(SLogMI):
             constraints_loss = self.transform.constraints(X)
 
         mi = self.get_mi(X)
-        mi += constraints_loss
+        mi -= constraints_loss
         return mi.numpy()
 
     def optimize(self, 
