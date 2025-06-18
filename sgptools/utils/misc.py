@@ -143,7 +143,7 @@ def project_waypoints(waypoints, candidates):
 
 def ploygon2candidats(vertices, 
                       num_samples=5000, 
-                      random_seed=2024):
+                      random_seed=None):
     """Sample unlabeled candidates within a polygon
 
     Args:

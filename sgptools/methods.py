@@ -81,7 +81,7 @@ class BayesianOpt(Base):
                  max_steps=50,  
                  init_points=10,
                  verbose=0,
-                 seed=1234,
+                 seed=None,
                  **kwargs):
         # Maximize the objective
         optimizer = BayesianOptimization(f=self._objective,
@@ -169,7 +169,7 @@ class CMA_ES(Base):
                  max_steps=500,  
                  tol=1e-6,
                  verbose=0,
-                 seed=1234,
+                 seed=None,
                  restarts=5,
                  **kwargs):
         sigma0 = 1.0
