@@ -51,7 +51,21 @@ class MI(Objective):
 
         return mi
     
-    
+    def update(self, kernel, noise_variance):
+        """Update SGP noise variance and kernel function parameters
+
+        Args:
+            kernel (gpflow.kernels.Kernel): gpflow kernel function
+            noise_variance (float): data variance
+        """
+        for self_var, var in zip(self.kernel.trainable_variables, 
+                                 kernel.trainable_variables):
+            self_var.assign(var)
+
+        self.noise_variance = noise_variance
+        self.jitter = lambda x: jitter_fn(x, jitter=self.noise_variance)
+        
+        
 class SLogMI(MI):
     """
     Mutual information between X_train and X.

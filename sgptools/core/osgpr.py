@@ -23,7 +23,7 @@ import gpflow
 from gpflow.inducing_variables import InducingPoints
 from gpflow.models import GPModel, InternalDataTrainingLossMixin
 from gpflow import covariances
-from ...utils.data import get_inducing_pts
+from ..utils.data import get_inducing_pts
 
 
 class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):

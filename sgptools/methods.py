@@ -6,6 +6,7 @@ from .core.augmented_sgpr import AugmentedSGPR
 import numpy as np
 
 import cma
+from copy import deepcopy
 from shapely import geometry
 from apricot import CustomSelection
 from bayes_opt import BayesianOptimization
@@ -25,6 +26,12 @@ class Base:
         self.num_robots = num_robots
 
     def optimize(self):
+        raise NotImplementedError
+
+    def update(kernel, noise_variance):
+        raise NotImplementedError
+    
+    def get_hyperparameters(self):
         raise NotImplementedError
 
 
@@ -63,6 +70,13 @@ class BayesianOpt(Base):
         for i in range(self.num_dim*self.num_sensing*self.num_robots):
             self.pbounds[f'x{i}'] = pbounds_dims[i%self.num_dim]
 
+    def update(self, kernel, noise_variance):
+        self.objective.update(kernel, noise_variance)
+
+    def get_hyperparameters(self):
+        return deepcopy(self.objective.kernel), \
+               self.objective.noise_variance
+    
     def optimize(self, 
                  max_steps=50,  
                  init_points=10,
@@ -108,7 +122,7 @@ class BayesianOpt(Base):
         reward = self.objective(X) # maximize
         reward += constraint_penality # minimize (large negative value when constraint is unsatisfied)
         return reward.numpy()
-    
+
 
 class CMA_ES(Base):
     def  __init__(self,
@@ -144,6 +158,13 @@ class CMA_ES(Base):
         # Use the boundaries of the candidates area as the search space limits
         self.pbounds = geometry.MultiPoint([[p[0], p[1]] for p in candidates]).convex_hull
 
+    def update(self, kernel, noise_variance):
+        self.objective.update(kernel, noise_variance)
+
+    def get_hyperparameters(self):
+        return deepcopy(self.objective.kernel), \
+               self.objective.noise_variance
+    
     def optimize(self, 
                  max_steps=500,  
                  tol=1e-6,
@@ -184,6 +205,12 @@ class CMA_ES(Base):
         reward += constraint_penality # minimize (large negative value when constraint is unsatisfied)
         return -reward.numpy()
     
+    def update_transform(self, transform):
+        self.transform = transform
+
+    def get_transform(self):
+        return deepcopy(self.transform)
+    
 
 class ContinuousSGP(Base):
     def  __init__(self,
@@ -217,6 +244,13 @@ class ContinuousSGP(Base):
                                   inducing_variable=X_init,
                                   inducing_variable_time=X_time,
                                   transform=transform)
+
+    def update(self, kernel, noise_variance):
+        self.sgpr.update(kernel, noise_variance)
+
+    def get_hyperparameters(self):
+        return deepcopy(self.sgpr.kernel), \
+               self.sgpr.likelihood.variance.numpy()
     
     def optimize(self, 
                  max_steps=500, 
@@ -234,10 +268,18 @@ class ContinuousSGP(Base):
                               method=method,
                               verbose=verbose,
                               **kwargs)
-        sol = self.sgpr.inducing_variable.Z.numpy()
+        sol = self.sgpr.inducing_variable.Z
+        sol = self.sgpr.transform.expand(sol,
+                                         expand_sensor_model=False)
+        if not isinstance(sol, np.ndarray):
+            sol = sol.numpy()
         sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
 
+    @property
+    def transform(self):
+        return self.sgpr.transform
+    
 
 class GreedyObjective(Base):
     def  __init__(self,
@@ -277,6 +319,13 @@ class GreedyObjective(Base):
         else:
             self.objective = objective
 
+    def update(self, kernel, noise_variance):
+        self.objective.update(kernel, noise_variance)
+
+    def get_hyperparameters(self):
+        return deepcopy(self.objective.kernel), \
+               self.objective.noise_variance
+    
     def optimize(self, 
                  optimizer='naive',
                  verbose=0,
@@ -289,7 +338,13 @@ class GreedyObjective(Base):
         sol = model.fit_transform(np.arange(len(self.candidates)).reshape(-1, 1))
         sol = np.array(sol).reshape(-1).astype(int)
         sol = self.candidates[sol]
-        sol = sol.reshape(1, -1, self.num_dim)
+        sol = np.array(sol).reshape(-1, self.num_dim)
+        if self.transform is not None:
+            sol = self.transform.expand(sol,
+                                        expand_sensor_model=False)
+            if not isinstance(sol, np.ndarray):
+                sol = sol.numpy()
+        sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
 
     def _objective(self, X):
@@ -308,7 +363,7 @@ class GreedyObjective(Base):
         reward = self.objective(X) # maximize
         reward -= constraint_penality # minimize
         return reward.numpy()
-
+        
 
 class GreedySGP(Base):
     def  __init__(self,
@@ -349,6 +404,13 @@ class GreedySGP(Base):
                                   inducing_variable=X_init,
                                   transform=transform)
 
+    def update(self, kernel, noise_variance):
+        self.sgpr.update(kernel, noise_variance)
+
+    def get_hyperparameters(self):
+        return deepcopy(self.sgpr.kernel), \
+               self.sgpr.likelihood.variance.numpy()
+
     def optimize(self, 
                  optimizer='naive',
                  verbose=0,
@@ -361,7 +423,12 @@ class GreedySGP(Base):
         sol = model.fit_transform(np.arange(len(self.candidates)).reshape(-1, 1))
         sol = np.array(sol).reshape(-1).astype(int)
         sol = self.candidates[sol]
-        sol = sol.reshape(1, -1, self.num_dim)
+        sol = np.array(sol).reshape(-1, self.num_dim)
+        sol = self.sgpr.transform.expand(sol,
+                                         expand_sensor_model=False)
+        if not isinstance(sol, np.ndarray):
+            sol = sol.numpy()
+        sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
 
     def _objective(self, X):
@@ -383,6 +450,10 @@ class GreedySGP(Base):
         # Update the SGP inducing points
         self.sgpr.inducing_variable.Z.assign(X)
         return self.sgpr.elbo().numpy()
+
+    @property
+    def transform(self):
+        return self.sgpr.transform
 
 
 METHODS = {

@@ -71,12 +71,12 @@ class AugmentedSGPR(SGPR):
         else:
             self.inducing_variable_time = None
 
-    def update(self, noise_variance, kernel):
+    def update(self, kernel, noise_variance):
         """Update SGP noise variance and kernel function parameters
 
         Args:
-            noise_variance (float): data variance
             kernel (gpflow.kernels.Kernel): gpflow kernel function
+            noise_variance (float): data variance
         """
         self.likelihood.variance.assign(noise_variance)
         for self_var, var in zip(self.kernel.trainable_variables, 
