@@ -124,7 +124,7 @@ class BayesianOpt(Base):
         return reward.numpy()
 
 
-class CMA_ES(Base):
+class CMA(Base):
     def  __init__(self,
                   num_sensing,
                   candidates,
@@ -458,7 +458,7 @@ class GreedySGP(Base):
 
 METHODS = {
     'BayesianOpt': BayesianOpt,
-    'CMA_ES': CMA_ES,
+    'CMA': CMA,
     'ContinuousSGP': ContinuousSGP,
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,

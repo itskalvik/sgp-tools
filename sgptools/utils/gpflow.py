@@ -47,7 +47,7 @@ def plot_loss(losses, save_file=None):
 def get_model_params(X_train, y_train, 
                      max_steps=1500, 
                      lr=1e-2, 
-                     print_params=True, 
+                     verbose=True, 
                      lengthscales=1.0, 
                      variance=1.0, 
                      noise_variance=0.1,
@@ -64,7 +64,7 @@ def get_model_params(X_train, y_train,
         y_train (ndarray): (n, 1); Training set labels
         max_steps (int): Maximum number of optimization steps
         lr (float): Optimization learning rate
-        print_params (bool): If True, prints the optimized GP parameters
+        verbose (bool): If True, prints the GP parameters
         lengthscales (float or list): Kernel lengthscale(s), if passed as a list, 
                                 each element corresponds to each data dimension
         variance (float): Kernel variance
@@ -111,7 +111,7 @@ def get_model_params(X_train, y_train,
     else:
         loss = 0
 
-    if print_params:
+    if verbose:
         print_summary(gpr)
     
     if return_gp:
