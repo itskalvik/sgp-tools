@@ -223,6 +223,8 @@ if __name__=='__main__':
     parser.add_argument("--dataset_path", type=str, 
                         default='./mississippi.tif')
     parser.add_argument("--param_model_type", type=str, default='GP')
+    parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--tsp_time_limit", type=int, default=-1)
     args=parser.parse_args()
 
     # Set the maximum distance (for each path) for the TSP solver
@@ -231,12 +233,18 @@ if __name__=='__main__':
     # Limit maximum waypoints/placements for multi robot case
     max_range = 51 if args.num_robots==1 and args.sampling_rate==2 else 51
     xrange = range(5, max_range, 5)
-    param_model_type = args.param_model_type
+
+    if args.tsp_time_limit > 0:
+        tsp_time_limit = args.tsp_time_limit 
+    elif args.num_robots==1:
+        tsp_time_limit = 30
+    else:
+        tsp_time_limit = 120
 
     # Methods to benchmark
     methods = ['CMA', 
                'ContinuousSGP']
-
+    
     benchmark = AIPPBenchmark(args.dataset_path, 
                               args.num_mc, 
                               args.num_robots, 
@@ -245,6 +253,8 @@ if __name__=='__main__':
                               xrange,
                               methods,
                               args.distance_budget,
-                              param_model_type=param_model_type)
+                              tsp_time_limit=tsp_time_limit,
+                              verbose=args.verbose,
+                              param_model_type=args.param_model_type)
     benchmark.run()
     
