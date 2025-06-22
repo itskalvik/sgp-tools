@@ -19,30 +19,8 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 import numpy as np
-import matplotlib.pyplot as plt
-
 from .misc import get_inducing_pts
 
-
-def plot_loss(losses, save_file=None):
-    """Helper function to plot the training loss
-
-    Args:
-        losses (list): list of loss values
-        save_file (str): If passed, the loss plot will be saved to the `save_file`
-    """
-    plt.plot(losses)
-    plt.title('Log Likelihood')
-    plt.xlabel('Iteration')
-    plt.ylabel('Log Likelihood')
-    ax = plt.gca()
-    ax.ticklabel_format(useOffset=False)
-    
-    if save_file is not None:
-        plt.savefig(save_file, bbox_inches='tight')
-        plt.close()
-    else:
-        plt.show()
 
 def get_model_params(X_train, y_train, 
                      max_steps=1500, 
@@ -160,8 +138,7 @@ def optimize_model(model,
                    max_steps=2000, 
                    kernel_grad=True, 
                    lr=1e-2, 
-                   optimizer='scipy', 
-                   method=None,
+                   optimizer='scipy.L-BFGS-B', 
                    verbose=False, 
                    trace_fn=None,
                    convergence_criterion=True,
@@ -176,9 +153,11 @@ def optimize_model(model,
         kernel_grad (bool): If `False`, the kernel parameters will not be optimized. 
                             Ignored when `trainable_variables` are passed.
         lr (float): Optimization learning rate.
-        optimizer (str): Optimizer to use for training (`scipy` or `tf`).
-        method (str): Optimization method refer to [scipy minimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize) 
-                      and [tf optimizers](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers) for full list
+        optimizer (str): Optimizer "<backend>.<method>" to use for training.
+                         Available backends: `scipy` and `tf` (tensorflow).
+                         Available methods: For `scipy` backend refer to [scipy minimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize).
+                         Note that only first-order and quasi-newton methods that do not require the hessian are supported.
+                         For `tf` backend refer to [tf optimizers](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers).
         verbose (bool): If `True`, the training progress will be printed when using Scipy.
         trace_fn (str): Function to trace metrics during training. 
                         If `None`, the loss values are returned;
@@ -194,11 +173,13 @@ def optimize_model(model,
         trainable_variables=model.trainable_variables
     elif trainable_variables is None and not kernel_grad:
         trainable_variables=model.trainable_variables[:1]
-        
-    if optimizer == 'scipy':
-        if method is None:
-            method = 'L-BFGS-B'
 
+    if len(optimizer.split('.')) != 2:
+        raise ValueError(f"Invalid optimizer format! Expected <backend>.<method>; got {optimizer}")
+    else:
+        backend, method = optimizer.split('.')
+
+    if backend == 'scipy':
         if trace_fn == 'traceXu':
             execute_task = TraceInducingPts(model)
             task_group = gpflow.monitor.MonitorTaskGroup(execute_task, 
@@ -209,14 +190,15 @@ def optimize_model(model,
         losses = opt.minimize(model.training_loss,
                               trainable_variables,
                               method=method,
-                              options=dict(disp=verbose, maxiter=max_steps),
+                              options=dict(disp=verbose, 
+                                           maxiter=max_steps),
                               tol=tol,
                               step_callback=trace_fn)
         if trace_fn is None:
             losses = losses.fun
         else:
             losses = trace_fn.task_groups[0].tasks[0].get_trace()
-    else:
+    elif backend == 'tf':
         if trace_fn is None:
             trace_fn = lambda x: x.loss
         elif trace_fn == 'traceXu':
@@ -242,6 +224,8 @@ def optimize_model(model,
                                    convergence_criterion=convergence_criterion,
                                    trace_fn=trace_fn)
         losses = losses.numpy()
+    else:
+        raise ValueError(f"Invalid backend! Expected `scipy` or `tf`; got {backend}")
     
     return losses
 

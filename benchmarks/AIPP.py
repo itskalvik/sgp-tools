@@ -47,7 +47,7 @@ class AIPPBenchmark(IPPBenchmark):
                          distance_budget, 
                          tsp_time_limit, 
                          verbose)
-        self.fname = 'AIPP' + self.fname.split('-')[1]
+        self.fname = 'AIPP-' + self.fname.split('-')[1]
         self.param_model_type = param_model_type
 
     def run(self):
@@ -185,18 +185,14 @@ class AIPPBenchmark(IPPBenchmark):
                                                             np.array(sol_data_y),
                                                             kernel=init_kernel,
                                                             noise_variance=init_noise_variance,
-                                                            verbose=self.verbose,
-                                                            optimizer='scipy',
-                                                            method='CG')
+                                                            verbose=self.verbose)
                 # Clip to avoid floats being interpreted as NANs
                 noise_variance = np.clip(noise_variance.numpy(), 1e-4, 5.0)
             else:
                 param_model.update((np.array(data_X_batch), 
                                     np.array(data_y_batch)))
                 optimize_model(param_model, 
-                            trainable_variables=param_model.trainable_variables[1:], 
-                            optimizer='scipy',
-                            method='CG')
+                            trainable_variables=param_model.trainable_variables[1:])
                 noise_variance = param_model.likelihood.variance
                 kernel = param_model.kernel
             end_time = time()

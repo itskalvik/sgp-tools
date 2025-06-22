@@ -255,8 +255,7 @@ class ContinuousSGP(Base):
     def optimize(self, 
                  max_steps=500, 
                  lr=1e-2, 
-                 optimizer='scipy', 
-                 method=None,
+                 optimizer='scipy.L-BFGS-B', 
                  verbose=0,
                  **kwargs):
         verbose = True if verbose > 0 else False
@@ -265,7 +264,6 @@ class ContinuousSGP(Base):
                               kernel_grad=False, 
                               lr=lr, 
                               optimizer=optimizer, 
-                              method=method,
                               verbose=verbose,
                               **kwargs)
         sol = self.sgpr.inducing_variable.Z
