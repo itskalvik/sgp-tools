@@ -34,7 +34,7 @@ class AIPPBenchmark(IPPBenchmark):
                  xrange,
                  methods,
                  distance_budget,
-                 tsp_time_limit=120,
+                 tsp_time_limit=30,
                  verbose=False,
                  param_model_type='GP'):
         super().__init__(dataset_path, 
