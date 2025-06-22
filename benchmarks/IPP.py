@@ -114,16 +114,23 @@ class IPPBenchmark:
                 # ---------------------------------------------------------------------------------
 
                 for method in methods:
-                    if method == 'ContinuousSGP':
-                        candidates = self.dataset.X_train
-                    else:
-                        candidates = self.dataset.candidates
-                    model = get_method(method)(num_waypoints,
-                                            candidates,
+                    X_objective = self.dataset.candidates
+                    X_candidates = None
+                    method_backend = method
+
+                    if method == 'ContinuousSGP' or method == 'DiscreteSGP':
+                        X_objective = self.dataset.X_train
+                    
+                    if method == 'DiscreteSGP':
+                        method_backend = 'ContinuousSGP'
+
+                    model = get_method(method_backend)(num_waypoints,
+                                            X_objective,
                                             self.kernel_opt,
                                             self.noise_variance_opt,
                                             transform,
-                                            num_robots=self.num_robots)
+                                            num_robots=self.num_robots,
+                                            X_candidates=X_candidates)
 
                     start_time = time()
                     solution = model.optimize()
@@ -227,11 +234,12 @@ if __name__=='__main__':
     if args.sampling_rate == 2 and \
        args.num_robots == 1 and \
        not args.distance_budget:
-        methods = ['BayesianOpt', 
+        methods = ['DiscreteSGP',
+                   'BayesianOpt', 
                    'CMA',
                    'GreedyObjective',
                    'GreedySGP',
-                   'ContinuousSGP']
+                   'ContinuousSGP',]
 
     benchmark = IPPBenchmark(args.dataset_path, 
                 args.num_mc, 

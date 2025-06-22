@@ -1,3 +1,4 @@
+from .utils.misc import cont2disc
 from .objectives import get_objective
 from .utils.data import get_inducing_pts
 from .utils.gpflow import optimize_model
@@ -15,15 +16,17 @@ from bayes_opt import BayesianOptimization
 class Base:
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   **kwargs):
         self.num_sensing = num_sensing
-        self.num_dim = candidates.shape[-1]
+        self.num_dim = X_objective.shape[-1]
         self.num_robots = num_robots
+        self.X_candidates = X_candidates
 
     def optimize(self):
         raise NotImplementedError
@@ -38,34 +41,36 @@ class Base:
 class BayesianOpt(Base):
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   objective='SLogMI',
                   **kwargs):
         super().__init__(num_sensing,
-                         candidates,
+                         X_objective,
                          kernel,
                          noise_variance,
                          transform,
-                         num_robots)
+                         num_robots,
+                         X_candidates)
         self.transform = transform
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(candidates,
+            self.objective = get_objective(objective)(X_objective,
                                                       kernel,
                                                       noise_variance,
                                                       **kwargs)
         else:
             self.objective = objective
 
-        # Use the boundaries of the candidates area as the search space limits
+        # Use the boundaries of the X_objective area as the search space limits
         pbounds_dims = []
         for i in range(self.num_dim):
-            pbounds_dims.append((np.min(candidates[:, i]), 
-                                 np.max(candidates[:, i])))
+            pbounds_dims.append((np.min(X_objective[:, i]), 
+                                 np.max(X_objective[:, i])))
         self.pbounds = {}
         for i in range(self.num_dim*self.num_sensing*self.num_robots):
             self.pbounds[f'x{i}'] = pbounds_dims[i%self.num_dim]
@@ -101,6 +106,11 @@ class BayesianOpt(Base):
                                         expand_sensor_model=False)
             if not isinstance(sol, np.ndarray):
                 sol = sol.numpy()
+
+        # Map solution locations to candidates set locations
+        if self.X_candidates is not None:
+            sol = cont2disc(sol, self.X_candidates)
+
         sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
     
@@ -127,36 +137,38 @@ class BayesianOpt(Base):
 class CMA(Base):
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   objective='SLogMI',
                   X_init=None,
                   **kwargs):
         super().__init__(num_sensing,
-                         candidates,
+                         X_objective,
                          kernel,
                          noise_variance,
                          transform,
-                         num_robots)
+                         num_robots,
+                         X_candidates)
         self.transform = transform
         if X_init is None:
-            X_init = get_inducing_pts(candidates, 
+            X_init = get_inducing_pts(X_objective, 
                                       num_sensing*self.num_robots)
         self.X_init = X_init.reshape(-1)
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(candidates,
+            self.objective = get_objective(objective)(X_objective,
                                                       kernel,
                                                       noise_variance,
                                                       **kwargs)
         else:
             self.objective = objective
 
-        # Use the boundaries of the candidates area as the search space limits
-        self.pbounds = geometry.MultiPoint([[p[0], p[1]] for p in candidates]).convex_hull
+        # Use the boundaries of the X_objective area as the search space limits
+        self.pbounds = geometry.MultiPoint([[p[0], p[1]] for p in X_objective]).convex_hull
 
     def update(self, kernel, noise_variance):
         self.objective.update(kernel, noise_variance)
@@ -187,6 +199,11 @@ class CMA(Base):
                                         expand_sensor_model=False)
             if not isinstance(sol, np.ndarray):
                 sol = sol.numpy()
+
+        # Map solution locations to candidates set locations
+        if self.X_candidates is not None:
+            sol = cont2disc(sol, self.X_candidates)
+
         sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
     
@@ -215,29 +232,31 @@ class CMA(Base):
 class ContinuousSGP(Base):
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   X_init=None,
                   X_time=None, 
                   orientation=False,
                   **kwargs):
         super().__init__(num_sensing,
-                         candidates,
+                         X_objective,
                          kernel,
                          noise_variance,
                          transform,
-                         num_robots)
+                         num_robots,
+                         X_candidates)
         if X_init is None:
-            X_init = get_inducing_pts(candidates, 
+            X_init = get_inducing_pts(X_objective, 
                                       num_sensing*self.num_robots,
                                       orientation=orientation)
 
         # Fit the SGP
-        train_set = (candidates, 
-                     np.zeros((len(candidates), 1)).astype(candidates.dtype))
+        train_set = (X_objective, 
+                     np.zeros((len(X_objective), 1)).astype(X_objective.dtype))
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
                                   kernel=kernel, 
@@ -271,6 +290,11 @@ class ContinuousSGP(Base):
                                          expand_sensor_model=False)
         if not isinstance(sol, np.ndarray):
             sol = sol.numpy()
+
+        # Map solution locations to candidates set locations
+        if self.X_candidates is not None:
+            sol = cont2disc(sol, self.X_candidates)
+
         sol = sol.reshape(self.num_robots, -1, self.num_dim)
         return sol
 
@@ -282,19 +306,24 @@ class ContinuousSGP(Base):
 class GreedyObjective(Base):
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   objective='SLogMI',
                   **kwargs):
         super().__init__(num_sensing,
-                         candidates,
+                         X_objective,
                          kernel,
                          noise_variance,
                          transform,
-                         num_robots)
+                         num_robots,
+                         X_candidates)
+        if X_candidates is None:
+            self.X_candidates = X_objective
+
         if transform is not None:
             try:
                 num_robots = transform.num_robots 
@@ -307,10 +336,10 @@ class GreedyObjective(Base):
         assert self.num_robots == 1, error
 
         self.transform = transform
-        self.candidates = candidates
+        self.X_objective = X_objective
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(candidates,
+            self.objective = get_objective(objective)(X_objective,
                                                       kernel,
                                                       noise_variance,
                                                       **kwargs)
@@ -333,9 +362,9 @@ class GreedyObjective(Base):
                                 self._objective,
                                 optimizer=optimizer,
                                 verbose=False)
-        sol = model.fit_transform(np.arange(len(self.candidates)).reshape(-1, 1))
+        sol = model.fit_transform(np.arange(len(self.X_candidates)).reshape(-1, 1))
         sol = np.array(sol).reshape(-1).astype(int)
-        sol = self.candidates[sol]
+        sol = self.X_candidates[sol]
         sol = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
             sol = self.transform.expand(sol,
@@ -353,7 +382,7 @@ class GreedyObjective(Base):
         """
         # Map solution location indices to locations
         X = np.array(X).reshape(-1).astype(int)
-        X = self.candidates[X].reshape(-1, self.num_dim)
+        X = self.X_objective[X].reshape(-1, self.num_dim)
         constraint_penality = 0.0
         if self.transform is not None:
             X = self.transform.expand(X)
@@ -366,18 +395,23 @@ class GreedyObjective(Base):
 class GreedySGP(Base):
     def  __init__(self,
                   num_sensing,
-                  candidates,
+                  X_objective,
                   kernel,
                   noise_variance,
                   transform=None,
                   num_robots=1,
+                  X_candidates=None,
                   **kwargs):
         super().__init__(num_sensing,
-                         candidates,
+                         X_objective,
                          kernel,
                          noise_variance,
                          transform,
-                         num_robots)
+                         num_robots,
+                         X_candidates)
+        if X_candidates is None:
+            self.X_candidates = X_objective
+            
         if transform is not None:
             try:
                 num_robots = transform.num_robots 
@@ -389,12 +423,12 @@ class GreedySGP(Base):
         error = f"num_robots={self.num_robots}; GreedySGP only supports num_robots=1"
         assert self.num_robots == 1, error
 
-        self.candidates = candidates
+        self.X_objective = X_objective
 
         # Fit the SGP
-        train_set = (candidates, 
-                     np.zeros((len(candidates), 1)).astype(candidates.dtype))
-        X_init = get_inducing_pts(candidates, 
+        train_set = (X_objective, 
+                     np.zeros((len(X_objective), 1)).astype(X_objective.dtype))
+        X_init = get_inducing_pts(X_objective, 
                                   num_sensing)
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
@@ -418,9 +452,9 @@ class GreedySGP(Base):
                                 self._objective,
                                 optimizer=optimizer,
                                 verbose=False)
-        sol = model.fit_transform(np.arange(len(self.candidates)).reshape(-1, 1))
+        sol = model.fit_transform(np.arange(len(self.X_candidates)).reshape(-1, 1))
         sol = np.array(sol).reshape(-1).astype(int)
-        sol = self.candidates[sol]
+        sol = self.X_candidates[sol]
         sol = np.array(sol).reshape(-1, self.num_dim)
         sol = self.sgpr.transform.expand(sol,
                                          expand_sensor_model=False)
@@ -443,7 +477,7 @@ class GreedySGP(Base):
         num_pad = self.num_sensing - len(X)
         X_pad = np.zeros(num_pad, dtype=int)
         X = np.concatenate([X, X_pad])
-        X = self.candidates[X].reshape(-1, self.num_dim)
+        X = self.X_objective[X].reshape(-1, self.num_dim)
 
         # Update the SGP inducing points
         self.sgpr.inducing_variable.Z.assign(X)

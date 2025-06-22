@@ -108,17 +108,18 @@ class AIPPBenchmark(IPPBenchmark):
                 # ---------------------------------------------------------------------------------
 
                 for method in methods:
-                    if method == 'ContinuousSGP':
-                        candidates = self.dataset.X_train
-                    else:
-                        candidates = self.dataset.candidates
-                    
-                    model = get_method(method)(num_waypoints,
-                                               candidates,
-                                               kernel,
-                                               noise_variance,
-                                               transform,
-                                               num_robots=self.num_robots)
+                    X_objective = self.dataset.candidates
+                    method_backend = method
+
+                    if method == 'ContinuousSGP' or method == 'DiscreteSGP':
+                        X_objective = self.dataset.X_train
+
+                    model = get_method(method_backend)(num_waypoints,
+                                                        X_objective,
+                                                        kernel,
+                                                        noise_variance,
+                                                        transform,
+                                                        num_robots=self.num_robots)
 
                     solution, param_time, ipp_time = self.simulate_aipp(model, Xu_init)
 

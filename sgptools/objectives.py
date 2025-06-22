@@ -15,7 +15,7 @@ class Objective:
     """
     Base class for objectives.
     """
-    def __init__(self, candidates, kernel, noise_variance, **kwargs):
+    def __init__(self, X_objective, kernel, noise_variance, **kwargs):
         pass
 
     def __call__(self, X):
@@ -29,19 +29,19 @@ class MI(Objective):
     Jitter is added to the diagonal of the covariance matrices to ensure
     numerical stability.
     """
-    def __init__(self, candidates, kernel, noise_variance, 
+    def __init__(self, X_objective, kernel, noise_variance, 
                  jitter=1e-6,
                  **kwargs):
-        self.candidates = candidates
+        self.X_objective = X_objective
         self.kernel = kernel
         self.noise_variance = noise_variance
         jitter += noise_variance
         self.jitter = lambda x: jitter_fn(x, jitter=jitter)
 
     def __call__(self, X):
-        A = self.kernel(self.candidates)
+        A = self.kernel(self.X_objective)
         D = self.kernel(X)
-        M = self.kernel(tf.concat([self.candidates, X], axis=0))
+        M = self.kernel(tf.concat([self.X_objective, X], axis=0))
 
         A_det = tf.math.log(tf.linalg.det(self.jitter(A)))
         D_det = tf.math.log(tf.linalg.det(self.jitter(D)))
@@ -78,9 +78,9 @@ class SLogMI(MI):
     to further ensure numerical stability.
     """
     def __call__(self, X):
-        A = self.kernel(self.candidates)
+        A = self.kernel(self.X_objective)
         D = self.kernel(X)
-        M = self.kernel(tf.concat([self.candidates, X], axis=0))
+        M = self.kernel(tf.concat([self.X_objective, X], axis=0))
 
         _, A_det = tf.linalg.slogdet(self.jitter(A))
         _, D_det = tf.linalg.slogdet(self.jitter(D))

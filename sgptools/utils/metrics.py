@@ -30,12 +30,12 @@ def gaussian_entropy(K):
     """
     return multivariate_normal(mean=None, cov=K, allow_singular=True).entropy()
 
-def get_mi(Xu, candidate_locs, noise_variance, kernel):
+def get_mi(Xu, X_objective, noise_variance, kernel):
     """Computes mutual information between the sensing locations and the candidate locations
 
     Args:
         Xu (ndarray): (m, d); Sensing locations
-        candidate_locs (ndarray): (n, d); Candidate sensing locations 
+        X_objective (ndarray): (n, d); Candidate sensing locations 
         noise_variance (float): data variance
         kernel (gpflow.kernels.Kernel): gpflow kernel function
         
@@ -43,8 +43,8 @@ def get_mi(Xu, candidate_locs, noise_variance, kernel):
         mi (float): Mutual information computed using a GP
     """
     Xu = np.array(Xu)
-    candidate_locs = np.array(candidate_locs)
-    mi_model = SLogMI(kernel, candidate_locs, 
+    X_objective = np.array(X_objective)
+    mi_model = SLogMI(kernel, X_objective, 
                       jitter=1e-6+noise_variance)
     return mi_model.get_mi(Xu).numpy()
 
