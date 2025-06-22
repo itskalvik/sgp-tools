@@ -80,7 +80,8 @@ def point_pos(point, d, theta):
 ####################################################
 
 def prep_tif_dataset(dataset_path, 
-                     dim_max=2500):
+                     dim_max=2500,
+                     verbose=True):
     '''Load and preprocess a dataset from a GeoTIFF file (.tif file).
 
     Large tif files 
@@ -90,17 +91,18 @@ def prep_tif_dataset(dataset_path,
     Args:
         dataset_path (str): Path to the dataset file, used only when dataset_type is 'tif'.
         dim_max (int): Maximum dimension of the dataset. If the dataset exceeds this size, it will be downsampled.
-
+        verbose (bool): If `True`, the dataset loading and preprocessing details will be printed.
     Returns:
        y (ndarray): (n, 1); Dataset labels
     '''
     data = PIL.Image.open(dataset_path)
     data = np.array(data)
-    print(f"Loaded dataset from {dataset_path} with shape {data.shape}")
+    if verbose:
+        print(f"Loaded dataset from {dataset_path} with shape {data.shape}")
     downsample = np.ceil(np.max(data.shape) / dim_max).astype(int)
     if downsample <= 1:
         downsample = 1
-    else:
+    elif verbose:
         print(f'Downsampling by a factor of {downsample} to fit the maximum dimension of {dim_max}')
     data = data[::downsample, ::downsample].astype(float)
     data[np.where(data==-999999.0)] = np.nan
@@ -142,6 +144,7 @@ class Dataset:
                  num_train=1000, 
                  num_test=2500, 
                  num_candidates=150,
+                 verbose=True,
                  **kwargs):
         """Class to load and preprocess a dataset. 
 
@@ -162,12 +165,16 @@ class Dataset:
             num_train (int): Number of training points to sample from the dataset.
             num_test (int): Number of testing points to sample from the dataset.
             num_candidates (int): Number of candidate points to sample from the dataset.
+            verbose (bool): If `True`, the dataset loading and preprocessing details will be printed.
             **kwargs: Additional keyword arguments for dataset preparation methods (prep_tif_dataset, prep_synthetic_dataset).
         """
+        self.verbose = verbose
         
         # Load/Create the data
         if dataset_path is not None:
-            self.y = prep_tif_dataset(dataset_path=dataset_path, **kwargs)
+            self.y = prep_tif_dataset(dataset_path=dataset_path, 
+                                      verbose=verbose,
+                                      **kwargs)
         else:
             self.y = prep_synthetic_dataset(**kwargs)
 
@@ -181,7 +188,9 @@ class Dataset:
             np.arange(self.y.shape[1])
         )
         X = np.stack((xx, yy), axis=-1).astype(int)
-        print(f"Dataset shape: {self.y.shape}")
+
+        if self.verbose:
+            print(f"Dataset shape: {self.y.shape}")
 
         ########################################################
 
@@ -225,10 +234,11 @@ class Dataset:
         self.y_test = self.y_scaler.transform(y_test)
         self.y = self.y_scaler.transform(self.y.reshape(-1, 1)).reshape(w, h)
 
-        print(f"Training data shape: {self.X_train.shape}, {self.y_train.shape}")
-        print(f"Testing data shape: {self.X_test.shape}, {self.y_test.shape}")
-        print(f"Candidate data shape: {self.candidates.shape}")
-        print(f"Dataset loaded and preprocessed successfully.")
+        if self.verbose:
+            print(f"Training data shape: {self.X_train.shape}, {self.y_train.shape}")
+            print(f"Testing data shape: {self.X_test.shape}, {self.y_test.shape}")
+            print(f"Candidate data shape: {self.candidates.shape}")
+            print(f"Dataset loaded and preprocessed successfully.")
 
     def get_train(self):
         return self.X_train, self.y_train

@@ -52,6 +52,7 @@ class IPPBenchmark:
         self.xrange = xrange
         self.distance_budget = distance_budget
         self.tsp_time_limit = tsp_time_limit
+        self.max_dist = max_dist
         self.verbose = verbose
     
         self.fname = f'IPP-{dataset}_{num_robots}R_{sampling_rate}S'
@@ -90,7 +91,7 @@ class IPPBenchmark:
                                         random=True)
                 Xu_init, _ = run_tsp(Xu_init, 
                                     num_vehicles=self.num_robots, 
-                                    max_dist=max_dist, 
+                                    max_dist=self.max_dist, 
                                     resample=num_waypoints,
                                     time_limit=self.tsp_time_limit)
 
@@ -192,7 +193,7 @@ if __name__=='__main__':
     parser.add_argument("--sampling_rate", type=int, default=2)
     parser.add_argument("--distance_budget", action='store_true')
     parser.add_argument("--dataset_path", type=str, 
-                        default='./mississippi.tif')
+                        default='../datasets/mississippi.tif')
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--tsp_time_limit", type=int, default=-1)
     args=parser.parse_args()

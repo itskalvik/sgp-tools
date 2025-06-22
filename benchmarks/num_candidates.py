@@ -22,7 +22,7 @@ np.random.seed(1234)
 tf.random.set_seed(1234)
 
 
-class OptimizersBenchmark(IPPBenchmark):
+class NumCandidatesBenchmark(IPPBenchmark):
     def __init__(self, 
                  dataset_path, 
                  num_mc, 
@@ -30,21 +30,22 @@ class OptimizersBenchmark(IPPBenchmark):
                  max_dist, 
                  sampling_rate, 
                  xrange,
-                 optimizers,
+                 candidates_range,
                  distance_budget,
                  tsp_time_limit=30,
-                 verbose=False,):
+                 verbose=False):
         super().__init__(dataset_path, 
                          num_mc, 
                          num_robots, 
                          max_dist, 
                          sampling_rate, 
                          xrange, 
-                         optimizers, 
+                         candidates_range, 
                          distance_budget, 
                          tsp_time_limit, 
                          verbose)
-        self.fname = 'optimizers-' + self.fname.split('-')[1]
+        self.fname = 'num_candidates-' + self.fname.split('-')[1]
+        self.dataset_path = dataset_path
 
     def run(self):
         for _ in range(self.num_mc):
@@ -77,25 +78,29 @@ class OptimizersBenchmark(IPPBenchmark):
                     budget_satisfied=True
                     budget = np.inf
 
+
                 # ---------------------------------------------------------------------------------
 
-                for optimizer in optimizers:
-                    model = get_method('ContinuousSGP')(num_waypoints,
-                                            self.dataset.X_train,
-                                            self.kernel_opt,
-                                            self.noise_variance_opt,
-                                            transform,
-                                            num_robots=self.num_robots)
+                for num_candidates in candidates_range:
+                    dataset = Dataset(self.dataset_path,
+                                      num_candidates=int(num_candidates),
+                                      verbose=False)
+                    model = get_method("CMA")(num_waypoints,
+                                              dataset.candidates,
+                                              self.kernel_opt,
+                                              self.noise_variance_opt,
+                                              transform,
+                                              num_robots=self.num_robots)
 
                     start_time = time()
-                    solution = model.optimize(optimizer=optimizer)
+                    solution = model.optimize()
                     end_time = time()
                     ipp_time = end_time-start_time
 
                     budget_constraint = model.transform.constraints(solution.reshape(-1, 2))
                     budget_satisfied = budget_constraint > -10.
 
-                    self.evaluate(solution, num_waypoints, optimizer, budget_satisfied, ipp_time, self.gp_time)
+                    self.evaluate(solution, num_waypoints, num_candidates, budget_satisfied, ipp_time, self.gp_time)
                 self.log_results()
 
 
@@ -115,30 +120,23 @@ if __name__=='__main__':
     # Set the maximum distance (for each path) for the TSP solver
     max_dist = 350 if args.num_robots==1 else 150
 
+    candidates_range = range(100, 1001, 100)
+    candidates_range = [str(num) for num in candidates_range]
+
     if args.tsp_time_limit > 0:
         tsp_time_limit = args.tsp_time_limit 
     elif args.num_robots==1:
         tsp_time_limit = 30
     else:
         tsp_time_limit = 120
-
-    # Optimizers to benchmark
-    optimizers = ['scipy.CG',
-               'scipy.L-BFGS-B',
-               'scipy.BFGS',
-               'scipy.Newton-CG',
-               'tf.SGD',
-               'tf.Adam',
-               'tf.RMSprop',
-               'tf.Nadam']
     
-    benchmark = OptimizersBenchmark(args.dataset_path, 
+    benchmark = NumCandidatesBenchmark(args.dataset_path, 
                               args.num_mc, 
                               args.num_robots, 
                               max_dist, 
                               args.sampling_rate, 
                               [args.num_waypoints],
-                              optimizers,
+                              candidates_range,
                               args.distance_budget,
                               tsp_time_limit=tsp_time_limit,
                               verbose=args.verbose)
