@@ -22,7 +22,7 @@ from hkb_diamondsquare.DiamondSquare import diamond_square
 import PIL
 PIL.Image.MAX_IMAGE_PIXELS = 900000000
 
-from typing import List, Tuple, Optional, Any, Union
+from typing import List, Tuple, Optional, Any
 
 
 def remove_polygons(X: np.ndarray, Y: np.ndarray, polygons: List[path.Path]) -> Tuple[np.ndarray, np.ndarray]:
