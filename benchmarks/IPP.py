@@ -18,11 +18,11 @@ from sgptools.methods import *
 from sgptools.core.transformations import *
 
 gpflow.config.set_default_likelihood_positive_minimum(1e-4)
-
 np.random.seed(1234)
 tf.random.set_seed(1234)
 
-class Benchmark:
+
+class IPPBenchmark:
     def __init__(self, 
                  dataset_path, 
                  num_mc, 
@@ -31,7 +31,9 @@ class Benchmark:
                  sampling_rate, 
                  xrange,
                  methods,
-                 distance_budget):
+                 distance_budget,
+                 tsp_time_limit=30,
+                 verbose=False):
         dataset = dataset_path.split('/')[-1][:-4]
         print(f'Dataset: {dataset}')
         print(f'Num MC: {num_mc}')
@@ -49,8 +51,10 @@ class Benchmark:
         self.sampling_rate = sampling_rate
         self.xrange = xrange
         self.distance_budget = distance_budget
+        self.tsp_time_limit = tsp_time_limit
+        self.verbose = verbose
     
-        self.fname = f'{dataset}_{num_robots}R_{sampling_rate}S'
+        self.fname = f'IPP-{dataset}_{num_robots}R_{sampling_rate}S'
         if distance_budget:
             fname += '_B'
 
@@ -89,7 +93,7 @@ class Benchmark:
                                     num_vehicles=self.num_robots, 
                                     max_dist=max_dist, 
                                     resample=num_waypoints,
-                                    time_limit=30 if self.num_robots == 1 else 120)
+                                    time_limit=self.tsp_time_limit)
 
                 # Setup the IPP Transform
                 transform = IPPTransform(num_robots=self.num_robots,
@@ -220,7 +224,7 @@ if __name__=='__main__':
                    'GreedySGP',
                    'ContinuousSGP']
 
-    benchmark = Benchmark(args.dataset_path, 
+    benchmark = IPPBenchmark(args.dataset_path, 
                 args.num_mc, 
                 args.num_robots, 
                 max_dist, 
