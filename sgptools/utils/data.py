@@ -180,7 +180,6 @@ def prep_tif_dataset(dataset_path: str, dim_max: int = 2500, verbose: bool = Tru
     data_array[np.where(data_array == -999999.0)] = np.nan
     return data_array
 
-
 def prep_synthetic_dataset(shape: Tuple[int, int] = (1000, 1000), 
                            min_height: float = 0.0, 
                            max_height: float = 30.0, 
@@ -241,6 +240,7 @@ class Dataset:
                  num_test: int = 2500, 
                  num_candidates: int = 150,
                  verbose: bool = True,
+                 data=None,
                  **kwargs: Any):
         """
         Initializes the Dataset class.
@@ -248,18 +248,23 @@ class Dataset:
         Args:
             dataset_path (Optional[str]): Path to the dataset file (e.g., '.tif'). If None,
                                           a synthetic dataset will be generated. Defaults to None.
+                                          Alternatively, passing an array of data (height, width, d) 
+                                          with the `data` argument will use that in the dataset.
             num_train (int): Number of training points to sample from the dataset. Defaults to 1000.
             num_test (int): Number of testing points to sample from the dataset. Defaults to 2500.
             num_candidates (int): Number of candidate points for potential sensor placements
                                   to sample from the dataset. Defaults to 150.
             verbose (bool): If `True`, print details about dataset loading, sampling, and preprocessing.
                             Defaults to True.
+            data (Optional[np.ndarray]): (height, width, d); 2D n-dimensional array of data.
             **kwargs: Additional keyword arguments passed to `prep_tif_dataset` or `prep_synthetic_dataset`.
         """
         self.verbose = verbose
-        
+
         # Load/Create the data
-        if dataset_path is not None:
+        if data is not None:
+            self.y = data
+        elif dataset_path is not None:
             self.y = prep_tif_dataset(dataset_path=dataset_path, 
                                       verbose=verbose,
                                       **kwargs)
