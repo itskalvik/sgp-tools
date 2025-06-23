@@ -225,7 +225,7 @@ class Dataset:
     and informative path planning tasks.
 
     It handles:
-    - Loading from a GeoTIFF file or generating a synthetic dataset.
+    - Loading from a GeoTIFF file, loading from a numpy array, and generating a synthetic dataset.
     - Sampling training, testing, and candidate points from valid (non-NaN) locations.
     - Standardizing both the input coordinates (X) and the labels (y) using `StandardScaler`.
     - Providing methods to retrieve different subsets of the data (train, test, candidates)
@@ -248,8 +248,8 @@ class Dataset:
         Args:
             dataset_path (Optional[str]): Path to the dataset file (e.g., '.tif'). If None,
                                           a synthetic dataset will be generated. Defaults to None.
-                                          Alternatively, passing an array of data (height, width, d) 
-                                          with the `data` argument will use that in the dataset.
+                                          Alternatively, pass an array of data to the constructor
+                                          with the `data` argument to use a custom dataset.
             num_train (int): Number of training points to sample from the dataset. Defaults to 1000.
             num_test (int): Number of testing points to sample from the dataset. Defaults to 2500.
             num_candidates (int): Number of candidate points for potential sensor placements
