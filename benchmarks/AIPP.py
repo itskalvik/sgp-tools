@@ -5,6 +5,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 import argparse
 import numpy as np
 from time import time
+import matplotlib.pyplot as plt
 import tensorflow_probability as tfp
 
 from sgptools.utils.data import *
@@ -36,7 +37,8 @@ class AIPPBenchmark(IPPBenchmark):
                  distance_budget,
                  tsp_time_limit=30,
                  verbose=False,
-                 param_model_type='GP'):
+                 param_model_type=None):
+        print(f'Param Model Type: {param_model_type}')
         super().__init__(dataset_path, 
                          num_mc, 
                          num_robots, 
@@ -196,6 +198,7 @@ class AIPPBenchmark(IPPBenchmark):
                             trainable_variables=param_model.trainable_variables[1:])
                 noise_variance = param_model.likelihood.variance
                 kernel = param_model.kernel
+
             end_time = time()
             total_time_param += end_time - start_time
 
@@ -219,7 +222,8 @@ if __name__=='__main__':
     parser.add_argument("--distance_budget", action='store_true')
     parser.add_argument("--dataset_path", type=str, 
                         default='../datasets/mississippi.tif')
-    parser.add_argument("--param_model_type", type=str, default='GP')
+    parser.add_argument("--ssgp_param_model", action='store_true')
+    parser.add_argument("--gp_param_model", action='store_true')
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--tsp_time_limit", type=int, default=-1)
     args=parser.parse_args()
@@ -238,6 +242,14 @@ if __name__=='__main__':
     else:
         tsp_time_limit = 120
 
+    param_model = None
+    if args.ssgp_param_model:
+        param_model = 'SSGP'
+    elif args.gp_param_model:
+        param_model = 'GP'
+    else:
+        param_model = 'GP' if args.sampling_rate==2 else 'SSGP'
+
     # Methods to benchmark
     methods = ['CMA', 
                'ContinuousSGP']
@@ -252,6 +264,6 @@ if __name__=='__main__':
                               args.distance_budget,
                               tsp_time_limit=tsp_time_limit,
                               verbose=args.verbose,
-                              param_model_type=args.param_model_type)
+                              param_model_type=param_model)
     benchmark.run()
     

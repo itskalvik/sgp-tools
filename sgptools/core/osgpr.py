@@ -24,6 +24,7 @@ from gpflow.inducing_variables import InducingPoints
 from gpflow.models import GPModel, InternalDataTrainingLossMixin
 from gpflow import covariances
 from ..utils.data import get_inducing_pts
+from typing import Union, Optional
 
 
 class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
@@ -57,42 +58,77 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         self.Kaa_old = tf.Variable(Kaa_old, shape=tf.TensorShape(None), trainable=False)
         self.Z_old = tf.Variable(Z_old, shape=tf.TensorShape(None), trainable=False)
 
-    def init_Z(self):
+    def init_Z(self) -> np.ndarray:
+        """
+        Initializes the new set of inducing points (Z) for the OSGPR model.
+        It combines a subset of the old inducing points (Z_old) with a subset
+        of the current training data (X).
+
+        Returns:
+            np.ndarray: (M, d); A NumPy array of the newly initialized inducing points,
+                        combining old and new data-based points.
+        """
         M = self.inducing_variable.Z.shape[0]
-        M_old = int(0.7 * M)
-        M_new = M - M_old
+        M_old = int(0.7 * M) # Proportion of old inducing points to retain
+        M_new = M - M_old    # Proportion of new data points to select
+        
+        # Randomly select M_old points from the old inducing points
         old_Z = self.Z_old.numpy()[np.random.permutation(M)[0:M_old], :]
+        
+        # Randomly select M_new points from the current training data
         new_Z = self.X.numpy()[np.random.permutation(self.X.shape[0])[0:M_new], :]
+        
+        # Vertically stack the selected old and new points to form the new Z
         Z = np.vstack((old_Z, new_Z))
         return Z
-
+    
     def update(self, data, inducing_variable=None, update_inducing=True):
-        """Configure the OSGPR to adapt to a new batch of data. 
-        Note: The OSGPR needs to be trained using gradient-based approaches after update.
+        """
+        Configures the OSGPR model to adapt to a new batch of data.
+        This method updates the model's data, its inducing points (optionally),
+        and caches the posterior mean and covariance of the *old* inducing points
+        to facilitate the streaming update equations.
+
+        Note: After calling this update, the OSGPR model typically needs to be
+        trained further using gradient-based optimization to fully incorporate
+        the new data and optimize its parameters.
 
         Args:
-            data (tuple): (X, y) ndarrays with new batch of inputs (n, d) and labels (n, ndim)
-            inducing_variable (ndarray): (m_new, d): New initial inducing points
-            update_inducing (bool): Whether to update the inducing points
+            data (Tuple[np.ndarray, np.ndarray]): A tuple (X, y) representing the new batch
+                                                  of input data `X` (n, d) and corresponding labels `y` (n, 1).
+            inducing_variable (Optional[np.ndarray]): (m_new, d); Optional NumPy array for the new
+                                                     set of inducing points. If None and `update_inducing`
+                                                     is True, `init_Z` will be called to determine them.
+                                                     Defaults to None.
+            update_inducing (bool): If True, the inducing points will be updated. If False,
+                                    they will remain as they were before the update call.
+                                    Defaults to True.
         """
         self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
         self.num_data = self.X.shape[0]
 
-        # Update the inducing points        
-        self.Z_old.assign(self.inducing_variable.Z.numpy())
-        if inducing_variable is None and update_inducing:
-            inducing_variable = self.init_Z()
-        if inducing_variable is not None:
-            self.inducing_variable.Z.assign(inducing_variable)
+        # Store the current inducing points as 'old' for the next update step
+        self.Z_old.assign(self.inducing_variable.Z)
 
-        # Get posterior mean and covariance for the old inducing points
+        # Update the inducing points based on `update_inducing` flag
+        if update_inducing:
+            if inducing_variable is None:
+                # If no explicit inducing_variable is provided, initialize new ones
+                new_Z_init = self.init_Z()
+            else:
+                # Use the explicitly provided inducing_variable
+                new_Z_init = inducing_variable
+            self.inducing_variable.Z.assign(tf.constant(new_Z_init, dtype=self.inducing_variable.Z.dtype))
+        # If update_inducing is False, inducing_variable.Z retains its current value.
+
+        # Get posterior mean and covariance for the *old* inducing points using the current model state
         mu_old, Su_old = self.predict_f(self.Z_old, full_cov=True)
-        self.mu_old.assign(mu_old.numpy())
-        self.Su_old.assign(Su_old.numpy())
+        self.mu_old.assign(mu_old)
+        self.Su_old.assign(Su_old)
 
-        # Get the prior covariance matrix for the old inducing points
+        # Get the prior covariance matrix for the *old* inducing points using the current kernel
         Kaa_old = self.kernel(self.Z_old)
-        self.Kaa_old.assign(Kaa_old.numpy())
+        self.Kaa_old.assign(Kaa_old)
 
     def _common_terms(self):
         Mb = self.inducing_variable.num_inducing
@@ -237,55 +273,115 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         return mean + self.mean_function(Xnew), var
 
 
-def init_osgpr(X_train, 
-               num_inducing=10, 
-               lengthscales=1.0, 
-               variance=1.0,
-               noise_variance=0.001,
-               kernel=None,
-               ndim=1):
-    """Initialize a VFE OSGPR model with an RBF kernel with 
-    unit variance and lengthcales, and 0.001 noise variance.
-    Used in the Online Continuous SGP approach. 
+def init_osgpr(
+    X_train: np.ndarray, 
+    num_inducing: int = 10, 
+    lengthscales: Union[float, np.ndarray] = 1.0, 
+    variance: float = 1.0,
+    noise_variance: float = 0.001,
+    kernel: Optional[gpflow.kernels.Kernel] = None,
+    ndim: int = 1
+) -> OSGPR_VFE:
+    """
+    Initializes an Online Sparse Variational Gaussian Process Regression (OSGPR_VFE) model.
+    This function first fits a standard Sparse Gaussian Process Regression (SGPR) model
+    to a dummy dataset (representing initial data/environment bounds) to obtain an
+    initial set of optimized inducing points and their corresponding posterior.
+    These are then used to set up the `OSGPR_VFE` model for streaming updates.
 
     Args:
-        X_train (ndarray): (n, d); Unlabeled random sampled training points. 
-                        They only effect the initial inducing point locations, 
-                        i.e., limits them to the bounds of the data
-        num_inducing (int): Number of inducing points
-        lengthscales (float or list): Kernel lengthscale(s), if passed as a list, 
-                                each element corresponds to each data dimension
-        variance (float): Kernel variance
-        noise_variance (float): Data noise variance
-        kernel (gpflow.kernels.Kernel): gpflow kernel function
-        ndim (int): Number of output dimensions
+        X_train (np.ndarray): (n, d); Unlabeled random sampled training points.
+                              These points are primarily used to define the spatial bounds
+                              and for initial selection of inducing points. Their labels are
+                              set to zeros for the SGPR initialization.
+        num_inducing (int): The number of inducing points to use for the OSGPR model. Defaults to 10.
+        lengthscales (Union[float, np.ndarray]): Initial lengthscale(s) for the RBF kernel.
+                                                 If a float, it's applied uniformly. If a NumPy array,
+                                                 each element corresponds to a dimension. Defaults to 1.0.
+        variance (float): Initial variance (amplitude) for the RBF kernel. Defaults to 1.0.
+        noise_variance (float): Initial data noise variance for the Gaussian likelihood. Defaults to 0.001.
+        kernel (Optional[gpflow.kernels.Kernel]): A pre-defined GPflow kernel function. If None,
+                                     a `gpflow.kernels.SquaredExponential` (RBF) kernel is created
+                                     with the provided `lengthscales` and `variance`. Defaults to None.
+        ndim (int): Number of output dimensions for the dummy training labels `y_train`. Defaults to 1.
 
     Returns:
-        online_param (OSGPR_VFE): Initialized online sparse Gaussian process model
-    """
+        OSGPR_VFE: An initialized `OSGPR_VFE` model instance, ready to accept
+                   new data batches via its `update` method.
 
+    Usage:
+        ```python
+        import numpy as np
+        # from sgptools.core.osgpr import init_osgpr
+
+        # Define some dummy training data to establish initial bounds
+        X_initial_env = np.random.rand(100, 2) * 10
+        
+        # Initialize the OSGPR model
+        online_gp_model = init_osgpr(
+            X_initial_env,
+            num_inducing=50,
+            lengthscales=2.0,
+            variance=1.5,
+            noise_variance=0.01
+        )
+        print("OSGPR model initialized.")
+        print(f"Initial inducing points shape: {online_gp_model.inducing_variable.Z.shape}")
+
+        # Example of updating the model with new data (typically in a loop)
+        # new_X_batch = np.random.rand(10, 2) * 10
+        # new_y_batch = np.sin(new_X_batch[:, 0:1]) + np.random.randn(10, 1) * 0.1
+        # online_gp_model.update(data=(new_X_batch, new_y_batch))
+        # print("Model updated with new data.")
+        ```
+    """
     if kernel is None:
+        # If no kernel is provided, initialize a SquaredExponential (RBF) kernel.
         kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales, 
                                                    variance=variance)
         
-    y_train = np.zeros((len(X_train), ndim), dtype=X_train.dtype)
+    # Create a dummy y_train: SGPR needs labels, but for initialization purposes here,
+    # we use zeros as the actual labels will come in through online updates.
+    y_train_dummy = np.zeros((len(X_train), ndim), dtype=X_train.dtype)
+    
+    # Select initial inducing points from X_train using get_inducing_pts utility
     Z_init = get_inducing_pts(X_train, num_inducing)
-    init_param = gpflow.models.SGPR((X_train, y_train),
-                                    kernel, 
+    
+    # Initialize a standard SGPR model. This model helps in getting an initial
+    # posterior (mu, Su) for the inducing points (Z_init) under the given kernel
+    # and noise variance. This posterior then becomes the 'old' posterior for OSGPR_VFE.
+    init_sgpr_model = gpflow.models.SGPR(data=(X_train, y_train_dummy),
+                                    kernel=kernel, 
                                     inducing_variable=Z_init, 
                                     noise_variance=noise_variance)
     
-    # Initialize the OSGPR model using the parameters from the SGPR model
-    # The X_train and y_train here will be overwritten in the online phase 
-    X_train = np.zeros([2, X_train.shape[-1]], dtype=X_train.dtype)
-    y_train =  np.zeros([2, ndim], dtype=X_train.dtype)
-    Zopt = init_param.inducing_variable.Z.numpy()
-    mu, Su = init_param.predict_f(Zopt, full_cov=True)
-    Kaa = init_param.kernel(Zopt)
-    online_param = OSGPR_VFE((X_train[:2], y_train[:2]),
-                             init_param.kernel,
-                             mu, Su[0], Kaa,
-                             Zopt, Zopt)
-    online_param.likelihood.variance.assign(init_param.likelihood.variance)
+    # Extract optimized (or initial) inducing points from the SGPR model
+    Zopt_np = init_sgpr_model.inducing_variable.Z.numpy()
+    
+    # Predict the mean (mu) and full covariance (Su) of the latent function
+    # at these initial inducing points (Zopt). This represents the 'old' posterior.
+    mu_old_tf, Su_old_tf_full_cov = init_sgpr_model.predict_f(tf.constant(Zopt_np, dtype=X_train.dtype), full_cov=True)
+    
+    # Kaa_old: Prior covariance matrix of the old inducing points
+    Kaa_old_tf = init_sgpr_model.kernel(tf.constant(Zopt_np, dtype=X_train.dtype))
 
-    return online_param
+    # Prepare dummy initial data for OSGPR_VFE. This data will be overwritten
+    # by the first actual `update` call.
+    dummy_X_online = np.zeros([2, X_train.shape[-1]], dtype=X_train.dtype)
+    dummy_y_online = np.zeros([2, ndim], dtype=X_train.dtype)
+
+    # Initialize the OSGPR_VFE model with the extracted parameters.
+    # The `Su_old_tf_full_cov` is expected to be a (1, M, M) tensor for single latent GP,
+    # so we extract the (M, M) covariance matrix `Su_old_tf_full_cov[0]`.
+    online_osgpr_model = OSGPR_VFE(data=(tf.constant(dummy_X_online), tf.constant(dummy_y_online)),
+                             kernel=init_sgpr_model.kernel, # Pass the kernel (potentially optimized by SGPR init)
+                             mu_old=mu_old_tf, 
+                             Su_old=Su_old_tf_full_cov[0], 
+                             Kaa_old=Kaa_old_tf,
+                             Z_old=tf.constant(Zopt_np, dtype=X_train.dtype), 
+                             Z=tf.constant(Zopt_np, dtype=X_train.dtype)) # New Z is same as old Z initially
+    
+    # Assign the noise variance from the initial SGPR model to the OSGPR model's likelihood
+    online_osgpr_model.likelihood.variance.assign(init_sgpr_model.likelihood.variance)
+
+    return online_osgpr_model
