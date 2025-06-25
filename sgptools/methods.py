@@ -226,8 +226,12 @@ class BayesianOpt(Base):
         
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
-            sol_np = self.transform.expand(sol_np,
-                                           expand_sensor_model=False)
+            try:
+                sol_np = self.transform.expand(sol_np,
+                                            expand_sensor_model=False)
+            except TypeError:
+                pass
+            
             if not isinstance(sol_np, np.ndarray):
                 sol_np = sol_np.numpy()
 
@@ -398,8 +402,11 @@ class CMA(Base):
         
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
-            sol_np = self.transform.expand(sol_np,
-                                           expand_sensor_model=False)
+            try:
+                sol_np = self.transform.expand(sol_np,
+                                               expand_sensor_model=False)
+            except TypeError:
+                pass
             if not isinstance(sol_np, np.ndarray):
                 sol_np = sol_np.numpy()
 
@@ -509,8 +516,8 @@ class ContinuousSGP(Base):
                                       orientation=orientation)
 
         # Fit the SGP
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=tf.float64), 
-                                                  tf.zeros((len(X_objective), 1), dtype=tf.float64))
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective), 
+                                                  tf.zeros((len(X_objective), 1)))
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
                                   kernel=kernel, 
@@ -581,8 +588,11 @@ class ContinuousSGP(Base):
                            **kwargs)
         
         sol: tf.Tensor = self.sgpr.inducing_variable.Z
-        sol_expanded = self.sgpr.transform.expand(sol,
-                                                  expand_sensor_model=False)
+        try:
+            sol_expanded = self.transform.expand(sol,
+                                                 expand_sensor_model=False)
+        except TypeError:
+            sol_expanded = sol
         if not isinstance(sol_expanded, np.ndarray):
             sol_np = sol_expanded.numpy()
         else:
@@ -733,8 +743,11 @@ class GreedyObjective(Base):
         
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
         if self.transform is not None:
-            sol_locations = self.transform.expand(sol_locations,
-                                                  expand_sensor_model=False)
+            try:
+                sol_locations = self.transform.expand(sol_locations,
+                                                      expand_sensor_model=False)
+            except TypeError:
+                pass
             if not isinstance(sol_locations, np.ndarray):
                 sol_locations = sol_locations.numpy()
         sol_locations = sol_locations.reshape(self.num_robots, -1, self.num_dim)
@@ -823,8 +836,8 @@ class GreedySGP(Base):
         assert self.num_robots == 1, error
 
         # Fit the SGP
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=tf.float64), 
-                                                  tf.zeros((len(X_objective), 1), dtype=tf.float64))
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective), 
+                                                  tf.zeros((len(X_objective), 1)))
         X_init = get_inducing_pts(X_objective, 
                                   num_sensing)
         self.sgpr = AugmentedSGPR(train_set,
@@ -892,8 +905,11 @@ class GreedySGP(Base):
         sol_locations = self.X_candidates[sol_indices]
         
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
-        sol_expanded = self.sgpr.transform.expand(sol_locations,
-                                                 expand_sensor_model=False)
+        try:
+            sol_expanded = self.transform.expand(sol_locations,
+                                                    expand_sensor_model=False)
+        except AttributeError:
+            sol_expanded = sol_locations
         if not isinstance(sol_expanded, np.ndarray):
             sol_np = sol_expanded.numpy()
         else:

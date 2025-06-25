@@ -241,6 +241,7 @@ class Dataset:
                  num_candidates: int = 150,
                  verbose: bool = True,
                  data=None,
+                 dtype=np.float64,
                  **kwargs: Any):
         """
         Initializes the Dataset class.
@@ -257,9 +258,12 @@ class Dataset:
             verbose (bool): If `True`, print details about dataset loading, sampling, and preprocessing.
                             Defaults to True.
             data (Optional[np.ndarray]): (height, width, d); 2D n-dimensional array of data.
+            dtype (Optional[np.dtype]): The type of the output arrays. If dtype is not given, 
+                                        it will be set to np.float64.
             **kwargs: Additional keyword arguments passed to `prep_tif_dataset` or `prep_synthetic_dataset`.
         """
         self.verbose = verbose
+        self.dtype = dtype
 
         # Load/Create the data
         if data is not None:
@@ -273,14 +277,6 @@ class Dataset:
 
         # Store original dimensions for reshaping
         w, h = self.y.shape[0], self.y.shape[1]
-
-        # Create image coordinates array (X, Y pixel indices)
-        xx, yy = np.meshgrid(
-            np.arange(self.y.shape[0]), 
-            np.arange(self.y.shape[1])
-        )
-        X_coords = np.stack((xx, yy), axis=-1).astype(int)
-
         if self.verbose:
             print(f"Original dataset shape: {self.y.shape}")
 
@@ -311,17 +307,24 @@ class Dataset:
         self.X_scaler.scale_ /= 10.0 # Scale to ensure an extent of ~10 units
 
         self.X_train = self.X_scaler.transform(X_train_pixel_coords)
+        self.X_train = self.X_train.astype(self.dtype)
         self.X_test = self.X_scaler.transform(X_test_pixel_coords)
+        self.X_test = self.X_test.astype(self.dtype)
         self.candidates = self.X_scaler.transform(X_candidates_pixel_coords)
+        self.candidates = self.candidates.astype(self.dtype)
 
         # Standardize dataset labels (y values)
         self.y_scaler = StandardScaler()
         self.y_scaler.fit(y_train_raw)
 
         self.y_train = self.y_scaler.transform(y_train_raw)
+        self.y_train = self.y_train.astype(self.dtype)
         self.y_test = self.y_scaler.transform(y_test_raw)
+        self.y_test = self.y_test.astype(self.dtype)
+
         # Transform the entire dataset's labels for consistency
         self.y = self.y_scaler.transform(self.y.reshape(-1, 1)).reshape(w, h)
+        self.y = self.y.astype(self.dtype)
 
         if self.verbose:
             print(f"Training data shapes (X, y): {self.X_train.shape}, {self.y_train.shape}")
@@ -473,5 +476,5 @@ class Dataset:
             locations_normalized = locations_normalized[indices]
             data = data[indices]
 
-        return locations_normalized, data
+        return locations_normalized.astype(self.dtype), data.astype(self.dtype)
 
