@@ -547,7 +547,6 @@ class ContinuousSGP(Base):
     
     def optimize(self, 
                  max_steps: int = 500, 
-                 lr: float = 1e-2, 
                  optimizer: str = 'scipy.L-BFGS-B', 
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
@@ -556,7 +555,6 @@ class ContinuousSGP(Base):
 
         Args:
             max_steps (int): Maximum number of optimization steps. Defaults to 500.
-            lr (float): Optimization learning rate (for TensorFlow optimizers). Defaults to 1e-2.
             optimizer (str): Optimizer "<backend>.<method>" to use for training (e.g., 'scipy.L-BFGS-B', 'tf.adam').
                              Defaults to 'scipy.L-BFGS-B'.
             verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
@@ -581,8 +579,7 @@ class ContinuousSGP(Base):
         """
         _ = optimize_model(self.sgpr,
                            max_steps=max_steps,
-                           kernel_grad=False, # Inducing points are optimized, not kernel hyperparameters
-                           lr=lr, 
+                           optimize_hparams=False, # Inducing points are optimized, not kernel hyperparameters
                            optimizer=optimizer, 
                            verbose=verbose,
                            **kwargs)
