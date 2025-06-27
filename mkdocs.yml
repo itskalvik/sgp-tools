@@ -49,46 +49,39 @@ plugins:
   - mkdocs-jupyter
 
 nav:
-  - index.md
-  - API Documentation:
-    - models:    
-      - "": api/models/index.md 
-      - api/models/Bayesian-Optimization.md
-      - api/models/Genetic-Algorithm.md
-      - api/models/Continuous-SGP.md
-      - api/models/Greedy-MI.md
-      - api/models/Greedy-SGP.md
-    - models.core:
-      - "": api/models/core/index.md
-      - api/models/core/AugmentedGPR.md
-      - api/models/core/AugmentedSGPR.md
-      - api/models/core/OSGPR.md
-      - api/models/core/Transformations.md
-    - kernels: 
-      - "": api/kernels/index.md
-      - api/kernels/Neural-Kernel.md
-      - api/kernels/Attentive-Kernel.md
-      - api/kernels/Neural-Network.md
-    - utils:
-      - "": api/utils/index.md
-      - api/utils/Data.md
-      - api/utils/GPflow.md
-      - api/utils/Metrics.md
-      - api/utils//Misc.md
-      - api/utils/TSP.md
-  - ROS 2:
-    - "ROS 2": ros2.md
-  - Docker:
-    - "Docker": docker.md
-  - BlueOS:
-    - "BlueOS": blueos.md
-  - Examples:
-      - examples/AIPP_non_point_FoV.ipynb  
-      - examples/IPP.ipynb  
-      - examples/Baselines.ipynb  
-      - examples/non_point_FoV.ipynb
-      - examples/non_stationary_kernels.ipynb  
-      - examples/obstacles.ipynb
+  - Home: index.md
+  - API:
+    - Core:
+      - api/core/index.md
+      - AugmentedGPR: api/core/augmented_gpr.md
+      - AugmentedSGPR: api/core/augmented_sgpr.md
+      - OSGPR: api/core/osgpr.md
+      - Transformations: api/core/transformations.md
+    - Kernels:
+      - api/kernels/index.md
+      - Attentive Kernel: api/kernels/attentive_kernel.md
+      - Neural Kernel: api/kernels/neural_kernel.md
+      - Neural Network: api/kernels/neural_network.md
+    - Methods:
+      - api/methods/index.md
+      - Method: api/methods/method.md
+      - BayesianOpt: api/methods/bayesian_opt.md
+      - CMA: api/methods/cma.md
+      - ContinuousSGP: api/methods/continuous_sgp.md
+      - GreedyObjective: api/methods/greedy_objective.md
+      - GreedySGP: api/methods/greedy_sgp.md
+    - Objectives:
+      - api/objectives/index.md
+      - Objective: api/objectives/objective.md
+      - MI: api/objectives/mi.md
+      - SLogMI: api/objectives/slog_mi.md
+    - Utils:
+      - api/utils/index.md
+      - Data: api/utils/data.md
+      - GPflow: api/utils/gpflow.md
+      - Metrics: api/utils/metrics.md
+      - Misc: api/utils/misc.md
+      - TSP: api/utils/tsp.md
 
 extra_css:
   - stylesheets/extra.css

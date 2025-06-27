@@ -15,9 +15,9 @@ from sgptools.core.augmented_sgpr import AugmentedSGPR
 from sgptools.core.transformations import Transform  # Import Transform for type hinting
 
 
-class Base:
+class Method:
     """
-    Base class for optimization methods.
+    Method class for optimization methods.
 
     Attributes:
         num_sensing (int): Number of sensing locations to optimize.
@@ -42,7 +42,7 @@ class Base:
                  num_dim: Optional[int] = None,
                  **kwargs: Any):
         """
-        Initializes the Base class.
+        Initializes the Method class.
 
         Args:
             num_sensing (int): Number of sensing locations to optimize.
@@ -103,7 +103,7 @@ class Base:
         raise NotImplementedError
 
 
-class BayesianOpt(Base):
+class BayesianOpt(Method):
     """
     Implements informative sensor placement/path optimization using Bayesian Optimization.
 
@@ -284,7 +284,7 @@ class BayesianOpt(Base):
         return reward.numpy()
 
 
-class CMA(Base):
+class CMA(Method):
     """
     Implements informative sensor placement/path optimization using CMA-ES (Covariance Matrix Adaptation Evolution Strategy).
 
@@ -486,7 +486,7 @@ class CMA(Base):
         return deepcopy(self.transform)
 
 
-class ContinuousSGP(Base):
+class ContinuousSGP(Method):
     """
     Implements informative sensor placement/path optimization using a Sparse Gaussian Process (SGP).
 
@@ -649,7 +649,7 @@ class ContinuousSGP(Base):
         return self.sgpr.transform
 
 
-class GreedyObjective(Base):
+class GreedyObjective(Method):
     """
     Implements informative sensor placement/path optimization using a greedy approach based on a specified objective function.
 
@@ -822,7 +822,7 @@ class GreedyObjective(Base):
         return reward.numpy()
 
 
-class GreedySGP(Base):
+class GreedySGP(Method):
     """
     Implements informative sensor placement/path optimization using a greedy approach combined with a Sparse Gaussian Process (SGP) ELBO objective.
 
@@ -1015,7 +1015,7 @@ class GreedySGP(Base):
         return self.sgpr.transform
 
 
-METHODS: Dict[str, Type[Base]] = {
+METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
     'CMA': CMA,
     'ContinuousSGP': ContinuousSGP,
@@ -1024,7 +1024,7 @@ METHODS: Dict[str, Type[Base]] = {
 }
 
 
-def get_method(method: str) -> Type[Base]:
+def get_method(method: str) -> Type[Method]:
     """
     Retrieves an optimization method class by its string name.
 
@@ -1032,7 +1032,7 @@ def get_method(method: str) -> Type[Base]:
         method (str): The name of the optimization method (e.g., 'ContinuousSGP', 'CMA').
 
     Returns:
-        Type[Base]: The class of the requested optimization method.
+        Type[Method]: The class of the requested optimization method.
 
     Raises:
         KeyError: If the method name is not found.

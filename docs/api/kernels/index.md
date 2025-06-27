@@ -1,5 +1,6 @@
-![Image title](../../assets/SGP-Tools.png#only-light)
-![Image title](../../assets/logo_dark.png#only-dark)
+# Kernels
+
+This section covers the special non-stationary kernel functions available in SGP-Tools.
 
 ::: sgptools.kernels
     options:

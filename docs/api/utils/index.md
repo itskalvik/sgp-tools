@@ -1,5 +1,6 @@
-![Image title](../../assets/SGP-Tools.png#only-light)
-![Image title](../../assets/logo_dark.png#only-dark)
+# Utils API
+
+This section outlines the utility functions that support the functionalities of the SGP-Tools package.
 
 ::: sgptools.utils
     options:
