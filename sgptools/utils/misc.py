@@ -56,7 +56,7 @@ def get_inducing_pts(
     """
     if random:
         # Randomly select `num_inducing` indices from the data
-        idx = np.random.randint(len(data), size=num_inducing)
+        idx = np.random.choice(len(data), size=num_inducing, replace=False)
         Xu = data[idx]
     else:
         # Use k-means clustering to find `num_inducing` cluster centers

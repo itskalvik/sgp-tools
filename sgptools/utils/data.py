@@ -289,8 +289,13 @@ class Dataset:
         X_train_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_train, random=True)
         y_train_raw = self.y[X_train_pixel_coords[:, 0], X_train_pixel_coords[:, 1]].reshape(-1, 1)
 
-        X_test_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_test, random=True)
-        y_test_raw = self.y[X_test_pixel_coords[:, 0], X_test_pixel_coords[:, 1]].reshape(-1, 1)
+        # If num_test is equal to dataset size, return test data in original order, enables plotting with imshow
+        if self.y.shape[0]*self.y.shape[1] == num_test:
+            X_test_pixel_coords = X_valid_pixel_coords
+            y_test_raw = self.y.reshape(-1, 1)
+        else:
+            X_test_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_test, random=True)
+            y_test_raw = self.y[X_test_pixel_coords[:, 0], X_test_pixel_coords[:, 1]].reshape(-1, 1)
 
         X_candidates_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_candidates, random=True)
 
