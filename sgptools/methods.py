@@ -28,6 +28,7 @@ class Base:
         noise_variance (float): Data noise variance.
         transform (Optional[Transform]): Transform object to apply to inducing points.
         X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
+        num_dim (int): Dimensionality of the sensing locations.
     """
     def __init__(self,
                  num_sensing: int,
@@ -37,6 +38,7 @@ class Base:
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
                  **kwargs: Any):
         """
         Initializes the Base class.
@@ -50,12 +52,16 @@ class Base:
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             **kwargs: Additional keyword arguments.
         """
         self.num_sensing = num_sensing
-        self.num_dim = X_objective.shape[-1]
         self.num_robots = num_robots
         self.X_candidates = X_candidates
+        if num_dim is None:
+            self.num_dim = X_objective.shape[-1]
+        else:
+            self.num_dim = num_dim
 
     def optimize(self) -> np.ndarray:
         """
@@ -120,6 +126,7 @@ class BayesianOpt(Base):
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
                  objective: Union[str, Any] = 'SLogMI',
                  **kwargs: Any):
         """
@@ -134,11 +141,12 @@ class BayesianOpt(Base):
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
         self.transform = transform
 
         if isinstance(objective, str):
@@ -297,6 +305,7 @@ class CMA(Base):
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
                  objective: Union[str, Any] = 'SLogMI',
                  X_init: Optional[np.ndarray] = None,
                  **kwargs: Any):
@@ -312,17 +321,22 @@ class CMA(Base):
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.
                                             If None, initial points are randomly selected from X_objective.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
         self.transform = transform
         if X_init is None:
             X_init = get_inducing_pts(X_objective, 
                                       num_sensing * self.num_robots)
+        else:
+            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            self.num_dim = X_init.shape[-1]
+            
         self.X_init: np.ndarray = X_init.reshape(-1) # Flattened initial guess
 
         if isinstance(objective, str):
@@ -485,6 +499,7 @@ class ContinuousSGP(Base):
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
                  X_init: Optional[np.ndarray] = None,
                  X_time: Optional[np.ndarray] = None, 
                  orientation: bool = False,
@@ -501,6 +516,7 @@ class ContinuousSGP(Base):
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial inducing points.
                                             If None, initial points are randomly selected from X_objective.
             X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when
@@ -509,15 +525,19 @@ class ContinuousSGP(Base):
                                 when selecting initial inducing points. Defaults to False.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
         if X_init is None:
             X_init = get_inducing_pts(X_objective, 
                                       num_sensing * self.num_robots,
                                       orientation=orientation)
+        else:
+            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            self.num_dim = X_init.shape[-1]
 
         # Fit the SGP
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective), 
-                                                  tf.zeros((len(X_objective), 1)))
+        dtype = X_objective.dtype
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=dtype), 
+                                                  tf.zeros((len(X_objective), 1), dtype=dtype))
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
                                   kernel=kernel, 
@@ -636,6 +656,7 @@ class GreedyObjective(Base):
                   transform: Optional[Transform] = None,
                   num_robots: int = 1,
                   X_candidates: Optional[np.ndarray] = None,
+                  num_dim: Optional[int] = None,
                   objective: Union[str, Any] = 'SLogMI',
                   **kwargs: Any):
         """
@@ -650,11 +671,12 @@ class GreedyObjective(Base):
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  If None, X_objective is used as candidates.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
         self.X_objective = X_objective
         if X_candidates is None:
             self.X_candidates = X_objective # Default candidates to objective points
@@ -801,6 +823,7 @@ class GreedySGP(Base):
                   transform: Optional[Transform] = None,
                   num_robots: int = 1,
                   X_candidates: Optional[np.ndarray] = None,
+                  num_dim: Optional[int] = None,
                   **kwargs: Any):
         """
         Initializes the GreedySGP optimizer.
@@ -814,9 +837,10 @@ class GreedySGP(Base):
             num_robots (int): Number of robots/agents. Defaults to 1.
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  If None, X_objective is used as candidates.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
         self.X_objective = X_objective
         if X_candidates is None:
             self.X_candidates = X_objective # Default candidates to objective points
@@ -833,8 +857,10 @@ class GreedySGP(Base):
         assert self.num_robots == 1, error
 
         # Fit the SGP
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective), 
-                                                  tf.zeros((len(X_objective), 1)))
+        dtype = X_objective.dtype
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=dtype), 
+                                                  tf.zeros((len(X_objective), 1), dtype=dtype))
+
         X_init = get_inducing_pts(X_objective, 
                                   num_sensing)
         self.sgpr = AugmentedSGPR(train_set,
