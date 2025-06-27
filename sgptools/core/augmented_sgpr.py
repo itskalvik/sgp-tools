@@ -13,7 +13,6 @@
 # limitations under the License.
 
 # Original SGP code from GPflow library (https://github.com/GPflow/GPflow)
-
 """Provides a sparse Gaussian process model with update, expand, and aggregate functions
 """
 
@@ -49,24 +48,21 @@ class AugmentedSGPR(SGPR):
         inducing_variable_time (ndarray): (m, d); Temporal dimensions of the inducing points, 
                                             used when modeling spatio-temporal IPP
     """
-    def __init__(
-        self,
-        *args,
-        transform=None,
-        inducing_variable_time=None,
-        **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+
+    def __init__(self,
+                 *args,
+                 transform=None,
+                 inducing_variable_time=None,
+                 **kwargs):
+        super().__init__(*args, **kwargs)
         if transform is None:
             self.transform = Transform()
         else:
             self.transform = transform
 
         if inducing_variable_time is not None:
-            self.inducing_variable_time = inducingpoint_wrapper(inducing_variable_time)
+            self.inducing_variable_time = inducingpoint_wrapper(
+                inducing_variable_time)
             self.transform.inducing_variable_time = self.inducing_variable_time
         else:
             self.inducing_variable_time = None
@@ -79,7 +75,7 @@ class AugmentedSGPR(SGPR):
             noise_variance (float): data variance
         """
         self.likelihood.variance.assign(noise_variance)
-        for self_var, var in zip(self.kernel.trainable_variables, 
+        for self_var, var in zip(self.kernel.trainable_variables,
                                  kernel.trainable_variables):
             self_var.assign(var)
 
@@ -91,7 +87,7 @@ class AugmentedSGPR(SGPR):
             A is M x N, B is M x M, LB is M x M, AAT is M x M
         """
         x, _ = self.data
-        
+
         iv = self.inducing_variable.Z  # [M]
         iv = self.transform.expand(iv)
 
@@ -130,9 +126,10 @@ class AugmentedSGPR(SGPR):
         constraints = self.transform.constraints(self.inducing_variable.Z)
         return const + logdet + quad + constraints
 
-    def predict_f(
-        self, Xnew: InputData, full_cov: bool = False, full_output_cov: bool = False
-    ) -> MeanAndVariance:
+    def predict_f(self,
+                  Xnew: InputData,
+                  full_cov: bool = False,
+                  full_output_cov: bool = False) -> MeanAndVariance:
 
         # could copy into posterior into a fused version
         """
@@ -141,7 +138,7 @@ class AugmentedSGPR(SGPR):
         notebook.
         """
         X_data, Y_data = self.data
-        
+
         iv = self.inducing_variable.Z
         iv = self.transform.expand(iv)
 
@@ -155,8 +152,7 @@ class AugmentedSGPR(SGPR):
         L = tf.linalg.cholesky(kuu)
         A = tf.linalg.triangular_solve(L, kuf, lower=True) / sigma
         B = tf.linalg.matmul(A, A, transpose_b=True) + tf.eye(
-            num_inducing, dtype=default_float()
-        )  # cache qinv
+            num_inducing, dtype=default_float())  # cache qinv
         LB = tf.linalg.cholesky(B)
         Aerr = tf.linalg.matmul(A, err)
         c = tf.linalg.triangular_solve(LB, Aerr, lower=True) / sigma
@@ -164,18 +160,15 @@ class AugmentedSGPR(SGPR):
         tmp2 = tf.linalg.triangular_solve(LB, tmp1, lower=True)
         mean = tf.linalg.matmul(tmp2, c, transpose_a=True)
         if full_cov:
-            var = (
-                self.kernel(Xnew)
-                + tf.linalg.matmul(tmp2, tmp2, transpose_a=True)
-                - tf.linalg.matmul(tmp1, tmp1, transpose_a=True)
-            )
-            var = tf.tile(var[None, ...], [self.num_latent_gps, 1, 1])  # [P, N, N]
+            var = (self.kernel(Xnew) +
+                   tf.linalg.matmul(tmp2, tmp2, transpose_a=True) -
+                   tf.linalg.matmul(tmp1, tmp1, transpose_a=True))
+            var = tf.tile(var[None, ...],
+                          [self.num_latent_gps, 1, 1])  # [P, N, N]
         else:
-            var = (
-                self.kernel(Xnew, full_cov=False)
-                + tf.reduce_sum(tf.square(tmp2), 0)
-                - tf.reduce_sum(tf.square(tmp1), 0)
-            )
+            var = (self.kernel(Xnew, full_cov=False) +
+                   tf.reduce_sum(tf.square(tmp2), 0) -
+                   tf.reduce_sum(tf.square(tmp1), 0))
             var = tf.tile(var[:, None], [1, self.num_latent_gps])
 
         return mean + self.mean_function(Xnew), var

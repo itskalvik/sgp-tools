@@ -1,5 +1,4 @@
 # sgptools/kernels/__init__.py
-
 """Special non-stationary kernel functions in this package:
 
 - `neural_kernel`: Provides the neural spectral kernel that uses a mixture of multilayer perceptrons

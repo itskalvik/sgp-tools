@@ -36,7 +36,9 @@ def get_model_params(
     train_inducing_pts: bool = False,
     num_inducing_pts: int = 500,
     **kwargs: Any
-) -> Union[Tuple[np.ndarray, float, gpflow.kernels.Kernel], Tuple[np.ndarray, float, gpflow.kernels.Kernel, Union[gpflow.models.GPR, gpflow.models.SGPR]]]:
+) -> Union[Tuple[np.ndarray, float, gpflow.kernels.Kernel], Tuple[
+        np.ndarray, float, gpflow.kernels.Kernel, Union[gpflow.models.GPR,
+                                                        gpflow.models.SGPR]]]:
     """
     Trains a Gaussian Process (GP) or Sparse Gaussian Process (SGP) model on the given training set.
     A Sparse GP is used if the training set size exceeds 1500 samples.
@@ -95,23 +97,23 @@ def get_model_params(
         ```
     """
     if kernel is None:
-        kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales, 
+        kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales,
                                                    variance=variance)
 
     model: Union[gpflow.models.GPR, gpflow.models.SGPR]
     trainable_variables_list: List[tf.Variable]
 
     if len(X_train) <= 1500:
-        model = gpflow.models.GPR(data=(X_train, y_train), 
-                                kernel=kernel,
-                                noise_variance=noise_variance)
+        model = gpflow.models.GPR(data=(X_train, y_train),
+                                  kernel=kernel,
+                                  noise_variance=noise_variance)
         trainable_variables_list = model.trainable_variables
     else:
         inducing_pts = get_inducing_pts(X_train, num_inducing_pts)
-        model = gpflow.models.SGPR(data=(X_train, y_train), 
-                                 kernel=kernel,
-                                 inducing_variable=inducing_pts,
-                                 noise_variance=noise_variance)
+        model = gpflow.models.SGPR(data=(X_train, y_train),
+                                   kernel=kernel,
+                                   inducing_variable=inducing_pts,
+                                   noise_variance=noise_variance)
         if train_inducing_pts:
             trainable_variables_list = model.trainable_variables
         else:
@@ -121,17 +123,19 @@ def get_model_params(
 
     loss_values: np.ndarray
     if max_steps > 0:
-        loss_values = optimize_model(model, max_steps=max_steps,
-                                     trainable_variables=trainable_variables_list,
-                                     verbose=verbose,
-                                     **kwargs)
+        loss_values = optimize_model(
+            model,
+            max_steps=max_steps,
+            trainable_variables=trainable_variables_list,
+            verbose=verbose,
+            **kwargs)
     else:
         # If no optimization steps, return an array with a single '0' loss
         loss_values = np.array([0.0])
 
     if verbose:
         print_summary(model)
-    
+
     if return_model:
         return loss_values, model.likelihood.variance.numpy(), kernel, model
     else:
@@ -150,6 +154,7 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
                                   at each optimization step.
         model (Union[gpflow.models.GPR, gpflow.models.SGPR]): The GPflow model being monitored.
     """
+
     def __init__(self, model: Union[gpflow.models.GPR, gpflow.models.SGPR]):
         """
         Initializes the TraceInducingPts monitor task.
@@ -183,7 +188,8 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
         Xu_exp: np.ndarray
         # Apply IPP fixed points transform if available, without expanding sensor model
         try:
-            Xu_exp = self.model.transform.expand(Xu, expand_sensor_model=False).numpy()
+            Xu_exp = self.model.transform.expand(
+                Xu, expand_sensor_model=False).numpy()
         except AttributeError:
             Xu_exp = Xu
         self.trace.append(Xu_exp)
@@ -194,8 +200,8 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
         apply IPP fixed points transform if available
         '''
         Xu = self.model.inducing_variable.Z
-        Xu_exp = self.model.transform.expand(Xu, 
-                            expand_sensor_model=False).numpy()
+        Xu_exp = self.model.transform.expand(
+            Xu, expand_sensor_model=False).numpy()
         self.trace.append(Xu_exp)
 
     def get_trace(self) -> np.ndarray:
@@ -221,17 +227,15 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
         return np.array(self.trace)
 
 
-def optimize_model(
-    model: Union[gpflow.models.GPR, gpflow.models.SGPR],
-    max_steps: int = 2000,
-    optimize_hparams: bool = True,
-    optimizer: str = 'scipy.L-BFGS-B',
-    verbose: bool = False,
-    trace_fn: Optional[Union[str, Callable[[Any], Any]]] = None,
-    convergence_criterion: bool = True,
-    trainable_variables: Optional[List[tf.Variable]] = None,
-    **kwargs: Any
-) -> np.ndarray:
+def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
+                   max_steps: int = 2000,
+                   optimize_hparams: bool = True,
+                   optimizer: str = 'scipy.L-BFGS-B',
+                   verbose: bool = False,
+                   trace_fn: Optional[Union[str, Callable[[Any], Any]]] = None,
+                   convergence_criterion: bool = True,
+                   trainable_variables: Optional[List[tf.Variable]] = None,
+                   **kwargs: Any) -> np.ndarray:
     """
     Trains a GPflow GP or SGP model using either SciPy's optimizers or TensorFlow's optimizers.
 
@@ -313,16 +317,18 @@ def optimize_model(
         # Disable hyperparameter gradients (kernel and likelihood parameters)
         if not optimize_hparams:
             set_trainable(model.kernel, False)
-            set_trainable(model.likelihood, False)            
+            set_trainable(model.likelihood, False)
         trainable_variables = model.trainable_variables
 
     # Parse optimizer string
     optimizer_parts = optimizer.split('.')
     if len(optimizer_parts) != 2:
-        raise ValueError(f"Invalid optimizer format! Expected <backend>.<method>; got {optimizer}")
+        raise ValueError(
+            f"Invalid optimizer format! Expected <backend>.<method>; got {optimizer}"
+        )
     backend, method = optimizer_parts
 
-    losses_output: Any # Will hold the final loss values or traced data
+    losses_output: Any  # Will hold the final loss values or traced data
 
     if backend == 'scipy':
         # Configure SciPy monitor if tracing is requested
@@ -331,7 +337,8 @@ def optimize_model(
         if trace_fn == 'traceXu':
             trace_task_instance = TraceInducingPts(model)
             # Period=1 means run task at every step
-            task_group = gpflow.monitor.MonitorTaskGroup(trace_task_instance, period=1)
+            task_group = gpflow.monitor.MonitorTaskGroup(trace_task_instance,
+                                                         period=1)
             scipy_monitor = gpflow.monitor.Monitor(task_group)
 
         opt = gpflow.optimizers.Scipy()
@@ -342,15 +349,16 @@ def optimize_model(
             trainable_variables,
             method=method,
             options=dict(disp=verbose, maxiter=max_steps),
-            step_callback=scipy_monitor, # Pass the monitor as step_callback
-            **kwargs
-        )
-        
+            step_callback=scipy_monitor,  # Pass the monitor as step_callback
+            **kwargs)
+
         if trace_fn == 'traceXu' and trace_task_instance is not None:
-            losses_output = trace_task_instance.task_groups[0].tasks[0].get_trace()
+            losses_output = trace_task_instance.task_groups[0].tasks[
+                0].get_trace()
         else:
             # If no tracing or non-Xu tracing, the `results.fun` contains the final loss
-            losses_output = np.array([results.fun]) # Return as an array for consistency
+            losses_output = np.array([results.fun
+                                      ])  # Return as an array for consistency
             # Note: For SciPy, `losses.fun` is typically just the final loss, not a history.
             # To get history, a custom callback capturing loss at each step would be needed.
 
@@ -360,12 +368,14 @@ def optimize_model(
             # Default TF trace function to capture loss history
             tf_trace_fn = lambda traceable_quantities: traceable_quantities.loss
         elif trace_fn == 'traceXu':
+
             def tf_trace_fn(traceable_quantities):
                 return model.inducing_variable.Z.numpy()
         elif callable(trace_fn):
             tf_trace_fn = trace_fn
         else:
-            raise ValueError(f"Invalid trace_fn for TensorFlow backend: {trace_fn}")
+            raise ValueError(
+                f"Invalid trace_fn for TensorFlow backend: {trace_fn}")
 
         # Get Keras optimizer instance
         opt = getattr(optimizers, method)(**kwargs)
@@ -374,12 +384,16 @@ def optimize_model(
         loss_function_to_minimize = model.training_loss
 
         # Configure convergence criterion
-        tf_convergence_criterion: Optional[tfp.optimizer.convergence_criteria.ConvergenceCriterion] = None
+        tf_convergence_criterion: Optional[
+            tfp.optimizer.convergence_criteria.ConvergenceCriterion] = None
         if convergence_criterion:
             tf_convergence_criterion = tfp.optimizer.convergence_criteria.LossNotDecreasing(
-                atol=1e-5, # Absolute tolerance for checking decrease
-                window_size=50, # Number of steps to consider for plateau detection
-                min_num_steps=int(max_steps * 0.1) # Minimum steps before early stopping is considered
+                atol=1e-5,  # Absolute tolerance for checking decrease
+                window_size=
+                50,  # Number of steps to consider for plateau detection
+                min_num_steps=int(
+                    max_steps *
+                    0.1)  # Minimum steps before early stopping is considered
             )
 
         # Run TensorFlow optimization
@@ -389,18 +403,18 @@ def optimize_model(
             num_steps=max_steps,
             optimizer=opt,
             convergence_criterion=tf_convergence_criterion,
-            trace_fn=tf_trace_fn
-        )
+            trace_fn=tf_trace_fn)
 
         # Fallback to just final loss if no proper trace captured
         losses_output = np.array(results_tf.numpy())
 
     else:
-        raise ValueError(f"Invalid backend! Expected `scipy` or `tf`; got {backend}")
-    
+        raise ValueError(
+            f"Invalid backend! Expected `scipy` or `tf`; got {backend}")
+
     # Reset trainable variables
     if not optimize_hparams:
         set_trainable(model.kernel, True)
-        set_trainable(model.likelihood, True)            
+        set_trainable(model.likelihood, True)
 
     return losses_output

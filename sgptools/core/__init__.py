@@ -1,5 +1,4 @@
 # sgptools/models/core/__init__.py
-
 """Core modules in this package:
 
 - `augmented_gpr`: Provides a Gaussian process model with expand and aggregate functions

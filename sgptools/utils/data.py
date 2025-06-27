@@ -20,12 +20,15 @@ from sklearn.preprocessing import StandardScaler
 from hkb_diamondsquare.DiamondSquare import diamond_square
 
 import PIL
+
 PIL.Image.MAX_IMAGE_PIXELS = 900000000
 
 from typing import List, Tuple, Optional, Any
 
 
-def remove_polygons(X: np.ndarray, Y: np.ndarray, polygons: List[path.Path]) -> Tuple[np.ndarray, np.ndarray]:
+def remove_polygons(
+        X: np.ndarray, Y: np.ndarray,
+        polygons: List[path.Path]) -> Tuple[np.ndarray, np.ndarray]:
     """
     Removes points that fall inside a list of matplotlib Path polygons.
 
@@ -64,7 +67,9 @@ def remove_polygons(X: np.ndarray, Y: np.ndarray, polygons: List[path.Path]) -> 
     return points[:, 0], points[:, 1]
 
 
-def remove_circle_patches(X: np.ndarray, Y: np.ndarray, circle_patches: List[Any]) -> Tuple[np.ndarray, np.ndarray]:
+def remove_circle_patches(
+        X: np.ndarray, Y: np.ndarray,
+        circle_patches: List[Any]) -> Tuple[np.ndarray, np.ndarray]:
     """
     Removes points that fall inside a list of matplotlib Circle patches.
 
@@ -134,10 +139,13 @@ def point_pos(point: np.ndarray, d: float, theta: float) -> np.ndarray:
         #  [4.53553391 4.53553391]]
         ```
     """
-    return np.c_[point[:, 0] + d * np.cos(theta), point[:, 1] + d * np.sin(theta)]
+    return np.c_[point[:, 0] + d * np.cos(theta),
+                 point[:, 1] + d * np.sin(theta)]
 
 
-def prep_tif_dataset(dataset_path: str, dim_max: int = 2500, verbose: bool = True) -> np.ndarray:
+def prep_tif_dataset(dataset_path: str,
+                     dim_max: int = 2500,
+                     verbose: bool = True) -> np.ndarray:
     """
     Loads and preprocesses a dataset from a GeoTIFF (.tif) file.
     The function handles downsampling for large files and replaces NoData values (-999999.0) with NaN.
@@ -167,22 +175,28 @@ def prep_tif_dataset(dataset_path: str, dim_max: int = 2500, verbose: bool = Tru
     data = PIL.Image.open(dataset_path)
     data_array = np.array(data)
     if verbose:
-        print(f"Loaded dataset from {dataset_path} with shape {data_array.shape}")
-    
+        print(
+            f"Loaded dataset from {dataset_path} with shape {data_array.shape}"
+        )
+
     downsample_factor = np.ceil(np.max(data_array.shape) / dim_max).astype(int)
     if downsample_factor <= 1:
         downsample_factor = 1
     elif verbose:
-        print(f'Downsampling by a factor of {downsample_factor} to fit the maximum dimension of {dim_max}')
-    
+        print(
+            f'Downsampling by a factor of {downsample_factor} to fit the maximum dimension of {dim_max}'
+        )
+
     # Downsample and convert to float, replace specific NoData value with NaN
-    data_array = data_array[::downsample_factor, ::downsample_factor].astype(float)
+    data_array = data_array[::downsample_factor, ::downsample_factor].astype(
+        float)
     data_array[np.where(data_array == -999999.0)] = np.nan
     return data_array
 
-def prep_synthetic_dataset(shape: Tuple[int, int] = (1000, 1000), 
-                           min_height: float = 0.0, 
-                           max_height: float = 30.0, 
+
+def prep_synthetic_dataset(shape: Tuple[int, int] = (1000, 1000),
+                           min_height: float = 0.0,
+                           max_height: float = 30.0,
                            roughness: float = 0.5,
                            random_seed: Optional[int] = None,
                            **kwargs: Any) -> np.ndarray:
@@ -211,8 +225,8 @@ def prep_synthetic_dataset(shape: Tuple[int, int] = (1000, 1000),
         ```
     """
     data = diamond_square(shape=shape,
-                          min_height=min_height, 
-                          max_height=max_height, 
+                          min_height=min_height,
+                          max_height=max_height,
                           roughness=roughness,
                           random_seed=random_seed,
                           **kwargs)
@@ -234,10 +248,11 @@ class Dataset:
     The dataset is expected to be a 2D array where each element represents a label
     (e.g., elevation, temperature, environmental reading).
     """
-    def __init__(self, 
+
+    def __init__(self,
                  dataset_path: Optional[str] = None,
-                 num_train: int = 1000, 
-                 num_test: int = 2500, 
+                 num_train: int = 1000,
+                 num_test: int = 2500,
                  num_candidates: int = 150,
                  verbose: bool = True,
                  data=None,
@@ -269,7 +284,7 @@ class Dataset:
         if data is not None:
             self.y = data
         elif dataset_path is not None:
-            self.y = prep_tif_dataset(dataset_path=dataset_path, 
+            self.y = prep_tif_dataset(dataset_path=dataset_path,
                                       verbose=verbose,
                                       **kwargs)
         else:
@@ -286,18 +301,26 @@ class Dataset:
 
         # Sample training, testing, and candidate points from valid pixel coordinates
         # `get_inducing_pts` with random=True is used for random sampling
-        X_train_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_train, random=True)
-        y_train_raw = self.y[X_train_pixel_coords[:, 0], X_train_pixel_coords[:, 1]].reshape(-1, 1)
+        X_train_pixel_coords = get_inducing_pts(X_valid_pixel_coords,
+                                                num_train,
+                                                random=True)
+        y_train_raw = self.y[X_train_pixel_coords[:, 0],
+                             X_train_pixel_coords[:, 1]].reshape(-1, 1)
 
         # If num_test is equal to dataset size, return test data in original order, enables plotting with imshow
-        if self.y.shape[0]*self.y.shape[1] == num_test:
+        if self.y.shape[0] * self.y.shape[1] == num_test:
             X_test_pixel_coords = X_valid_pixel_coords
             y_test_raw = self.y.reshape(-1, 1)
         else:
-            X_test_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_test, random=True)
-            y_test_raw = self.y[X_test_pixel_coords[:, 0], X_test_pixel_coords[:, 1]].reshape(-1, 1)
+            X_test_pixel_coords = get_inducing_pts(X_valid_pixel_coords,
+                                                   num_test,
+                                                   random=True)
+            y_test_raw = self.y[X_test_pixel_coords[:, 0],
+                                X_test_pixel_coords[:, 1]].reshape(-1, 1)
 
-        X_candidates_pixel_coords = get_inducing_pts(X_valid_pixel_coords, num_candidates, random=True)
+        X_candidates_pixel_coords = get_inducing_pts(X_valid_pixel_coords,
+                                                     num_candidates,
+                                                     random=True)
 
         # Standardize dataset X coordinates (pixel coords to normalized space)
         self.X_scaler = StandardScaler()
@@ -307,9 +330,11 @@ class Dataset:
         # and to scale the data to have an extent of at least 10.0 in each dimension.
         # This ensures consistency and prevents issues with very small scales.
         ind = np.argmax(self.X_scaler.var_)
-        self.X_scaler.var_ = np.ones_like(self.X_scaler.var_) * self.X_scaler.var_[ind]
-        self.X_scaler.scale_ = np.ones_like(self.X_scaler.scale_) * self.X_scaler.scale_[ind]
-        self.X_scaler.scale_ /= 10.0 # Scale to ensure an extent of ~10 units
+        self.X_scaler.var_ = np.ones_like(
+            self.X_scaler.var_) * self.X_scaler.var_[ind]
+        self.X_scaler.scale_ = np.ones_like(
+            self.X_scaler.scale_) * self.X_scaler.scale_[ind]
+        self.X_scaler.scale_ /= 10.0  # Scale to ensure an extent of ~10 units
 
         self.X_train = self.X_scaler.transform(X_train_pixel_coords)
         self.X_train = self.X_train.astype(self.dtype)
@@ -332,8 +357,12 @@ class Dataset:
         self.y = self.y.astype(self.dtype)
 
         if self.verbose:
-            print(f"Training data shapes (X, y): {self.X_train.shape}, {self.y_train.shape}")
-            print(f"Testing data shapes (X, y): {self.X_test.shape}, {self.y_test.shape}")
+            print(
+                f"Training data shapes (X, y): {self.X_train.shape}, {self.y_train.shape}"
+            )
+            print(
+                f"Testing data shapes (X, y): {self.X_test.shape}, {self.y_test.shape}"
+            )
             print(f"Candidate data shape (X): {self.candidates.shape}")
             print("Dataset loaded and preprocessed successfully.")
 
@@ -353,7 +382,7 @@ class Dataset:
             ```
         """
         return self.X_train, self.y_train
-    
+
     def get_test(self) -> Tuple[np.ndarray, np.ndarray]:
         """
         Retrieves the preprocessed testing data.
@@ -370,7 +399,7 @@ class Dataset:
             ```
         """
         return self.X_test, self.y_test
-    
+
     def get_candidates(self) -> np.ndarray:
         """
         Retrieves the preprocessed candidate locations for sensor placement.
@@ -385,11 +414,12 @@ class Dataset:
             ```
         """
         return self.candidates
-        
-    def get_sensor_data(self, 
-                        locations: np.ndarray, 
-                        continuous_sening: bool = False,
-                        max_samples: int = 500) -> Tuple[np.ndarray, np.ndarray]:
+
+    def get_sensor_data(
+            self,
+            locations: np.ndarray,
+            continuous_sening: bool = False,
+            max_samples: int = 500) -> Tuple[np.ndarray, np.ndarray]:
         """
         Samples sensor data (labels) at specified normalized locations.
         Can simulate discrete point sensing or continuous path sensing by interpolation.
@@ -428,8 +458,10 @@ class Dataset:
 
         # Round locations to nearest integer and clip to valid dataset boundaries
         locations_pixel_coords = np.round(locations_pixel_coords).astype(int)
-        locations_pixel_coords[:, 0] = np.clip(locations_pixel_coords[:, 0], 0, self.y.shape[0] - 1)
-        locations_pixel_coords[:, 1] = np.clip(locations_pixel_coords[:, 1], 0, self.y.shape[1] - 1)
+        locations_pixel_coords[:, 0] = np.clip(locations_pixel_coords[:, 0], 0,
+                                               self.y.shape[0] - 1)
+        locations_pixel_coords[:, 1] = np.clip(locations_pixel_coords[:, 1], 0,
+                                               self.y.shape[1] - 1)
 
         # If continuous sensing is enabled, interpolate between points using skimage.draw.line
         if continuous_sening:
@@ -438,11 +470,11 @@ class Dataset:
                 # Iterate through pairs of consecutive points to draw lines
                 for i in range(locations_pixel_coords.shape[0] - 1):
                     loc1 = locations_pixel_coords[i]
-                    loc2 = locations_pixel_coords[i+1]
+                    loc2 = locations_pixel_coords[i + 1]
                     # line returns (row_coords, col_coords)
                     rr, cc = line(loc1[0], loc1[1], loc2[0], loc2[1])
                     interpolated_locs.append(np.column_stack((rr, cc)))
-            
+
             # If there's only one point, or if no lines were drawn (e.g., due to identical consecutive points),
             # still include the initial locations.
             if not interpolated_locs:
@@ -452,19 +484,22 @@ class Dataset:
                 else:
                     return np.empty((0, 2)), np.empty((0, 1))
             else:
-                locations_pixel_coords = np.concatenate(interpolated_locs, axis=0)
+                locations_pixel_coords = np.concatenate(interpolated_locs,
+                                                        axis=0)
 
         # Ensure that locations_pixel_coords is not empty before indexing
         if locations_pixel_coords.shape[0] == 0:
             return np.empty((0, 2)), np.empty((0, 1))
 
         # Ensure indices are within bounds (should be handled by clip, but double check)
-        valid_rows = np.clip(locations_pixel_coords[:, 0], 0, self.y.shape[0] - 1)
-        valid_cols = np.clip(locations_pixel_coords[:, 1], 0, self.y.shape[1] - 1)
-        
+        valid_rows = np.clip(locations_pixel_coords[:, 0], 0,
+                             self.y.shape[0] - 1)
+        valid_cols = np.clip(locations_pixel_coords[:, 1], 0,
+                             self.y.shape[1] - 1)
+
         # Extract data at the specified pixel locations
         data = self.y[valid_rows, valid_cols].reshape(-1, 1)
-        
+
         # Drop NaN values from data and corresponding locations
         valid_mask = np.isfinite(data.ravel())
         locations_pixel_coords = locations_pixel_coords[valid_mask]
@@ -477,9 +512,10 @@ class Dataset:
 
         # Limit the number of samples to max_samples if needed
         if len(locations_normalized) > max_samples:
-            indices = np.random.choice(len(locations_normalized), max_samples, replace=False)
+            indices = np.random.choice(len(locations_normalized),
+                                       max_samples,
+                                       replace=False)
             locations_normalized = locations_normalized[indices]
             data = data[indices]
 
         return locations_normalized.astype(self.dtype), data.astype(self.dtype)
-

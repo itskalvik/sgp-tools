@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Provides a streaming sparse Gaussian process model along with initialization function
 """
 
@@ -43,20 +42,39 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         Z (ndarray): (m_new, d): New initial inducing points
         mean_function (function): GP mean function
     """
-    def __init__(self, data, kernel, mu_old, Su_old, Kaa_old, Z_old, Z, mean_function=None):
-        self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
+
+    def __init__(self,
+                 data,
+                 kernel,
+                 mu_old,
+                 Su_old,
+                 Kaa_old,
+                 Z_old,
+                 Z,
+                 mean_function=None):
+        self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(
+            data)
         likelihood = gpflow.likelihoods.Gaussian()
-        num_latent_gps = GPModel.calc_num_latent_gps_from_data(data, kernel, likelihood)
+        num_latent_gps = GPModel.calc_num_latent_gps_from_data(
+            data, kernel, likelihood)
         super().__init__(kernel, likelihood, mean_function, num_latent_gps)
 
         self.inducing_variable = InducingPoints(Z)
         self.num_data = self.X.shape[0]
 
-        self.mu_old = tf.Variable(mu_old, shape=tf.TensorShape(None), trainable=False)
+        self.mu_old = tf.Variable(mu_old,
+                                  shape=tf.TensorShape(None),
+                                  trainable=False)
         self.M_old = Z_old.shape[0]
-        self.Su_old = tf.Variable(Su_old, shape=tf.TensorShape(None), trainable=False)
-        self.Kaa_old = tf.Variable(Kaa_old, shape=tf.TensorShape(None), trainable=False)
-        self.Z_old = tf.Variable(Z_old, shape=tf.TensorShape(None), trainable=False)
+        self.Su_old = tf.Variable(Su_old,
+                                  shape=tf.TensorShape(None),
+                                  trainable=False)
+        self.Kaa_old = tf.Variable(Kaa_old,
+                                   shape=tf.TensorShape(None),
+                                   trainable=False)
+        self.Z_old = tf.Variable(Z_old,
+                                 shape=tf.TensorShape(None),
+                                 trainable=False)
 
     def init_Z(self) -> np.ndarray:
         """
@@ -69,19 +87,20 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
                         combining old and new data-based points.
         """
         M = self.inducing_variable.Z.shape[0]
-        M_old = int(0.7 * M) # Proportion of old inducing points to retain
-        M_new = M - M_old    # Proportion of new data points to select
-        
+        M_old = int(0.7 * M)  # Proportion of old inducing points to retain
+        M_new = M - M_old  # Proportion of new data points to select
+
         # Randomly select M_old points from the old inducing points
         old_Z = self.Z_old.numpy()[np.random.permutation(M)[0:M_old], :]
-        
+
         # Randomly select M_new points from the current training data
-        new_Z = self.X.numpy()[np.random.permutation(self.X.shape[0])[0:M_new], :]
-        
+        new_Z = self.X.numpy()[
+            np.random.permutation(self.X.shape[0])[0:M_new], :]
+
         # Vertically stack the selected old and new points to form the new Z
         Z = np.vstack((old_Z, new_Z))
         return Z
-    
+
     def update(self, data, inducing_variable=None, update_inducing=True):
         """
         Configures the OSGPR model to adapt to a new batch of data.
@@ -104,7 +123,8 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
                                     they will remain as they were before the update call.
                                     Defaults to True.
         """
-        self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(data)
+        self.X, self.Y = self.data = gpflow.models.util.data_input_to_tensor(
+            data)
         self.num_data = self.X.shape[0]
 
         # Store the current inducing points as 'old' for the next update step
@@ -118,7 +138,8 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
             else:
                 # Use the explicitly provided inducing_variable
                 new_Z_init = inducing_variable
-            self.inducing_variable.Z.assign(tf.constant(new_Z_init, dtype=self.inducing_variable.Z.dtype))
+            self.inducing_variable.Z.assign(
+                tf.constant(new_Z_init, dtype=self.inducing_variable.Z.dtype))
         # If update_inducing is False, inducing_variable.Z retains its current value.
 
         # Get posterior mean and covariance for the *old* inducing points using the current model state
@@ -145,9 +166,12 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         # f is training points
         # s is test points
         Kbf = covariances.Kuf(self.inducing_variable, self.kernel, self.X)
-        Kbb = covariances.Kuu(self.inducing_variable, self.kernel, jitter=jitter)
+        Kbb = covariances.Kuu(self.inducing_variable,
+                              self.kernel,
+                              jitter=jitter)
         Kba = covariances.Kuf(self.inducing_variable, self.kernel, self.Z_old)
-        Kaa_cur = gpflow.utilities.add_noise_cov(self.kernel(self.Z_old), jitter)
+        Kaa_cur = gpflow.utilities.add_noise_cov(self.kernel(self.Z_old),
+                                                 jitter)
         Kaa = gpflow.utilities.add_noise_cov(self.Kaa_old, jitter)
 
         err = self.Y - self.mean_function(self.X)
@@ -166,13 +190,13 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
 
         LSa = tf.linalg.cholesky(Saa)
         Kab_Lbinv = tf.linalg.matrix_transpose(Lbinv_Kba)
-        LSainv_Kab_Lbinv = tf.linalg.triangular_solve(
-            LSa, Kab_Lbinv, lower=True)
+        LSainv_Kab_Lbinv = tf.linalg.triangular_solve(LSa,
+                                                      Kab_Lbinv,
+                                                      lower=True)
         d2 = tf.matmul(LSainv_Kab_Lbinv, LSainv_Kab_Lbinv, transpose_a=True)
 
         La = tf.linalg.cholesky(Kaa)
-        Lainv_Kab_Lbinv = tf.linalg.triangular_solve(
-            La, Kab_Lbinv, lower=True)
+        Lainv_Kab_Lbinv = tf.linalg.triangular_solve(La, Kab_Lbinv, lower=True)
         d3 = tf.matmul(Lainv_Kab_Lbinv, Lainv_Kab_Lbinv, transpose_a=True)
 
         D = tf.eye(Mb, dtype=gpflow.default_float()) + d1 + d2 - d3
@@ -181,8 +205,8 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
 
         LDinv_Lbinv_c = tf.linalg.triangular_solve(LD, Lbinv_c, lower=True)
 
-        return (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD,
-                Lbinv_Kba, LDinv_Lbinv_c, err, d1)
+        return (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD, Lbinv_Kba,
+                LDinv_Lbinv_c, err, d1)
 
     def maximum_log_likelihood_objective(self):
         """
@@ -204,8 +228,8 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         # a is old inducing points, b is new
         # f is training points
         Kfdiag = self.kernel(self.X, full_cov=False)
-        (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD,
-            Lbinv_Kba, LDinv_Lbinv_c, err, Qff) = self._common_terms()
+        (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD, Lbinv_Kba, LDinv_Lbinv_c,
+         err, Qff) = self._common_terms()
 
         LSa = tf.linalg.cholesky(Saa)
         Lainv_ma = tf.linalg.triangular_solve(LSa, ma, lower=True)
@@ -219,7 +243,7 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         bound += 0.5 * tf.reduce_sum(tf.square(LDinv_Lbinv_c))
         # log det term
         bound += -0.5 * N * tf.reduce_sum(tf.math.log(sigma2))
-        bound += - tf.reduce_sum(tf.math.log(tf.linalg.diag_part(LD)))
+        bound += -tf.reduce_sum(tf.math.log(tf.linalg.diag_part(LD)))
 
         # delta 1: trace term
         bound += -0.5 * tf.reduce_sum(Kfdiag) / sigma2
@@ -227,14 +251,15 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
 
         # delta 2: a and b difference
         bound += tf.reduce_sum(tf.math.log(tf.linalg.diag_part(La)))
-        bound += - tf.reduce_sum(tf.math.log(tf.linalg.diag_part(LSa)))
+        bound += -tf.reduce_sum(tf.math.log(tf.linalg.diag_part(LSa)))
 
         Kaadiff = Kaa_cur - tf.matmul(Lbinv_Kba, Lbinv_Kba, transpose_a=True)
         Sainv_Kaadiff = tf.linalg.solve(Saa, Kaadiff)
         Kainv_Kaadiff = tf.linalg.solve(Kaa, Kaadiff)
 
         bound += -0.5 * tf.reduce_sum(
-            tf.linalg.diag_part(Sainv_Kaadiff) - tf.linalg.diag_part(Kainv_Kaadiff))
+            tf.linalg.diag_part(Sainv_Kaadiff) -
+            tf.linalg.diag_part(Kainv_Kaadiff))
 
         return bound
 
@@ -251,18 +276,21 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         # f is training points
         # s is test points
         Kbs = covariances.Kuf(self.inducing_variable, self.kernel, Xnew)
-        (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD,
-            Lbinv_Kba, LDinv_Lbinv_c, err, Qff) = self._common_terms()
+        (Kbf, Kba, Kaa, Kaa_cur, La, Kbb, Lb, D, LD, Lbinv_Kba, LDinv_Lbinv_c,
+         err, Qff) = self._common_terms()
 
         Lbinv_Kbs = tf.linalg.triangular_solve(Lb, Kbs, lower=True)
         LDinv_Lbinv_Kbs = tf.linalg.triangular_solve(LD, Lbinv_Kbs, lower=True)
         mean = tf.matmul(LDinv_Lbinv_Kbs, LDinv_Lbinv_c, transpose_a=True)
 
         if full_cov:
-            Kss = self.kernel(Xnew) + jitter * tf.eye(tf.shape(Xnew)[0], dtype=gpflow.default_float())
+            Kss = self.kernel(Xnew) + jitter * tf.eye(
+                tf.shape(Xnew)[0], dtype=gpflow.default_float())
             var1 = Kss
-            var2 = - tf.matmul(Lbinv_Kbs, Lbinv_Kbs, transpose_a=True)
-            var3 = tf.matmul(LDinv_Lbinv_Kbs, LDinv_Lbinv_Kbs, transpose_a=True)
+            var2 = -tf.matmul(Lbinv_Kbs, Lbinv_Kbs, transpose_a=True)
+            var3 = tf.matmul(LDinv_Lbinv_Kbs,
+                             LDinv_Lbinv_Kbs,
+                             transpose_a=True)
             var = var1 + var2 + var3
         else:
             var1 = self.kernel(Xnew, full_cov=False)
@@ -273,15 +301,13 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
         return mean + self.mean_function(Xnew), var
 
 
-def init_osgpr(
-    X_train: np.ndarray, 
-    num_inducing: int = 10, 
-    lengthscales: Union[float, np.ndarray] = 1.0, 
-    variance: float = 1.0,
-    noise_variance: float = 0.001,
-    kernel: Optional[gpflow.kernels.Kernel] = None,
-    ndim: int = 1
-) -> OSGPR_VFE:
+def init_osgpr(X_train: np.ndarray,
+               num_inducing: int = 10,
+               lengthscales: Union[float, np.ndarray] = 1.0,
+               variance: float = 1.0,
+               noise_variance: float = 0.001,
+               kernel: Optional[gpflow.kernels.Kernel] = None,
+               ndim: int = 1) -> OSGPR_VFE:
     """
     Initializes an Online Sparse Variational Gaussian Process Regression (OSGPR_VFE) model.
     This function first fits a standard Sparse Gaussian Process Regression (SGPR) model
@@ -337,33 +363,36 @@ def init_osgpr(
     """
     if kernel is None:
         # If no kernel is provided, initialize a SquaredExponential (RBF) kernel.
-        kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales, 
+        kernel = gpflow.kernels.SquaredExponential(lengthscales=lengthscales,
                                                    variance=variance)
-        
+
     # Create a dummy y_train: SGPR needs labels, but for initialization purposes here,
     # we use zeros as the actual labels will come in through online updates.
     y_train_dummy = np.zeros((len(X_train), ndim), dtype=X_train.dtype)
-    
+
     # Select initial inducing points from X_train using get_inducing_pts utility
     Z_init = get_inducing_pts(X_train, num_inducing)
-    
+
     # Initialize a standard SGPR model. This model helps in getting an initial
     # posterior (mu, Su) for the inducing points (Z_init) under the given kernel
     # and noise variance. This posterior then becomes the 'old' posterior for OSGPR_VFE.
     init_sgpr_model = gpflow.models.SGPR(data=(X_train, y_train_dummy),
-                                    kernel=kernel, 
-                                    inducing_variable=Z_init, 
-                                    noise_variance=noise_variance)
-    
+                                         kernel=kernel,
+                                         inducing_variable=Z_init,
+                                         noise_variance=noise_variance)
+
     # Extract optimized (or initial) inducing points from the SGPR model
     Zopt_np = init_sgpr_model.inducing_variable.Z.numpy()
-    
+
     # Predict the mean (mu) and full covariance (Su) of the latent function
     # at these initial inducing points (Zopt). This represents the 'old' posterior.
-    mu_old_tf, Su_old_tf_full_cov = init_sgpr_model.predict_f(tf.constant(Zopt_np, dtype=X_train.dtype), full_cov=True)
-    
+    mu_old_tf, Su_old_tf_full_cov = init_sgpr_model.predict_f(tf.constant(
+        Zopt_np, dtype=X_train.dtype),
+                                                              full_cov=True)
+
     # Kaa_old: Prior covariance matrix of the old inducing points
-    Kaa_old_tf = init_sgpr_model.kernel(tf.constant(Zopt_np, dtype=X_train.dtype))
+    Kaa_old_tf = init_sgpr_model.kernel(
+        tf.constant(Zopt_np, dtype=X_train.dtype))
 
     # Prepare dummy initial data for OSGPR_VFE. This data will be overwritten
     # by the first actual `update` call.
@@ -373,15 +402,19 @@ def init_osgpr(
     # Initialize the OSGPR_VFE model with the extracted parameters.
     # The `Su_old_tf_full_cov` is expected to be a (1, M, M) tensor for single latent GP,
     # so we extract the (M, M) covariance matrix `Su_old_tf_full_cov[0]`.
-    online_osgpr_model = OSGPR_VFE(data=(tf.constant(dummy_X_online), tf.constant(dummy_y_online)),
-                             kernel=init_sgpr_model.kernel, # Pass the kernel (potentially optimized by SGPR init)
-                             mu_old=mu_old_tf, 
-                             Su_old=Su_old_tf_full_cov[0], 
-                             Kaa_old=Kaa_old_tf,
-                             Z_old=tf.constant(Zopt_np, dtype=X_train.dtype), 
-                             Z=tf.constant(Zopt_np, dtype=X_train.dtype)) # New Z is same as old Z initially
-    
+    online_osgpr_model = OSGPR_VFE(
+        data=(tf.constant(dummy_X_online), tf.constant(dummy_y_online)),
+        kernel=init_sgpr_model.
+        kernel,  # Pass the kernel (potentially optimized by SGPR init)
+        mu_old=mu_old_tf,
+        Su_old=Su_old_tf_full_cov[0],
+        Kaa_old=Kaa_old_tf,
+        Z_old=tf.constant(Zopt_np, dtype=X_train.dtype),
+        Z=tf.constant(Zopt_np,
+                      dtype=X_train.dtype))  # New Z is same as old Z initially
+
     # Assign the noise variance from the initial SGPR model to the OSGPR model's likelihood
-    online_osgpr_model.likelihood.variance.assign(init_sgpr_model.likelihood.variance)
+    online_osgpr_model.likelihood.variance.assign(
+        init_sgpr_model.likelihood.variance)
 
     return online_osgpr_model

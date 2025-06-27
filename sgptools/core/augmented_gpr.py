@@ -13,7 +13,6 @@
 # limitations under the License.
 
 # Original GP code from GPflow library (https://github.com/GPflow/GPflow)
-
 """Provides a Gaussian process model with expand and aggregate functions
 """
 
@@ -24,6 +23,7 @@ import tensorflow as tf
 from gpflow.base import InputData, MeanAndVariance
 from gpflow.utilities import add_likelihood_noise_cov, assert_params_false
 from .transformations import Transform
+
 
 class AugmentedGPR(GPR):
     """GPR model from the GPFlow library augmented to use a transform object's
@@ -39,24 +39,18 @@ class AugmentedGPR(GPR):
         noise_variance (float): data variance
         transform (Transform): Transform object
     """
-    def __init__(
-        self,
-        *args,
-        transform=None,
-        **kwargs
-    ):
-        super().__init__(
-            *args,
-            **kwargs
-        )
+
+    def __init__(self, *args, transform=None, **kwargs):
+        super().__init__(*args, **kwargs)
         if transform is None:
             self.transform = Transform()
         else:
             self.transform = transform
 
     def predict_f(
-        self, Xnew: InputData, 
-        full_cov: bool = True, 
+        self,
+        Xnew: InputData,
+        full_cov: bool = True,
         full_output_cov: bool = False,
         aggregate_train: bool = False,
     ) -> MeanAndVariance:
@@ -84,10 +78,10 @@ class AugmentedGPR(GPR):
             # which can when train and test data are the same size
             if kmn.shape[0] != kmn.shape[1]:
                 kmn = self.transform.aggregate(kmn)
-        
+
         conditional = gpflow.conditionals.base_conditional
         f_mean_zero, f_var = conditional(
-            kmn, kmm_plus_s, knn, err, full_cov=full_cov, white=False
-        )  # [N, P], [N, P] or [P, N, N]
+            kmn, kmm_plus_s, knn, err, full_cov=full_cov,
+            white=False)  # [N, P], [N, P] or [P, N, N]
         f_mean = f_mean_zero + self.mean_function(Xnew)
         return f_mean, f_var

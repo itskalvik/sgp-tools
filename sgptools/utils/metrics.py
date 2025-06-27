@@ -48,10 +48,12 @@ def gaussian_entropy(K: np.ndarray) -> float:
     # Using scipy's multivariate_normal for entropy calculation
     # allow_singular=True to handle cases where the covariance matrix might be singular
     # or near-singular due to numerical issues, preventing errors.
-    return float(multivariate_normal(mean=None, cov=K, allow_singular=True).entropy())
+    return float(
+        multivariate_normal(mean=None, cov=K, allow_singular=True).entropy())
 
 
-def get_mi(Xu: np.ndarray, X_objective: np.ndarray, noise_variance: float, kernel: gpflow.kernels.Kernel) -> float:
+def get_mi(Xu: np.ndarray, X_objective: np.ndarray, noise_variance: float,
+           kernel: gpflow.kernels.Kernel) -> float:
     """
     Computes the Mutual Information (MI) between a set of sensing locations (`Xu`)
     and a set of objective/candidate locations (`X_objective`) using a Gaussian Process model.
@@ -89,13 +91,20 @@ def get_mi(Xu: np.ndarray, X_objective: np.ndarray, noise_variance: float, kerne
     # SLogMI expects tf.Tensor, not np.ndarray for X_objective
     # Assuming SLogMI's init takes np.ndarray for X_objective and converts it
     # If not, convert X_objective here: tf.constant(X_objective, dtype=tf.float64)
-    mi_model = SLogMI(X_objective=X_objective, kernel=kernel, 
-                      noise_variance=noise_variance, jitter=1e-6) # jitter is added to noise_variance in SLogMI
+    mi_model = SLogMI(
+        X_objective=X_objective,
+        kernel=kernel,
+        noise_variance=noise_variance,
+        jitter=1e-6)  # jitter is added to noise_variance in SLogMI
     # SLogMI's __call__ method expects a tf.Tensor for X (Xu in this context)
     return float(mi_model(tf.constant(Xu, dtype=tf.float64)).numpy())
 
 
-def get_elbo(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float, kernel: gpflow.kernels.Kernel, baseline: bool = False) -> float:
+def get_elbo(Xu: np.ndarray,
+             X_env: np.ndarray,
+             noise_variance: float,
+             kernel: gpflow.kernels.Kernel,
+             baseline: bool = False) -> float:
     """
     Computes the Evidence Lower Bound (ELBO) of a Sparse Gaussian Process (SGP) model.
     The ELBO is a lower bound on the marginal likelihood and is commonly used as
@@ -147,21 +156,23 @@ def get_elbo(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float, kernel: g
     if baseline:
         # Create a temporary SGPR model with a single dummy inducing point for baseline
         sgpr_baseline = gpflow.models.SGPR(data=(tf_X_env, y_dummy),
-                                          noise_variance=noise_variance,
-                                          kernel=kernel,
-                                          inducing_variable=tf.constant([[0.0, 0.0]], dtype=tf.float64))
+                                           noise_variance=noise_variance,
+                                           kernel=kernel,
+                                           inducing_variable=tf.constant(
+                                               [[0.0, 0.0]], dtype=tf.float64))
         baseline_value = float(sgpr_baseline.elbo().numpy())
 
     # Create the main SGPR model with the provided inducing points
     sgpr_model = gpflow.models.SGPR(data=(tf_X_env, y_dummy),
-                                   noise_variance=noise_variance,
-                                   kernel=kernel, 
-                                   inducing_variable=tf_Xu)
-    
+                                    noise_variance=noise_variance,
+                                    kernel=kernel,
+                                    inducing_variable=tf_Xu)
+
     return float((sgpr_model.elbo() - baseline_value).numpy())
 
 
-def get_kl(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float, kernel: gpflow.kernels.Kernel) -> float:
+def get_kl(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float,
+           kernel: gpflow.kernels.Kernel) -> float:
     """
     Computes the Kullback-Leibler (KL) divergence between a full Gaussian Process (GP)
     and a Sparse Gaussian Process (SGP) approximation. This KL divergence term is
@@ -199,16 +210,16 @@ def get_kl(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float, kernel: gpf
     y_dummy = tf.zeros((tf_X_env.shape[0], 1), dtype=tf.float64)
 
     sgpr_model = gpflow.models.SGPR(data=(tf_X_env, y_dummy),
-                                   noise_variance=noise_variance,
-                                   kernel=kernel,
-                                   inducing_variable=tf_Xu)
+                                    noise_variance=noise_variance,
+                                    kernel=kernel,
+                                    inducing_variable=tf_Xu)
 
     # Accessing common terms used in ELBO calculation from GPflow's internal methods
     # This involves private methods (_common_calculation), so be aware of potential
     # breaking changes in future GPflow versions.
     common = sgpr_model._common_calculation()
     sigma_sq = common.sigma_sq
-    AAT = common.AAT # AAT = A @ A.T, where A = L⁻¹Kuf/σ
+    AAT = common.AAT  # AAT = A @ A.T, where A = L⁻¹Kuf/σ
 
     # kdiag: diagonal of Kff (prior covariance for all data points)
     kdiag = sgpr_model.kernel(tf_X_env, full_cov=False)
@@ -218,10 +229,10 @@ def get_kl(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float, kernel: gpf
     # trace_q: Tr(Qff) / σ² = Tr(Kuf.T @ Kuu^-1 @ Kuf) / σ²
     # From the ELBO derivation, Tr(Q_N N) / sigma^2 is Tr(AAT)
     trace_q = tf.reduce_sum(tf.linalg.diag_part(AAT))
-    
+
     # KL divergence trace term: 0.5 * Tr(Kff - Qff) / σ²
     trace_term = 0.5 * (trace_k - trace_q)
-    
+
     return float(trace_term.numpy())
 
 
@@ -254,11 +265,9 @@ def get_rmse(y_pred: np.ndarray, y_test: np.ndarray) -> float:
 
 
 def get_reconstruction(
-    sensor_data: Tuple[np.ndarray, np.ndarray], 
-    X_test: np.ndarray, 
-    noise_variance: float, 
-    kernel: gpflow.kernels.Kernel
-) -> Tuple[np.ndarray, np.ndarray]:
+        sensor_data: Tuple[np.ndarray, np.ndarray], X_test: np.ndarray,
+        noise_variance: float,
+        kernel: gpflow.kernels.Kernel) -> Tuple[np.ndarray, np.ndarray]:
     """
     Computes the Gaussian Process (GP)-based reconstruction (mean prediction and variance)
     of a data field. The provided `sensor_data` serves as the training set for the GP model,
@@ -307,10 +316,10 @@ def get_reconstruction(
     gpr = gpflow.models.GPR(data=(Xu_X, Xu_y),
                             noise_variance=noise_variance,
                             kernel=kernel)
-    
+
     # Predict the mean and variance at the test locations
     y_pred_tf, y_var_tf = gpr.predict_f(X_test)
-    
+
     # Convert TensorFlow tensors to NumPy arrays and reshape
     y_pred = y_pred_tf.numpy().reshape(-1, 1)
     y_var = y_var_tf.numpy().reshape(-1, 1)
@@ -348,12 +357,12 @@ def get_distance(X: np.ndarray) -> float:
         ```
     """
     if X.shape[0] < 2:
-        return 0.0 # A path needs at least two points to have a length
-    
+        return 0.0  # A path needs at least two points to have a length
+
     # Compute Euclidean distance (L2-norm) between consecutive points
     # `X[1:] - X[:-1]` calculates the vector differences between adjacent waypoints
     dist_segments = np.linalg.norm(X[1:] - X[:-1], axis=-1)
-    
+
     # Sum the lengths of all segments to get the total path length
     total_distance = np.sum(dist_segments)
     return float(total_distance)
@@ -395,7 +404,9 @@ def get_smse(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
         ```
     """
     if np.any(var <= 0):
-        raise ValueError("Predicted variance (var) must be strictly positive for SMSE calculation.")
+        raise ValueError(
+            "Predicted variance (var) must be strictly positive for SMSE calculation."
+        )
 
     error = y_pred - y_test
     # Element-wise division by variance
@@ -441,11 +452,14 @@ def get_nlpd(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
         ```
     """
     if np.any(var <= 0):
-        raise ValueError("Predicted variance (var) must be strictly positive for NLPD calculation.")
+        raise ValueError(
+            "Predicted variance (var) must be strictly positive for NLPD calculation."
+        )
 
     error = y_pred - y_test
     # Calculate NLPD terms for each point
-    nlpd_terms = 0.5 * np.log(2 * np.pi) + 0.5 * np.log(var) + 0.5 * np.square(error) / var
-    
+    nlpd_terms = 0.5 * np.log(
+        2 * np.pi) + 0.5 * np.log(var) + 0.5 * np.square(error) / var
+
     # Return the mean NLPD across all points
     return float(np.mean(nlpd_terms))

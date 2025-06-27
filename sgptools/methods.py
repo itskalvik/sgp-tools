@@ -12,7 +12,7 @@ from sgptools.utils.misc import cont2disc, get_inducing_pts
 from sgptools.objectives import get_objective
 from sgptools.utils.gpflow import optimize_model
 from sgptools.core.augmented_sgpr import AugmentedSGPR
-from sgptools.core.transformations import Transform # Import Transform for type hinting
+from sgptools.core.transformations import Transform  # Import Transform for type hinting
 
 
 class Base:
@@ -30,6 +30,7 @@ class Base:
         X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
         num_dim (int): Dimensionality of the sensing locations.
     """
+
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -75,7 +76,8 @@ class Base:
         """
         raise NotImplementedError
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the underlying model/objective.
 
@@ -87,7 +89,7 @@ class Base:
             NotImplementedError: This method must be implemented by subclasses.
         """
         raise NotImplementedError
-    
+
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
         Retrieves the current kernel and noise variance hyperparameters.
@@ -118,6 +120,7 @@ class BayesianOpt(Base):
         transform (Optional[Transform]): Transform object applied to inducing points.
         pbounds (Dict[str, Tuple[float, float]]): Dictionary defining the search space bounds.
     """
+
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -146,27 +149,27 @@ class BayesianOpt(Base):
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
         self.transform = transform
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(X_objective,
-                                                      kernel,
-                                                      noise_variance,
-                                                      **kwargs)
+            self.objective = get_objective(objective)(X_objective, kernel,
+                                                      noise_variance, **kwargs)
         else:
             self.objective = objective
 
         # Use the boundaries of the X_objective area as the search space limits
         pbounds_dims: List[Tuple[float, float]] = []
         for i in range(self.num_dim):
-            pbounds_dims.append((np.min(X_objective[:, i]), 
-                                 np.max(X_objective[:, i])))
+            pbounds_dims.append(
+                (np.min(X_objective[:, i]), np.max(X_objective[:, i])))
         self.pbounds: Dict[str, Tuple[float, float]] = {}
         for i in range(self.num_dim * self.num_sensing * self.num_robots):
             self.pbounds[f'x{i}'] = pbounds_dims[i % self.num_dim]
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the objective function.
 
@@ -185,9 +188,9 @@ class BayesianOpt(Base):
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
-    
-    def optimize(self, 
-                 max_steps: int = 50,  
+
+    def optimize(self,
+                 max_steps: int = 50,
                  init_points: int = 10,
                  verbose: bool = False,
                  seed: Optional[int] = None,
@@ -225,21 +228,20 @@ class BayesianOpt(Base):
                                          verbose=verbose,
                                          random_state=seed,
                                          allow_duplicate_points=True)
-        optimizer.maximize(init_points=init_points,
-                           n_iter=max_steps)
+        optimizer.maximize(init_points=init_points, n_iter=max_steps)
 
         sol: List[float] = []
         for i in range(self.num_dim * self.num_sensing * self.num_robots):
             sol.append(optimizer.max['params'][f'x{i}'])
-        
+
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
             try:
                 sol_np = self.transform.expand(sol_np,
-                                            expand_sensor_model=False)
+                                               expand_sensor_model=False)
             except TypeError:
                 pass
-            
+
             if not isinstance(sol_np, np.ndarray):
                 sol_np = sol_np.numpy()
 
@@ -249,7 +251,7 @@ class BayesianOpt(Base):
 
         sol_np = sol_np.reshape(self.num_robots, -1, self.num_dim)
         return sol_np
-    
+
     def _objective(self, **kwargs: float) -> float:
         """
         Internal objective function to be maximized by the Bayesian Optimization.
@@ -274,11 +276,11 @@ class BayesianOpt(Base):
         if self.transform is not None:
             X_expanded = self.transform.expand(X)
             constraint_penality = self.transform.constraints(X)
-            reward = self.objective(X_expanded) # maximize
+            reward = self.objective(X_expanded)  # maximize
         else:
-            reward = self.objective(X) # maximize
-        
-        reward += constraint_penality # minimize (large negative value when constraint is unsatisfied)
+            reward = self.objective(X)  # maximize
+
+        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
         return reward.numpy()
 
 
@@ -297,6 +299,7 @@ class CMA(Base):
         X_init (np.ndarray): Initial solution guess for the optimization.
         pbounds (geometry.MultiPoint): The convex hull of the objective area, used implicitly for bounds.
     """
+
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -328,29 +331,30 @@ class CMA(Base):
                                             If None, initial points are randomly selected from X_objective.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
         self.transform = transform
         if X_init is None:
-            X_init = get_inducing_pts(X_objective, 
+            X_init = get_inducing_pts(X_objective,
                                       num_sensing * self.num_robots)
         else:
             # override num_dim with initial inducing points dim, in case it differes from X_objective dim
             self.num_dim = X_init.shape[-1]
-            
-        self.X_init: np.ndarray = X_init.reshape(-1) # Flattened initial guess
+
+        self.X_init: np.ndarray = X_init.reshape(-1)  # Flattened initial guess
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(X_objective,
-                                                      kernel,
-                                                      noise_variance,
-                                                      **kwargs)
+            self.objective = get_objective(objective)(X_objective, kernel,
+                                                      noise_variance, **kwargs)
         else:
             self.objective = objective
 
         # Use the boundaries of the X_objective area as the search space limits
-        self.pbounds = geometry.MultiPoint([[p[0], p[1]] for p in X_objective]).convex_hull
+        self.pbounds = geometry.MultiPoint([[p[0], p[1]]
+                                            for p in X_objective]).convex_hull
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the objective function.
 
@@ -369,9 +373,9 @@ class CMA(Base):
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
-    
-    def optimize(self, 
-                 max_steps: int = 500,  
+
+    def optimize(self,
+                 max_steps: int = 500,
                  tol: float = 1e-6,
                  verbose: bool = False,
                  seed: Optional[int] = None,
@@ -407,13 +411,17 @@ class CMA(Base):
         """
         sigma0 = 1.0
         verbose = 1 if verbose else 0
-        sol, _ = cma.fmin2(self._objective, self.X_init, sigma0, 
-                           options={'maxfevals': max_steps,
-                                    'verb_disp': verbose,
-                                    'tolfun': tol,
-                                    'seed': seed},
+        sol, _ = cma.fmin2(self._objective,
+                           self.X_init,
+                           sigma0,
+                           options={
+                               'maxfevals': max_steps,
+                               'verb_disp': verbose,
+                               'tolfun': tol,
+                               'seed': seed
+                           },
                            restarts=restarts)
-        
+
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
             try:
@@ -430,7 +438,7 @@ class CMA(Base):
 
         sol_np = sol_np.reshape(self.num_robots, -1, self.num_dim)
         return sol_np
-    
+
     def _objective(self, X: np.ndarray) -> float:
         """
         Internal objective function to be minimized by CMA-ES.
@@ -452,13 +460,13 @@ class CMA(Base):
         if self.transform is not None:
             X_expanded = self.transform.expand(X_reshaped)
             constraint_penality = self.transform.constraints(X_reshaped)
-            reward = self.objective(X_expanded) # maximize
+            reward = self.objective(X_expanded)  # maximize
         else:
-            reward = self.objective(X_reshaped) # maximize
-        
-        reward += constraint_penality # minimize (large negative value when constraint is unsatisfied)
-        return -reward.numpy() # Return negative as CMA-ES minimizes
-    
+            reward = self.objective(X_reshaped)  # maximize
+
+        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
+        return -reward.numpy()  # Return negative as CMA-ES minimizes
+
     def update_transform(self, transform: Transform) -> None:
         """
         Updates the transform object used by the CMA-ES optimizer.
@@ -491,6 +499,7 @@ class ContinuousSGP(Base):
     Attributes:
         sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.
     """
+
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -501,7 +510,7 @@ class ContinuousSGP(Base):
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
                  X_init: Optional[np.ndarray] = None,
-                 X_time: Optional[np.ndarray] = None, 
+                 X_time: Optional[np.ndarray] = None,
                  orientation: bool = False,
                  **kwargs: Any):
         """
@@ -525,9 +534,10 @@ class ContinuousSGP(Base):
                                 when selecting initial inducing points. Defaults to False.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
         if X_init is None:
-            X_init = get_inducing_pts(X_objective, 
+            X_init = get_inducing_pts(X_objective,
                                       num_sensing * self.num_robots,
                                       orientation=orientation)
         else:
@@ -536,16 +546,20 @@ class ContinuousSGP(Base):
 
         # Fit the SGP
         dtype = X_objective.dtype
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=dtype), 
-                                                  tf.zeros((len(X_objective), 1), dtype=dtype))
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective,
+                                                              dtype=dtype),
+                                                  tf.zeros(
+                                                      (len(X_objective), 1),
+                                                      dtype=dtype))
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
-                                  kernel=kernel, 
+                                  kernel=kernel,
                                   inducing_variable=X_init,
                                   inducing_variable_time=X_time,
                                   transform=transform)
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the SGP model.
 
@@ -564,10 +578,10 @@ class ContinuousSGP(Base):
         """
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
-    
-    def optimize(self, 
-                 max_steps: int = 500, 
-                 optimizer: str = 'scipy.L-BFGS-B', 
+
+    def optimize(self,
+                 max_steps: int = 500,
+                 optimizer: str = 'scipy.L-BFGS-B',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
         """
@@ -597,13 +611,15 @@ class ContinuousSGP(Base):
             optimized_solution = csgp_method.optimize(max_steps=500, optimizer='scipy.L-BFGS-B')
             ```
         """
-        _ = optimize_model(self.sgpr,
-                           max_steps=max_steps,
-                           optimize_hparams=False, # Inducing points are optimized, not kernel hyperparameters
-                           optimizer=optimizer, 
-                           verbose=verbose,
-                           **kwargs)
-        
+        _ = optimize_model(
+            self.sgpr,
+            max_steps=max_steps,
+            optimize_hparams=
+            False,  # Inducing points are optimized, not kernel hyperparameters
+            optimizer=optimizer,
+            verbose=verbose,
+            **kwargs)
+
         sol: tf.Tensor = self.sgpr.inducing_variable.Z
         try:
             sol_expanded = self.transform.expand(sol,
@@ -631,7 +647,7 @@ class ContinuousSGP(Base):
             Transform: The transform object.
         """
         return self.sgpr.transform
-    
+
 
 class GreedyObjective(Base):
     """
@@ -648,17 +664,18 @@ class GreedyObjective(Base):
         objective (object): The objective function to be maximized (e.g., Mutual Information).
         transform (Optional[Transform]): Transform object applied to selected locations.
     """
-    def  __init__(self,
-                  num_sensing: int,
-                  X_objective: np.ndarray,
-                  kernel: gpflow.kernels.Kernel,
-                  noise_variance: float,
-                  transform: Optional[Transform] = None,
-                  num_robots: int = 1,
-                  X_candidates: Optional[np.ndarray] = None,
-                  num_dim: Optional[int] = None,
-                  objective: Union[str, Any] = 'SLogMI',
-                  **kwargs: Any):
+
+    def __init__(self,
+                 num_sensing: int,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 transform: Optional[Transform] = None,
+                 num_robots: int = 1,
+                 X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
+                 objective: Union[str, Any] = 'SLogMI',
+                 **kwargs: Any):
         """
         Initializes the GreedyObjective optimizer.
 
@@ -676,16 +693,17 @@ class GreedyObjective(Base):
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
         self.X_objective = X_objective
         if X_candidates is None:
-            self.X_candidates = X_objective # Default candidates to objective points
+            self.X_candidates = X_objective  # Default candidates to objective points
 
         if transform is not None:
             try:
-                num_robots_transform = transform.num_robots 
+                num_robots_transform = transform.num_robots
             except AttributeError:
-                num_robots_transform = 1 # Assume single robot if num_robots not defined in transform
+                num_robots_transform = 1  # Assume single robot if num_robots not defined in transform
             error = f"num_robots is not equal in transform: {num_robots_transform} and GreedyObjective: {self.num_robots}"
             assert self.num_robots == num_robots_transform, error
 
@@ -695,14 +713,13 @@ class GreedyObjective(Base):
         self.transform = transform
 
         if isinstance(objective, str):
-            self.objective = get_objective(objective)(X_objective,
-                                                      kernel,
-                                                      noise_variance,
-                                                      **kwargs)
+            self.objective = get_objective(objective)(X_objective, kernel,
+                                                      noise_variance, **kwargs)
         else:
             self.objective = objective
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the objective function.
 
@@ -721,8 +738,8 @@ class GreedyObjective(Base):
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
-    
-    def optimize(self, 
+
+    def optimize(self,
                  optimizer: str = 'naive',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
@@ -754,22 +771,24 @@ class GreedyObjective(Base):
                                 self._objective,
                                 optimizer=optimizer,
                                 verbose=verbose)
-        
+
         # apricot's CustomSelection expects indices, so pass a dummy array of indices
-        sol_indices = model.fit_transform(np.arange(len(self.X_candidates)).reshape(-1, 1))
+        sol_indices = model.fit_transform(
+            np.arange(len(self.X_candidates)).reshape(-1, 1))
         sol_indices = np.array(sol_indices).reshape(-1).astype(int)
         sol_locations = self.X_candidates[sol_indices]
-        
+
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
         if self.transform is not None:
             try:
-                sol_locations = self.transform.expand(sol_locations,
-                                                      expand_sensor_model=False)
+                sol_locations = self.transform.expand(
+                    sol_locations, expand_sensor_model=False)
             except TypeError:
                 pass
             if not isinstance(sol_locations, np.ndarray):
                 sol_locations = sol_locations.numpy()
-        sol_locations = sol_locations.reshape(self.num_robots, -1, self.num_dim)
+        sol_locations = sol_locations.reshape(self.num_robots, -1,
+                                              self.num_dim)
         return sol_locations
 
     def _objective(self, X_indices: np.ndarray) -> float:
@@ -788,19 +807,20 @@ class GreedyObjective(Base):
         """
         # Map solution location indices to locations
         X_indices_flat = np.array(X_indices).reshape(-1).astype(int)
-        X_locations = self.X_objective[X_indices_flat].reshape(-1, self.num_dim)
-        
+        X_locations = self.X_objective[X_indices_flat].reshape(
+            -1, self.num_dim)
+
         constraint_penality: float = 0.0
         if self.transform is not None:
             X_expanded = self.transform.expand(X_locations)
             constraint_penality = self.transform.constraints(X_locations)
-            reward = self.objective(X_expanded) # maximize
+            reward = self.objective(X_expanded)  # maximize
         else:
-            reward = self.objective(X_locations) # maximize
-        
-        reward -= constraint_penality # minimize
+            reward = self.objective(X_locations)  # maximize
+
+        reward -= constraint_penality  # minimize
         return reward.numpy()
-        
+
 
 class GreedySGP(Base):
     """
@@ -815,16 +835,17 @@ class GreedySGP(Base):
     Attributes:
         sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.
     """
-    def  __init__(self,
-                  num_sensing: int,
-                  X_objective: np.ndarray,
-                  kernel: gpflow.kernels.Kernel,
-                  noise_variance: float,
-                  transform: Optional[Transform] = None,
-                  num_robots: int = 1,
-                  X_candidates: Optional[np.ndarray] = None,
-                  num_dim: Optional[int] = None,
-                  **kwargs: Any):
+
+    def __init__(self,
+                 num_sensing: int,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 transform: Optional[Transform] = None,
+                 num_robots: int = 1,
+                 X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
+                 **kwargs: Any):
         """
         Initializes the GreedySGP optimizer.
 
@@ -840,16 +861,17 @@ class GreedySGP(Base):
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
             **kwargs: Additional keyword arguments.
         """
-        super().__init__(num_sensing, X_objective, kernel, noise_variance, transform, num_robots, X_candidates, num_dim)
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
         self.X_objective = X_objective
         if X_candidates is None:
-            self.X_candidates = X_objective # Default candidates to objective points
-            
+            self.X_candidates = X_objective  # Default candidates to objective points
+
         if transform is not None:
             try:
-                num_robots_transform = transform.num_robots 
+                num_robots_transform = transform.num_robots
             except AttributeError:
-                num_robots_transform = 1 # Assume single robot if num_robots not defined in transform
+                num_robots_transform = 1  # Assume single robot if num_robots not defined in transform
             error = f"num_robots is not equal in transform: {num_robots_transform} and GreedySGP: {self.num_robots}"
             assert self.num_robots == num_robots_transform, error
 
@@ -858,18 +880,21 @@ class GreedySGP(Base):
 
         # Fit the SGP
         dtype = X_objective.dtype
-        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective, dtype=dtype), 
-                                                  tf.zeros((len(X_objective), 1), dtype=dtype))
+        train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective,
+                                                              dtype=dtype),
+                                                  tf.zeros(
+                                                      (len(X_objective), 1),
+                                                      dtype=dtype))
 
-        X_init = get_inducing_pts(X_objective, 
-                                  num_sensing)
+        X_init = get_inducing_pts(X_objective, num_sensing)
         self.sgpr = AugmentedSGPR(train_set,
                                   noise_variance=noise_variance,
-                                  kernel=kernel, 
+                                  kernel=kernel,
                                   inducing_variable=X_init,
                                   transform=transform)
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters of the SGP model.
 
@@ -889,7 +914,7 @@ class GreedySGP(Base):
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
 
-    def optimize(self, 
+    def optimize(self,
                  optimizer: str = 'naive',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
@@ -921,23 +946,24 @@ class GreedySGP(Base):
                                 self._objective,
                                 optimizer=optimizer,
                                 verbose=verbose)
-        
+
         # apricot's CustomSelection expects indices, so pass a dummy array of indices
-        sol_indices = model.fit_transform(np.arange(len(self.X_candidates)).reshape(-1, 1))
+        sol_indices = model.fit_transform(
+            np.arange(len(self.X_candidates)).reshape(-1, 1))
         sol_indices = np.array(sol_indices).reshape(-1).astype(int)
         sol_locations = self.X_candidates[sol_indices]
-        
+
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
         try:
             sol_expanded = self.transform.expand(sol_locations,
-                                                    expand_sensor_model=False)
+                                                 expand_sensor_model=False)
         except AttributeError:
             sol_expanded = sol_locations
         if not isinstance(sol_expanded, np.ndarray):
             sol_np = sol_expanded.numpy()
         else:
             sol_np = sol_expanded
-        
+
         sol_np = sol_np.reshape(self.num_robots, -1, self.num_dim)
         return sol_np
 
@@ -957,22 +983,22 @@ class GreedySGP(Base):
         """
         # Map solution location indices to locations
         # Since SGP requires num_sensing points,
-        # pad the current greedy solution with the 
+        # pad the current greedy solution with the
         # first location in the solution (or zeros if no points selected yet)
         X_indices_flat = np.array(X_indices).reshape(-1).astype(int)
         num_pad = self.num_sensing - len(X_indices_flat)
-        
+
         # Ensure that if X_indices_flat is empty, we still create a valid padding array
         if len(X_indices_flat) == 0 and num_pad > 0:
             X_pad = np.zeros(num_pad, dtype=int)
         elif len(X_indices_flat) > 0 and num_pad > 0:
             X_pad = np.full(num_pad, X_indices_flat[0], dtype=int)
-        else: # num_pad is 0 or negative
+        else:  # num_pad is 0 or negative
             X_pad = np.array([], dtype=int)
 
-
         X_combined_indices = np.concatenate([X_indices_flat, X_pad])
-        X_locations = self.X_objective[X_combined_indices].reshape(-1, self.num_dim)
+        X_locations = self.X_objective[X_combined_indices].reshape(
+            -1, self.num_dim)
 
         # Update the SGP inducing points
         self.sgpr.inducing_variable.Z.assign(X_locations)
@@ -996,6 +1022,7 @@ METHODS: Dict[str, Type[Base]] = {
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,
 }
+
 
 def get_method(method: str) -> Type[Base]:
     """

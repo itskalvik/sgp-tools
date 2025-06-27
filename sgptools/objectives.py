@@ -36,7 +36,9 @@ class Objective:
     Base class for objective functions used in optimization.
     Subclasses must implement the `__call__` method to define the objective.
     """
-    def __init__(self, X_objective: np.ndarray, kernel: gpflow.kernels.Kernel, noise_variance: float, **kwargs: Any):
+
+    def __init__(self, X_objective: np.ndarray, kernel: gpflow.kernels.Kernel,
+                 noise_variance: float, **kwargs: Any):
         """
         Initializes the base objective. This constructor primarily serves to define
         the expected parameters for all objective subclasses.
@@ -68,7 +70,8 @@ class Objective:
         """
         raise NotImplementedError
 
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance parameters used by the objective function.
         This method should be overridden by subclasses if they maintain internal state
@@ -91,7 +94,11 @@ class MI(Objective):
 
     Jitter is added to the diagonal of the covariance matrices to ensure numerical stability.
     """
-    def __init__(self, X_objective: np.ndarray, kernel: gpflow.kernels.Kernel, noise_variance: float, 
+
+    def __init__(self,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
                  jitter: float = 1e-6,
                  **kwargs: Any):
         """
@@ -112,7 +119,8 @@ class MI(Objective):
         self.noise_variance = noise_variance
         # Total jitter includes the noise variance
         self._base_jitter = jitter
-        self.jitter_fn = lambda cov: jitter_fn(cov, jitter=self._base_jitter + self.noise_variance)
+        self.jitter_fn = lambda cov: jitter_fn(
+            cov, jitter=self._base_jitter + self.noise_variance)
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -148,16 +156,19 @@ class MI(Objective):
         K_combined = self.kernel(tf.concat([self.X_objective, X], axis=0))
 
         # Compute log determinants
-        logdet_K_obj_obj = tf.math.log(tf.linalg.det(self.jitter_fn(K_obj_obj)))
+        logdet_K_obj_obj = tf.math.log(tf.linalg.det(
+            self.jitter_fn(K_obj_obj)))
         logdet_K_X_X = tf.math.log(tf.linalg.det(self.jitter_fn(K_X_X)))
-        logdet_K_combined = tf.math.log(tf.linalg.det(self.jitter_fn(K_combined)))
+        logdet_K_combined = tf.math.log(
+            tf.linalg.det(self.jitter_fn(K_combined)))
 
         # MI formula
         mi = logdet_K_obj_obj + logdet_K_X_X - logdet_K_combined
 
         return mi
-    
-    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float) -> None:
+
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
         """
         Updates the kernel and noise variance for the MI objective.
         This method is crucial for optimizing the GP hyperparameters externally
@@ -168,15 +179,16 @@ class MI(Objective):
             noise_variance (float): The updated data noise variance.
         """
         # Update kernel's trainable variables (e.g., lengthscales, variance)
-        for self_var, var in zip(self.kernel.trainable_variables, 
+        for self_var, var in zip(self.kernel.trainable_variables,
                                  kernel.trainable_variables):
             self_var.assign(var)
 
         self.noise_variance = noise_variance
         # Update the jitter function to reflect the new noise variance
-        self.jitter_fn = lambda cov: jitter_fn(cov, jitter=self._base_jitter + self.noise_variance)
-        
-        
+        self.jitter_fn = lambda cov: jitter_fn(
+            cov, jitter=self._base_jitter + self.noise_variance)
+
+
 class SLogMI(MI):
     """
     Computes the Mutual Information (MI) using `tf.linalg.slogdet` for numerical stability,
@@ -190,6 +202,7 @@ class SLogMI(MI):
 
     Jitter is also added to the diagonal for additional numerical stability.
     """
+
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
         Computes the Mutual Information for the given input points `X` using `tf.linalg.slogdet`.
@@ -232,12 +245,13 @@ class SLogMI(MI):
         mi = logdet_K_obj_obj + logdet_K_X_X - logdet_K_combined
 
         return mi
-    
+
 
 OBJECTIVES: Dict[str, Type[Objective]] = {
-	'MI' : MI,
-	'SLogMI' : SLogMI,
+    'MI': MI,
+    'SLogMI': SLogMI,
 }
+
 
 def get_objective(objective_name: str) -> Type[Objective]:
     """
@@ -261,4 +275,3 @@ def get_objective(objective_name: str) -> Type[Objective]:
         ```
     """
     return OBJECTIVES[objective_name]
-

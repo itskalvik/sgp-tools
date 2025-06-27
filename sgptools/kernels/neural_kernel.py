@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Provides a neural spectral kernel function along with an initialization function
 """
 
@@ -23,6 +22,7 @@ import gpflow
 from gpflow.config import default_jitter, default_float
 from gpflow.models import SGPR
 from gpflow.models.util import data_input_to_tensor
+
 float_type = default_float()
 
 from .neural_network import NN
@@ -49,7 +49,12 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
         length (List[NN]): List of MLPs, one for each component, predicting lengthscales.
         var (List[NN]): List of MLPs, one for each component, predicting variances.
     """
-    def __init__(self, input_dim: int, active_dims: Optional[List[int]] = None, Q: int = 1, hidden_sizes: List[int] = None):
+
+    def __init__(self,
+                 input_dim: int,
+                 active_dims: Optional[List[int]] = None,
+                 Q: int = 1,
+                 hidden_sizes: List[int] = None):
         """
         Initializes the Neural Spectral Kernel.
 
@@ -82,7 +87,7 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
         super().__init__(active_dims=active_dims)
 
         if hidden_sizes is None:
-            hidden_sizes = [32, 32] # Default if not provided
+            hidden_sizes = [32, 32]  # Default if not provided
         else:
             hidden_sizes = list(hidden_sizes)
 
@@ -99,16 +104,19 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
         for q in range(self.Q):
             # MLP for frequency: maps input_dim -> hidden_sizes -> input_dim
             # Output activation 'softplus' ensures positive frequencies.
-            freq_nn = NN([input_dim] + hidden_sizes + [input_dim], output_activation_fn='softplus')
-            
+            freq_nn = NN([input_dim] + hidden_sizes + [input_dim],
+                         output_activation_fn='softplus')
+
             # MLP for lengthscale: maps input_dim -> hidden_sizes -> input_dim
             # Output activation 'softplus' ensures positive lengthscales.
-            length_nn = NN([input_dim] + hidden_sizes + [input_dim], output_activation_fn='softplus')
-            
+            length_nn = NN([input_dim] + hidden_sizes + [input_dim],
+                           output_activation_fn='softplus')
+
             # MLP for variance: maps input_dim -> hidden_sizes -> 1 (scalar variance)
             # Output activation 'softplus' ensures positive variances.
-            var_nn = NN([input_dim] + hidden_sizes + [1], output_activation_fn='softplus')
-            
+            var_nn = NN([input_dim] + hidden_sizes + [1],
+                        output_activation_fn='softplus')
+
             self.freq.append(freq_nn)
             self.length.append(length_nn)
             self.var.append(var_nn)
@@ -137,57 +145,63 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
         """
         if X2 is None:
             X2_internal = X
-            equal = True # Flag to add jitter to diagonal for K(X,X)
+            equal = True  # Flag to add jitter to diagonal for K(X,X)
         else:
             X2_internal = X2
             equal = False
 
-        kern = tf.constant(0.0, dtype=float_type) # Initialize kernel sum
+        kern = tf.constant(0.0, dtype=float_type)  # Initialize kernel sum
 
         for q in range(self.Q):
             # Compute latent function values (frequencies, lengthscales, variances)
             # by passing input locations through the MLPs.
-            freq_X, freq_X2 = self.freq[q](X), self.freq[q](X2_internal) # (N, D) frequencies
-            lens_X, lens_X2 = self.length[q](X), self.length[q](X2_internal) # (N, D) lengthscales
-            var_X, var_X2 = self.var[q](X), self.var[q](X2_internal) # (N, 1) variances
+            freq_X, freq_X2 = self.freq[q](X), self.freq[q](
+                X2_internal)  # (N, D) frequencies
+            lens_X, lens_X2 = self.length[q](X), self.length[q](
+                X2_internal)  # (N, D) lengthscales
+            var_X, var_X2 = self.var[q](X), self.var[q](
+                X2_internal)  # (N, 1) variances
 
             # Compute length-scale term (E) - based on inverse lengthscales and distances
             Xr = tf.expand_dims(X, 1)  # (N1, 1, D)
             X2r = tf.expand_dims(X2_internal, 0)  # (1, N2, D)
             l1 = tf.expand_dims(lens_X, 1)  # (N1, 1, D)
             l2 = tf.expand_dims(lens_X2, 0)  # (1, N2, D)
-            
-            L = tf.square(l1) + tf.square(l2)  # (N1, N2, D) - sum of squared lengthscales
-            
+
+            L = tf.square(l1) + tf.square(
+                l2)  # (N1, N2, D) - sum of squared lengthscales
+
             # D term: Squared difference scaled by L, summed over dimensions
             D_term = tf.square(Xr - X2r) / L  # (N1, N2, D)
             D_term = tf.reduce_sum(D_term, 2)  # (N1, N2) - sum over dimensions
-            
+
             # Determinant term: Product over dimensions of (2 * l1 * l2 / L)^(1/2)
             det_term = tf.sqrt(2 * l1 * l2 / L)  # (N1, N2, D)
-            det_term = tf.reduce_prod(det_term, 2)  # (N1, N2) - product over dimensions
-            
+            det_term = tf.reduce_prod(det_term,
+                                      2)  # (N1, N2) - product over dimensions
+
             # E term: Combine determinant and exponential of D_term
             E = det_term * tf.exp(-D_term)  # (N1, N2)
 
             # Compute cosine term (COS) - based on frequencies and dot products with X
             # (N1, D) * (N1, D) -> sum over D -> (N1, 1)
-            muX = (tf.reduce_sum(freq_X * X, 1, keepdims=True)
-                   - tf.transpose(tf.reduce_sum(freq_X2 * X2_internal, 1, keepdims=True)))
-            COS = tf.cos(2 * np.pi * muX) # (N1, N2)
+            muX = (tf.reduce_sum(freq_X * X, 1, keepdims=True) - tf.transpose(
+                tf.reduce_sum(freq_X2 * X2_internal, 1, keepdims=True)))
+            COS = tf.cos(2 * np.pi * muX)  # (N1, N2)
 
             # Compute kernel variance term (WW) - outer product of variance predictions
-            WW = tf.matmul(var_X, var_X2, transpose_b=True)  # (N1, 1) @ (1, N2) -> (N1, N2)
+            WW = tf.matmul(var_X, var_X2,
+                           transpose_b=True)  # (N1, 1) @ (1, N2) -> (N1, N2)
 
             # Compute the q'th kernel component and add to total kernel
             kern += WW * E * COS
-        
+
         # Add jitter to the diagonal for K(X,X) matrices for numerical stability
         if equal:
             return robust_kernel(kern, tf.shape(X)[0])
         else:
             return kern
-        
+
     @tf.autograph.experimental.do_not_convert
     def K_diag(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -201,11 +215,12 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
             tf.Tensor: (N,); A 1D tensor representing the diagonal elements of the
                         covariance matrix.
         """
-        kd = default_jitter() # Initialize with a small jitter
+        kd = default_jitter()  # Initialize with a small jitter
         for q in range(self.Q):
             # Sum of squared variance predictions from each MLP component
             kd += tf.square(self.var[q](X))
-        return tf.squeeze(kd) # Remove singleton dimension (e.g., (N, 1) -> (N,))
+        return tf.squeeze(
+            kd)  # Remove singleton dimension (e.g., (N, 1) -> (N,))
 
 
 # --- Helper functions ---
@@ -224,19 +239,17 @@ def robust_kernel(kern: tf.Tensor, shape_X_0: tf.Tensor) -> tf.Tensor:
     Returns:
         tf.Tensor: The covariance matrix with jitter added to its diagonal.
     """
-    jitter_val = 1e-3 # Fixed jitter value
+    jitter_val = 1e-3  # Fixed jitter value
     # Add jitter to the diagonal of the kernel matrix
     return kern + jitter_val * tf.eye(shape_X_0, dtype=float_type)
 
 
-def init_neural_kernel(
-    X_train: np.ndarray,
-    Y_train: np.ndarray,
-    inducing_variable: np.ndarray,
-    Q: int,
-    n_inits: int = 1,
-    hidden_sizes: Optional[List[int]] = None
-) -> SGPR:
+def init_neural_kernel(X_train: np.ndarray,
+                       Y_train: np.ndarray,
+                       inducing_variable: np.ndarray,
+                       Q: int,
+                       n_inits: int = 1,
+                       hidden_sizes: Optional[List[int]] = None) -> SGPR:
     """
     Helper function to initialize a Sparse Gaussian Process Regression (SGPR) model
     with a Neural Spectral Kernel. This function can perform multiple random
@@ -296,29 +309,25 @@ def init_neural_kernel(
     # Convert NumPy arrays to TensorFlow tensors
     X_train_tf, Y_train_tf = data_input_to_tensor((X_train, Y_train))
 
-    best_loglik = -np.inf # Track the best ELBO found
-    best_m: Optional[SGPR] = None # Store the best model
+    best_loglik = -np.inf  # Track the best ELBO found
+    best_m: Optional[SGPR] = None  # Store the best model
 
-    N, input_dim = X_train_tf.shape # Get number of data points and input dimensionality
+    N, input_dim = X_train_tf.shape  # Get number of data points and input dimensionality
 
     for k_init_idx in range(n_inits):
         # Create a new NeuralSpectralKernel instance for each initialization
-        current_kernel = NeuralSpectralKernel(
-            input_dim=input_dim,
-            Q=Q,
-            hidden_sizes=hidden_sizes
-        )
-        
+        current_kernel = NeuralSpectralKernel(input_dim=input_dim,
+                                              Q=Q,
+                                              hidden_sizes=hidden_sizes)
+
         # Create an SGPR model with the current kernel initialization
-        model = SGPR(
-            data=(X_train_tf, Y_train_tf),
-            inducing_variable=inducing_variable,
-            kernel=current_kernel
-        )
-        
+        model = SGPR(data=(X_train_tf, Y_train_tf),
+                     inducing_variable=inducing_variable,
+                     kernel=current_kernel)
+
         # Compute the initial ELBO (Evidence Lower Bound)
         loglik = model.elbo()
-        
+
         # Check if the current initialization is better than previous ones
         if loglik > best_loglik:
             best_loglik = loglik
@@ -326,8 +335,8 @@ def init_neural_kernel(
             # This requires gpflow.utilities.traversal.deepcopy or similar for GPflow models
             # For simplicity, we directly assign here, assuming shallow copy is sufficient
             # or that the user will optimize it later. For robust best model saving, a deepcopy is safer.
-            best_m = model 
-        
+            best_m = model
+
         # Explicitly delete the model and run garbage collection to free memory
         # (important if n_inits is large and models are complex)
         del model

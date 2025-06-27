@@ -55,8 +55,8 @@ def run_tsp(
     if depth > 5:
         print('Warning: Max depth reached')
         return None, None
-           
-    # Backup original nodes 
+
+    # Backup original nodes
     original_nodes = np.copy(nodes)
 
     # Add the start and end nodes to the node list
@@ -71,27 +71,27 @@ def run_tsp(
 
     # Add dummy 0 location to get arbitrary start and end node sols
     if start_nodes is None or end_nodes is None:
-        distance_mat = np.zeros((len(nodes)+1, len(nodes)+1))
-        distance_mat[1:, 1:] = pairwise_distances(nodes, nodes)*1e4
-        trim_paths = True #shift to account for dummy node
+        distance_mat = np.zeros((len(nodes) + 1, len(nodes) + 1))
+        distance_mat[1:, 1:] = pairwise_distances(nodes, nodes) * 1e4
+        trim_paths = True  #shift to account for dummy node
     else:
-        distance_mat = pairwise_distances(nodes, nodes)*1e4
+        distance_mat = pairwise_distances(nodes, nodes) * 1e4
         trim_paths = False
     distance_mat = distance_mat.astype(int)
-    max_dist = int(max_dist*1e4)
+    max_dist = int(max_dist * 1e4)
 
     # Get start and end node indices for ortools
     if start_nodes is None:
         start_idx = np.zeros(num_vehicles, dtype=int)
         num_start_nodes = 0
     else:
-        start_idx = np.arange(num_vehicles)+int(trim_paths)
+        start_idx = np.arange(num_vehicles) + int(trim_paths)
         num_start_nodes = len(start_nodes)
 
     if end_nodes is None:
         end_idx = np.zeros(num_vehicles, dtype=int)
     else:
-        end_idx = np.arange(num_vehicles)+num_start_nodes+int(trim_paths)
+        end_idx = np.arange(num_vehicles) + num_start_nodes + int(trim_paths)
 
     # used by ortools
     def distance_callback(from_index, to_index):
@@ -100,8 +100,7 @@ def run_tsp(
         return distance_mat[from_node][to_node]
 
     # num_locations, num vehicles, start, end
-    manager = pywrapcp.RoutingIndexManager(len(distance_mat), 
-                                           num_vehicles, 
+    manager = pywrapcp.RoutingIndexManager(len(distance_mat), num_vehicles,
                                            start_idx.tolist(),
                                            end_idx.tolist())
     routing = pywrapcp.RoutingModel(manager)
@@ -123,28 +122,29 @@ def run_tsp(
 
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-    )
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
     search_parameters.local_search_metaheuristic = (
-        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
-    )
+        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
     search_parameters.time_limit.seconds = time_limit
     solution = routing.SolveWithParameters(search_parameters)
-       
+
     paths: Optional[List[np.ndarray]] = None
     distances: Optional[List[float]] = None
 
     if solution is not None:
-        paths_indices, distances_raw = _get_routes(
-            manager, routing, solution, num_vehicles, start_idx, end_idx, trim_paths
-        )
+        paths_indices, distances_raw = _get_routes(manager, routing, solution,
+                                                   num_vehicles, start_idx,
+                                                   end_idx, trim_paths)
 
         # Check for empty paths and retry with increased max_dist if necessary
         for path in paths_indices:
             if len(path) < 2:
-                print("TSP Warning: Empty path detected, retrying with increased max_dist.")
+                print(
+                    "TSP Warning: Empty path detected, retrying with increased max_dist."
+                )
                 # Recalculate max_dist based on the current average distance
-                mean_dist = np.mean(distances_raw) / 1e4 if distances_raw else max_dist
+                mean_dist = np.mean(
+                    distances_raw) / 1e4 if distances_raw else max_dist
                 return run_tsp(
                     original_nodes,
                     num_vehicles,
@@ -159,7 +159,9 @@ def run_tsp(
         distances = [d / 1e4 for d in distances_raw]
 
     else:
-        print("TSP Warning: No solution found, retrying with increased max_dist.")
+        print(
+            "TSP Warning: No solution found, retrying with increased max_dist."
+        )
         return run_tsp(
             original_nodes,
             num_vehicles,
@@ -176,7 +178,8 @@ def run_tsp(
         paths = np.array([resample_path(path, resample) for path in paths])
 
     return paths, distances
-    
+
+
 def _get_routes(
     manager: pywrapcp.RoutingIndexManager,
     routing: pywrapcp.RoutingModel,
@@ -269,8 +272,7 @@ def _get_routes(
             previous_index = index
             index = solution.Value(routing.NextVar(index))
             route_distance += routing.GetArcCostForVehicle(
-                previous_index, index, vehicle_id
-            )
+                previous_index, index, vehicle_id)
         path.append(manager.IndexToNode(index))
         distances.append(route_distance)
 
@@ -278,24 +280,20 @@ def _get_routes(
         if trim_paths:
             path_array = np.array(path)
             # Adjust indices if a dummy node was added at the beginning
-            if (
-                start_idx[vehicle_id] == 0
-                and path_array[0] == 0
-                and path_array.shape[0] > 1
-            ):
+            if (start_idx[vehicle_id] == 0 and path_array[0] == 0
+                    and path_array.shape[0] > 1):
                 path_array = path_array[1:]
             # Adjust indices if a dummy node was added at the end
-            if (
-                end_idx[vehicle_id] == 0
-                and path_array[-1] == 0
-                and path_array.shape[0] > 0
-            ):
+            if (end_idx[vehicle_id] == 0 and path_array[-1] == 0
+                    and path_array.shape[0] > 0):
                 path_array = path_array[:-1]
 
             # Shift all indices down by 1 if a dummy node was prepended to the overall distance matrix
             if np.any(start_idx == 0) or np.any(end_idx == 0):
                 path_array = path_array - 1
-                path_array = path_array[path_array >= 0] # Ensure no negative indices from the shift
+                path_array = path_array[
+                    path_array
+                    >= 0]  # Ensure no negative indices from the shift
 
             paths.append(path_array)
         else:

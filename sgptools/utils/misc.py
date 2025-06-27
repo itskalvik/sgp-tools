@@ -8,12 +8,10 @@ import numpy as np
 from typing import Tuple, Optional, Union
 
 
-def get_inducing_pts(
-    data: np.ndarray, 
-    num_inducing: int, 
-    orientation: bool = False, 
-    random: bool = False
-) -> np.ndarray:
+def get_inducing_pts(data: np.ndarray,
+                     num_inducing: int,
+                     orientation: bool = False,
+                     random: bool = False) -> np.ndarray:
     """
     Selects a subset of data points to be used as inducing points.
     By default, it uses k-means clustering to select representative points.
@@ -63,19 +61,18 @@ def get_inducing_pts(
         # `minit="points"` initializes centroids by picking random data points
         Xu = kmeans2(data, num_inducing, minit="points")[0]
 
-
     if orientation:
         # Generate random angles between 0 and 2*pi (radians)
         thetas = np.random.uniform(0, 2 * np.pi, size=(Xu.shape[0], 1))
         # Concatenate the points with their corresponding angles
         Xu = np.concatenate([Xu, thetas], axis=1)
-    
+
     return Xu
 
 
 def cont2disc(
-    Xu: np.ndarray, 
-    candidates: np.ndarray, 
+    Xu: np.ndarray,
+    candidates: np.ndarray,
     candidate_labels: Optional[np.ndarray] = None
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """
@@ -133,19 +130,19 @@ def cont2disc(
             return np.empty((0, Xu.shape[1])), np.empty((0, 1))
         else:
             return np.empty((0, Xu.shape[1]))
-    
+
     # Compute pairwise Euclidean distances between candidates and Xu
     dists = pairwise_distances(candidates, Y=Xu, metric='euclidean')
-    
+
     # Use the Hungarian algorithm (linear_sum_assignment) to find the optimal
     # assignment of rows (candidates) to columns (Xu points) that minimizes
     # the total cost (distances). `row_ind` gives the indices of the rows
     # (candidates) chosen, `col_ind` gives the corresponding indices of `Xu`.
     row_ind, col_ind = linear_sum_assignment(dists)
-    
+
     # Select the candidate locations that were matched to Xu points
     Xu_X = candidates[row_ind].copy()
-    
+
     if candidate_labels is not None:
         # If labels are provided, select the corresponding labels as well
         Xu_y = candidate_labels[row_ind].copy()
@@ -153,11 +150,10 @@ def cont2disc(
     else:
         return Xu_X
 
-def polygon2candidates(
-    vertices: np.ndarray, 
-    num_samples: int = 5000, 
-    random_seed: Optional[int] = None
-) -> np.ndarray:
+
+def polygon2candidates(vertices: np.ndarray,
+                       num_samples: int = 5000,
+                       random_seed: Optional[int] = None) -> np.ndarray:
     """
     Samples a specified number of candidate points randomly within a polygon defined by its vertices.
     This function leverages `geopandas` for geometric operations.
@@ -192,15 +188,16 @@ def polygon2candidates(
     """
     # Create a shapely Polygon object from the provided vertices
     poly = geometry.Polygon(vertices)
-    
+
     # Create a GeoSeries containing the polygon, which enables sampling points
     sampler = gpd.GeoSeries([poly])
-    
+
     # Sample random points within the polygon
-    candidates_geoseries = sampler.sample_points(size=num_samples,
-                                                 rng=random_seed) # `rng` is for random number generator seed
-    
+    candidates_geoseries = sampler.sample_points(
+        size=num_samples,
+        rng=random_seed)  # `rng` is for random number generator seed
+
     # Extract coordinates from the GeoSeries of points and convert to a NumPy array
     candidates_array = candidates_geoseries.get_coordinates().to_numpy()
-    
+
     return candidates_array

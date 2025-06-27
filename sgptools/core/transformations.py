@@ -11,16 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Provides transforms to model complex sensor field of views and handle informative path planning
 """
 
 import tensorflow as tf
 from gpflow.config import default_float
+
 float_type = default_float()
 
 import numpy as np
-from typing import Optional, Union, Any, Tuple, List # Import necessary types for type hinting
+from typing import Optional, Union, Any, Tuple, List  # Import necessary types for type hinting
 
 
 class Transform:
@@ -34,8 +34,9 @@ class Transform:
         - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
         - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
     """
-    def __init__(self, 
-                 aggregation_size: Optional[int] = None, 
+
+    def __init__(self,
+                 aggregation_size: Optional[int] = None,
                  constraint_weight: float = 1.0,
                  **kwargs: Any):
         """
@@ -54,7 +55,9 @@ class Transform:
         self.aggregation_size = aggregation_size
         self.constraint_weight = constraint_weight
 
-    def expand(self, Xu: Union[np.ndarray, tf.Tensor]) -> Union[np.ndarray, tf.Tensor]:
+    def expand(
+            self, Xu: Union[np.ndarray,
+                            tf.Tensor]) -> Union[np.ndarray, tf.Tensor]:
         """
         Applies an expansion transform to the inducing points.
         In this base class, it simply returns the input inducing points unchanged.
@@ -96,28 +99,32 @@ class Transform:
 
         # The aggregation logic assumes `k` has leading dimensions that are
         # multiples of `self.aggregation_size`.
-        if k.shape[0] == k.shape[1]: # This is K(U, U) or K(U_expanded, U_expanded)
+        if k.shape[0] == k.shape[
+                1]:  # This is K(U, U) or K(U_expanded, U_expanded)
             # Reshape for `tf.nn.avg_pool`: [batch, height, width, channels]
             # Here, we treat the matrix as a 1-channel image.
-            k_reshaped = tf.expand_dims(tf.expand_dims(k, axis=0), axis=-1) # (1, mp, mp, 1)
-            
+            k_reshaped = tf.expand_dims(tf.expand_dims(k, axis=0),
+                                        axis=-1)  # (1, mp, mp, 1)
+
             # Apply average pooling. `ksize` and `strides` define the window size
             # and movement for aggregation. This effectively averages blocks.
-            k_aggregated = tf.nn.avg_pool(k_reshaped,
-                                          ksize=[1, self.aggregation_size, self.aggregation_size, 1],
-                                          strides=[1, self.aggregation_size, self.aggregation_size, 1],
-                                          padding='VALID')
+            k_aggregated = tf.nn.avg_pool(
+                k_reshaped,
+                ksize=[1, self.aggregation_size, self.aggregation_size, 1],
+                strides=[1, self.aggregation_size, self.aggregation_size, 1],
+                padding='VALID')
             # Squeeze back to (m, m)
             k = tf.squeeze(k_aggregated, axis=[0, -1])
-        else: # This is K(U, F) or K(U_expanded, F)
+        else:  # This is K(U, F) or K(U_expanded, F)
             # Reshape for `tf.nn.avg_pool`: (1, mp, n) -> (1, mp, n, 1) if channels are 1
             # Or (1, mp, n) directly for 1D pooling if `n` is treated as a feature dimension.
             # Here, we're pooling along the inducing point dimension.
-            k_reshaped = tf.expand_dims(k, axis=0) # (1, mp, n)
-            k_aggregated = tf.nn.avg_pool(k_reshaped,
-                                          ksize=[1, self.aggregation_size, 1], # Pool along height (mp)
-                                          strides=[1, self.aggregation_size, 1],
-                                          padding='VALID')
+            k_reshaped = tf.expand_dims(k, axis=0)  # (1, mp, n)
+            k_aggregated = tf.nn.avg_pool(
+                k_reshaped,
+                ksize=[1, self.aggregation_size, 1],  # Pool along height (mp)
+                strides=[1, self.aggregation_size, 1],
+                padding='VALID')
             # Squeeze back to (m, n)
             k = tf.squeeze(k_aggregated, axis=[0])
         return k
@@ -156,9 +163,10 @@ class IPPTransform(Transform):
         * For online IPP where some visited waypoints are fixed, use `update_Xu_fixed`
           to freeze these waypoints from further optimization.
     """
-    def __init__(self, 
-                 sampling_rate: int = 2, 
-                 distance_budget: Optional[float] = None, 
+
+    def __init__(self,
+                 sampling_rate: int = 2,
+                 distance_budget: Optional[float] = None,
                  num_robots: int = 1,
                  Xu_fixed: Optional[np.ndarray] = None,
                  num_dim: int = 2,
@@ -209,8 +217,9 @@ class IPPTransform(Transform):
         """
         super().__init__(**kwargs)
         if sampling_rate < 2:
-            raise ValueError('Sampling rate must be greater than or equal to 2.')
-        
+            raise ValueError(
+                'Sampling rate must be greater than or equal to 2.')
+
         self.sampling_rate = sampling_rate
         self.distance_budget = distance_budget
         self.num_robots = num_robots
@@ -227,13 +236,15 @@ class IPPTransform(Transform):
             elif self.sampling_rate > 2:
                 # If no specific sensor model but continuous sensing, aggregate based on sampling rate.
                 self.aggregation_size = self.sampling_rate
-    
+
         # Initialize TensorFlow Variable for fixed waypoints if provided, for online IPP.
         if Xu_fixed is not None:
-            self.Xu_fixed = tf.Variable(Xu_fixed, 
-                                        shape=tf.TensorShape(None), # Shape can be inferred dynamically
-                                        trainable=False, # Fixed points are not optimized
-                                        dtype=float_type)
+            self.Xu_fixed = tf.Variable(
+                Xu_fixed,
+                shape=tf.TensorShape(
+                    None),  # Shape can be inferred dynamically
+                trainable=False,  # Fixed points are not optimized
+                dtype=float_type)
         else:
             self.Xu_fixed = None
 
@@ -246,15 +257,19 @@ class IPPTransform(Transform):
             Xu_fixed (np.ndarray): A NumPy array of shape (num_robots, num_visited_waypoints, num_dim)
                                    representing the new set of fixed waypoints.
         """
-        self.num_fixed = Xu_fixed.shape[1] # Store number of fixed waypoints per robot
+        self.num_fixed = Xu_fixed.shape[
+            1]  # Store number of fixed waypoints per robot
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(tf.constant(Xu_fixed, dtype=float_type))
         else:
-            self.Xu_fixed = tf.Variable(tf.constant(Xu_fixed, dtype=float_type), 
-                                        shape=tf.TensorShape(None), 
+            self.Xu_fixed = tf.Variable(tf.constant(Xu_fixed,
+                                                    dtype=float_type),
+                                        shape=tf.TensorShape(None),
                                         trainable=False)
 
-    def expand(self, Xu: tf.Tensor, expand_sensor_model: bool = True) -> tf.Tensor:
+    def expand(self,
+               Xu: tf.Tensor,
+               expand_sensor_model: bool = True) -> tf.Tensor:
         """
         Applies the expansion transform to the inducing points based on the IPP settings.
         This can involve:
@@ -283,7 +298,7 @@ class IPPTransform(Transform):
 
         # Reshape Xu to (num_robots, num_waypoints_per_robot, num_dim)
         Xu = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
-                
+
         # If using online IPP, add visited waypoints that won't be optimized anymore
         if self.Xu_fixed is not None:
             Xu = tf.concat([self.Xu_fixed, Xu[:, self.num_fixed:]], axis=1)
@@ -291,7 +306,7 @@ class IPPTransform(Transform):
         if not expand_sensor_model:
             return tf.reshape(Xu, (-1, self.num_dim))
 
-        # Interpolate additional inducing points between waypoints to approximate 
+        # Interpolate additional inducing points between waypoints to approximate
         # the continuous data sensing model
         if self.sampling_rate > 2:
             Xu = tf.linspace(Xu[:, :-1], Xu[:, 1:], self.sampling_rate)
@@ -309,7 +324,7 @@ class IPPTransform(Transform):
 
         Xu = tf.reshape(Xu, (-1, self.num_dim))
         return Xu
-    
+
     def aggregate(self, k: tf.Tensor) -> tf.Tensor:
         """
         Applies the aggregation transform to kernel matrices.
@@ -326,7 +341,7 @@ class IPPTransform(Transform):
             return self.sensor_model.aggregate(k)
         else:
             return super().aggregate(k)
-        
+
     def constraints(self, Xu: tf.Tensor) -> tf.Tensor:
         """
         Computes the distance constraint term that is added to the SGP's optimization function.
@@ -342,21 +357,22 @@ class IPPTransform(Transform):
                        This value is negative, and its magnitude increases with constraint violation.
         """
         if self.distance_budget is None:
-            return tf.constant(0.0, dtype=float_type) # No distance constraint
+            return tf.constant(0.0, dtype=float_type)  # No distance constraint
         else:
             # Expand Xu without sensor model to get the true path points for distance calculation.
             # Xu is the optimizable part; self.expand will add fixed points if any.
             Xu_for_distance = self.expand(Xu, expand_sensor_model=False)
-            
+
             # Calculate distances for each robot's path
             individual_robot_distances = self.distance(Xu_for_distance)
-            
+
             # Compute the positive violation for each robot's path
             violations = individual_robot_distances - self.distance_budget
-            
+
             # Apply ReLU to ensure only positive violations contribute to the penalty
             # Sum all violations and apply the constraint weight
-            penalty = -tf.reduce_sum(tf.nn.relu(violations)) * self.constraint_weight
+            penalty = -tf.reduce_sum(
+                tf.nn.relu(violations)) * self.constraint_weight
             return penalty
 
     def distance(self, Xu: tf.Tensor) -> tf.Tensor:
@@ -375,7 +391,7 @@ class IPPTransform(Transform):
         """
         # Reshape to (num_robots, num_waypoints_per_robot, num_dim)
         Xu_reshaped = tf.reshape(Xu, (self.num_robots, -1, self.num_dim))
-        
+
         if self.sensor_model is not None:
             # If a sensor model is present, delegate distance calculation to it,
             # as it might have specific logic for its FoV's contribution to distance.
@@ -383,15 +399,19 @@ class IPPTransform(Transform):
             for i in range(self.num_robots):
                 # Pass each robot's path (which includes position and potentially angle)
                 dists.append(self.sensor_model.distance(Xu_reshaped[i]))
-            return tf.concat(dists, axis=0) # Concatenate distances if multiple robots
+            return tf.concat(
+                dists, axis=0)  # Concatenate distances if multiple robots
         else:
             # For point/continuous sensing without a special FoV model:
             # Calculate Euclidean distance between consecutive waypoints.
             # Assuming first two dimensions are (x,y) for distance calculation.
             # `Xu_reshaped[:, 1:, :2]` are points from the second to last.
             # `Xu_reshaped[:, :-1, :2]` are points from the first to second to last.
-            segment_distances = tf.norm(Xu_reshaped[:, 1:, :2] - Xu_reshaped[:, :-1, :2], axis=-1)
-            total_distances = tf.reduce_sum(segment_distances, axis=1) # Sum distances for each robot
+            segment_distances = tf.norm(Xu_reshaped[:, 1:, :2] -
+                                        Xu_reshaped[:, :-1, :2],
+                                        axis=-1)
+            total_distances = tf.reduce_sum(
+                segment_distances, axis=1)  # Sum distances for each robot
             return total_distances
 
 
@@ -402,10 +422,11 @@ class SquareTransform(Transform):
     into a grid of points approximating a square area, which is then used in kernel computations.
     This typically applies to single-robot cases as part of an `IPPTransform`.
     """
-    def __init__(self, 
-                 side_length: float, 
-                 pts_per_side: int, 
-                 aggregate_fov: bool = False, 
+
+    def __init__(self,
+                 side_length: float,
+                 pts_per_side: int,
+                 aggregate_fov: bool = False,
                  **kwargs: Any):
         """
         Initializes the SquareTransform for a square FoV.
@@ -429,7 +450,7 @@ class SquareTransform(Transform):
         self.side_length = side_length
         self.pts_per_side = pts_per_side
         # Calculate the spacing between points along each side
-        self.side_length_factor=side_length/(self.pts_per_side)
+        self.side_length_factor = side_length / (self.pts_per_side)
 
         if aggregate_fov:
             self.enable_aggregation()
@@ -448,7 +469,7 @@ class SquareTransform(Transform):
                                   Defaults to None.
         """
         if size is None:
-            self.aggregation_size = self.pts_per_side**2 # Aggregate all points within a FoV
+            self.aggregation_size = self.pts_per_side**2  # Aggregate all points within a FoV
         else:
             self.aggregation_size = size
 
@@ -472,42 +493,56 @@ class SquareTransform(Transform):
         """
         # Split Xu into x, y coordinates and orientation (theta)
         x_coords, y_coords, angles = tf.split(Xu, num_or_size_splits=3, axis=1)
-        x = tf.reshape(x_coords, [-1,]) # Flatten to (m,)
-        y = tf.reshape(y_coords, [-1,])
-        theta = tf.reshape(angles, [-1,])
+        x = tf.reshape(x_coords, [
+            -1,
+        ])  # Flatten to (m,)
+        y = tf.reshape(y_coords, [
+            -1,
+        ])
+        theta = tf.reshape(angles, [
+            -1,
+        ])
 
         points: List[tf.Tensor] = []
         # Iterate to create `pts_per_side` lines forming the square grid.
         # The loop runs from -floor(pts_per_side/2) to ceil(pts_per_side/2) to center the grid.
-        for i in range(-int(np.floor((self.pts_per_side - 1)/2)), int(np.ceil((self.pts_per_side - 1)/2)) + 1):
+        for i in range(-int(np.floor((self.pts_per_side - 1) / 2)),
+                       int(np.ceil((self.pts_per_side - 1) / 2)) + 1):
             # Calculate start and end points for each line segment of the square grid.
             # `(i * self.side_length_factor)` shifts the line perpendicular to the orientation `theta`.
             # `self.side_length/2` extends the line segment along the orientation `theta`.
-            
+
             # Start point (x,y) for the current line
-            start_x = x + (i * self.side_length_factor) * tf.cos(theta + np.pi/2) - self.side_length/2 * tf.cos(theta)
-            start_y = y + (i * self.side_length_factor) * tf.sin(theta + np.pi/2) - self.side_length/2 * tf.sin(theta)
+            start_x = x + (i * self.side_length_factor) * tf.cos(
+                theta + np.pi / 2) - self.side_length / 2 * tf.cos(theta)
+            start_y = y + (i * self.side_length_factor) * tf.sin(
+                theta + np.pi / 2) - self.side_length / 2 * tf.sin(theta)
 
             # End point (x,y) for the current line
-            end_x = x + (i * self.side_length_factor) * tf.cos(theta + np.pi/2) + self.side_length/2 * tf.cos(theta)
-            end_y = y + (i * self.side_length_factor) * tf.sin(theta + np.pi/2) + self.side_length/2 * tf.sin(theta)
+            end_x = x + (i * self.side_length_factor) * tf.cos(
+                theta + np.pi / 2) + self.side_length / 2 * tf.cos(theta)
+            end_y = y + (i * self.side_length_factor) * tf.sin(
+                theta + np.pi / 2) + self.side_length / 2 * tf.sin(theta)
 
             # Stack start and end points for linspace
-            line_starts = tf.stack([start_x, start_y], axis=-1) # (m, 2)
-            line_ends = tf.stack([end_x, end_y], axis=-1)     # (m, 2)
-            
+            line_starts = tf.stack([start_x, start_y], axis=-1)  # (m, 2)
+            line_ends = tf.stack([end_x, end_y], axis=-1)  # (m, 2)
+
             # Generate `self.pts_per_side` points along each line segment.
             # `axis=1` ensures interpolation is done column-wise for each (start, end) pair.
             # The result is (m, pts_per_side, 2) for each `i`.
-            points.append(tf.linspace(line_starts, line_ends, self.pts_per_side, axis=1))
-        
+            points.append(
+                tf.linspace(line_starts, line_ends, self.pts_per_side, axis=1))
+
         # Concatenate all generated line segments.
         # `tf.concat` will stack them along a new axis, forming (num_lines, m, pts_per_side, 2)
-        xy = tf.concat(points, axis=1) # (m, pts_per_side * pts_per_side, 2) after the transpose in the original code.
+        xy = tf.concat(
+            points, axis=1
+        )  # (m, pts_per_side * pts_per_side, 2) after the transpose in the original code.
 
         xy = tf.reshape(xy, (-1, 2))
         return xy
-    
+
     def distance(self, Xu: tf.Tensor) -> tf.Tensor:
         """
         Computes the Euclidean distance incurred by sequentially visiting the inducing points.
@@ -523,11 +558,12 @@ class SquareTransform(Transform):
             tf.Tensor: A scalar tensor representing the total path length.
         """
         # Reshape to (number_of_points, 3) and take only the (x,y) coordinates
-        Xu_xy = tf.reshape(Xu, (-1, self.num_dim))[:, :2] # Assuming num_dim is 3 (x,y,angle)
+        Xu_xy = tf.reshape(
+            Xu, (-1, self.num_dim))[:, :2]  # Assuming num_dim is 3 (x,y,angle)
 
         if Xu_xy.shape[0] < 2:
             return tf.constant(0.0, dtype=float_type)
-            
+
         # Calculate Euclidean distance between consecutive (x,y) points
         segment_distances = tf.norm(Xu_xy[1:] - Xu_xy[:-1], axis=-1)
         total_distance = tf.reduce_sum(segment_distances, axis=0)
@@ -541,9 +577,10 @@ class SquareHeightTransform(Transform):
     This transform expands each inducing point (waypoint with x, y, z coordinates)
     into a grid of points approximating a square area whose size depends on 'z'.
     """
-    def __init__(self, 
-                 pts_per_side: int, 
-                 aggregate_fov: bool = False, 
+
+    def __init__(self,
+                 pts_per_side: int,
+                 aggregate_fov: bool = False,
                  **kwargs: Any):
         """
         Initializes the SquareHeightTransform for a height-dependent square FoV.
@@ -584,7 +621,7 @@ class SquareHeightTransform(Transform):
         else:
             self.aggregation_size = size
 
-    def expand(self, Xu):     
+    def expand(self, Xu):
         """
         Applies the expansion transform to the inducing points
 
@@ -599,19 +636,24 @@ class SquareHeightTransform(Transform):
                         to in order to form the FoV.
         """
         x, y, h = tf.split(Xu, num_or_size_splits=3, axis=1)
-        x = tf.reshape(x, [-1,])
-        y = tf.reshape(y, [-1,])
-        h = tf.reshape(h, [-1,])
+        x = tf.reshape(x, [
+            -1,
+        ])
+        y = tf.reshape(y, [
+            -1,
+        ])
+        h = tf.reshape(h, [
+            -1,
+        ])
 
         delta = h / (self.pts_per_side - 1)
 
         pts = []
         for i in range(self.pts_per_side):
-            line_starts = [x - h/2, y - (h/2) + (delta * i)]
-            line_ends = [x + h/2, y - (h/2) + (delta * i)]
-            pts.append(tf.linspace(line_starts, line_ends, 
-                                   self.pts_per_side, 
-                                   axis=1))
+            line_starts = [x - h / 2, y - (h / 2) + (delta * i)]
+            line_ends = [x + h / 2, y - (h / 2) + (delta * i)]
+            pts.append(
+                tf.linspace(line_starts, line_ends, self.pts_per_side, axis=1))
         xy = tf.concat(pts, axis=1)
         xy = tf.transpose(xy, [2, 1, 0])
         xy = tf.reshape(xy, [-1, 2])
@@ -629,11 +671,12 @@ class SquareHeightTransform(Transform):
         Returns:
             tf.Tensor: Reordered expanded inducing points.
         """
-        X = tf.reshape(X, (num_inducing, -1, self.pts_per_side, self.pts_per_side, 2))
+        X = tf.reshape(
+            X, (num_inducing, -1, self.pts_per_side, self.pts_per_side, 2))
         X = tf.transpose(X, (0, 2, 1, 3, 4))
         X = tf.reshape(X, (-1, 2))
         return X
-    
+
     def distance(self, Xu: tf.Tensor) -> tf.Tensor:
         """
         Computes the Euclidean distance incurred by sequentially visiting the inducing points.
@@ -650,7 +693,7 @@ class SquareHeightTransform(Transform):
         """
         # Reshape to (number_of_points, 3)
         Xu_xyz = tf.reshape(Xu, (-1, 3))
-        
+
         if Xu_xyz.shape[0] < 2:
             return tf.constant(0.0, dtype=tf.float64)
 

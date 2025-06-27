@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Multi Layer Perceptron Model
 """
 
@@ -20,6 +19,7 @@ import tensorflow as tf
 
 import gpflow
 from gpflow.config import default_float
+
 float_type = default_float()
 
 from typing import List, Union, Callable
@@ -42,7 +42,7 @@ def xavier(dim_in: int, dim_out: int) -> np.ndarray:
                     the initialized weights.
     """
     # Calculate the fan-in + fan-out for the scaling factor
-    scale_factor = (2.0 / (dim_in + dim_out)) ** 0.5
+    scale_factor = (2.0 / (dim_in + dim_out))**0.5
     # Generate random numbers from a normal (Gaussian) distribution
     # This is often used as an approximation for Xavier uniform in practice
     # or sometimes Xavier normal is explicitly implemented this way.
@@ -65,6 +65,7 @@ class NN(gpflow.base.Module):
         _weights (List[tf.Variable]): List of TensorFlow Variable for weights of each layer.
         _biases (List[tf.Variable]): List of TensorFlow Variable for biases of each layer.
     """
+
     def __init__(self,
                  dims: List[int],
                  activation_fn: Union[str, Callable] = 'selu',
@@ -107,8 +108,11 @@ class NN(gpflow.base.Module):
         super().__init__()
         self.dims = dims
         # Get TensorFlow activation functions from strings or use provided callables
-        self.activation_fn = tf.keras.activations.get(activation_fn) if isinstance(activation_fn, str) else activation_fn
-        self.output_activation_fn = tf.keras.activations.get(output_activation_fn) if isinstance(output_activation_fn, str) else output_activation_fn
+        self.activation_fn = tf.keras.activations.get(
+            activation_fn) if isinstance(activation_fn, str) else activation_fn
+        self.output_activation_fn = tf.keras.activations.get(
+            output_activation_fn) if isinstance(output_activation_fn,
+                                                str) else output_activation_fn
 
         self._weights: List[tf.Variable] = []
         self._biases: List[tf.Variable] = []
@@ -117,11 +121,13 @@ class NN(gpflow.base.Module):
         for i, (dim_in, dim_out) in enumerate(zip(dims[:-1], dims[1:])):
             # Use Xavier initialization for weights
             weight_init = xavier(dim_in, dim_out)
-            self._weights.append(tf.Variable(weight_init, dtype=float_type, name=f'W_{i}'))
-            
+            self._weights.append(
+                tf.Variable(weight_init, dtype=float_type, name=f'W_{i}'))
+
             # Initialize biases to zeros
             bias_init = np.zeros(dim_out, dtype=float_type)
-            self._biases.append(tf.Variable(bias_init, dtype=float_type, name=f'b_{i}'))
+            self._biases.append(
+                tf.Variable(bias_init, dtype=float_type, name=f'b_{i}'))
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -138,14 +144,15 @@ class NN(gpflow.base.Module):
         # Process through hidden layers
         # The loop runs for (num_layers - 1) iterations, covering all hidden layers
         # and the input-to-first-hidden layer transition.
-        for i in range(len(self.dims) - 2): # Iterate up to second to last layer
+        for i in range(len(self.dims) -
+                       2):  # Iterate up to second to last layer
             W = self._weights[i]
             b = self._biases[i]
             X = self.activation_fn(tf.matmul(X, W) + b)
-        
+
         # Process through the last layer (output layer)
-        W_last = self._weights[-1] # Weights for the last layer
-        b_last = self._biases[-1]   # Biases for the last layer
+        W_last = self._weights[-1]  # Weights for the last layer
+        b_last = self._biases[-1]  # Biases for the last layer
         X = self.output_activation_fn(tf.matmul(X, W_last) + b_last)
-        
+
         return X
