@@ -1,5 +1,4 @@
 """
-
 SGP-Tools: SGP-based Optimization Tools
 
 Software Suite for Sensor Placement and Informative Path Planning.

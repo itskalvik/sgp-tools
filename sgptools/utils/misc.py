@@ -45,11 +45,9 @@ def get_inducing_pts(data: np.ndarray,
 
         # 1. Select 50 inducing points using k-means (default)
         inducing_points_kmeans = get_inducing_pts(data_points, 50)
-        print(f"K-means inducing points shape: {inducing_points_kmeans.shape}")
 
         # 2. Select 20 inducing points randomly with orientation
         inducing_points_random_oriented = get_inducing_pts(data_points, 20, orientation=True, random=True)
-        print(f"Random oriented inducing points shape: {inducing_points_random_oriented.shape}")
         ```
     """
     if random:
@@ -116,12 +114,9 @@ def cont2disc(
 
         # 1. Map without labels
         mapped_points = cont2disc(continuous_points, discrete_candidates)
-        print(f"Mapped points without labels:\n{mapped_points}")
 
         # 2. Map with labels
         mapped_points_X, mapped_points_y = cont2disc(continuous_points, discrete_candidates, discrete_labels)
-        print(f"\nMapped points with labels X:\n{mapped_points_X}")
-        print(f"Mapped points with labels y:\n{mapped_points_y}")
         ```
     """
     # Sanity check to handle empty inputs gracefully
@@ -182,8 +177,6 @@ def polygon2candidates(vertices: np.ndarray,
 
         # Sample 100 candidate points within the square
         sampled_candidates = polygon2candidates(square_vertices, num_samples=100, random_seed=42)
-        print(f"Sampled candidates shape: {sampled_candidates.shape}")
-        print(f"First 5 sampled candidates:\n{sampled_candidates[:5]}")
         ```
     """
     # Create a shapely Polygon object from the provided vertices

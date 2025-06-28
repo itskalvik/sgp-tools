@@ -150,18 +150,17 @@ class IPPTransform(Transform):
     Transform to model Informative Path Planning (IPP) problems for single or multiple robots.
     It handles continuous sensing, non-point fields of view (FoV), and distance constraints.
 
-    Usage details:
-        * For point sensing (discrete waypoints), set `sampling_rate = 2`.
-        * For continuous sensing along paths, set `sampling_rate > 2` to interpolate
-          additional points between waypoints for information gathering.
-        * For continuous sensing with aggregation for computational efficiency,
-          set `sampling_rate > 2` and `aggregate_fov = True`. This averages
-          covariances from interpolated points, potentially diminishing solution quality slightly.
-        * If using a non-point FoV model (e.g., `SquareTransform`) with continuous sampling,
-          only the FoV inducing points are aggregated.
-        * For multi-robot scenarios, set `num_robots > 1`.
-        * For online IPP where some visited waypoints are fixed, use `update_Xu_fixed`
-          to freeze these waypoints from further optimization.
+    * For point sensing (discrete waypoints), set `sampling_rate = 2`.
+    * For continuous sensing along paths, set `sampling_rate > 2` to interpolate
+        additional points between waypoints for information gathering.
+    * For continuous sensing with aggregation for computational efficiency,
+        set `sampling_rate > 2` and `aggregate_fov = True`. This averages
+        covariances from interpolated points, potentially diminishing solution quality slightly.
+    * If using a non-point FoV model (e.g., `SquareTransform`) with continuous sampling,
+        only the FoV inducing points are aggregated.
+    * For multi-robot scenarios, set `num_robots > 1`.
+    * For online IPP where some visited waypoints are fixed, use `update_Xu_fixed`
+        to freeze these waypoints from further optimization.
     """
 
     def __init__(self,
@@ -203,7 +202,7 @@ class IPPTransform(Transform):
         Raises:
             ValueError: If `sampling_rate` is less than 2.
 
-        Example:
+        Usage:
             ```python
             # Single robot, point sensing
             transform_point = IPPTransform(num_robots=1, num_dim=2, sampling_rate=2)
@@ -440,7 +439,7 @@ class SquareTransform(Transform):
                                   Defaults to False.
             **kwargs (Any): Additional keyword arguments passed to the base `Transform` constructor.
 
-        Example:
+        Usage:
             ```python
             # Create a square FoV of side length 10.0, approximated by a 5x5 grid of points
             square_fov_transform = SquareTransform(length=10.0, pts_per_side=5, aggregate_fov=True)
@@ -593,7 +592,7 @@ class SquareHeightTransform(Transform):
                                   Defaults to False.
             **kwargs (Any): Additional keyword arguments passed to the base `Transform` constructor.
 
-        Example:
+        Usage:
             ```python
             # Create a height-dependent square FoV approximated by a 7x7 grid
             square_height_fov_transform = SquareHeightTransform(pts_per_side=7, aggregate_fov=True)

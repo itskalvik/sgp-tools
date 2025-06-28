@@ -41,8 +41,6 @@ def gaussian_entropy(K: np.ndarray) -> float:
         # Example covariance matrix for 2 variables
         covariance_matrix = np.array([[1.0, 0.5], [0.5, 1.0]])
         entropy_value = gaussian_entropy(covariance_matrix)
-        print(f"Gaussian Entropy: {entropy_value}")
-        # Expected output for this example: Gaussian Entropy: 1.637877...
         ```
     """
     # Using scipy's multivariate_normal for entropy calculation
@@ -84,7 +82,6 @@ def get_mi(Xu: np.ndarray, X_objective: np.ndarray, noise_variance: float,
         rbf_kernel = gpflow.kernels.SquaredExponential(lengthscales=1.0, variance=1.0)
 
         mi_value = get_mi(X_sensing_locs, X_candidate_locs, noise_var, rbf_kernel)
-        print(f"Mutual Information: {mi_value}")
         ```
     """
     # Ensure inputs are TensorFlow tensors for compatibility with SLogMI
@@ -139,11 +136,9 @@ def get_elbo(Xu: np.ndarray,
 
         # Compute ELBO without baseline
         elbo_no_baseline = get_elbo(inducing_points, X_environment, noise_var, rbf_kernel)
-        print(f"ELBO (no baseline): {elbo_no_baseline}")
 
         # Compute ELBO with baseline
         elbo_with_baseline = get_elbo(inducing_points, X_environment, noise_var, rbf_kernel, baseline=True)
-        print(f"ELBO (with baseline): {elbo_with_baseline}")
         ```
     """
     # Convert Xu to TensorFlow tensor for SGPR
@@ -202,7 +197,6 @@ def get_kl(Xu: np.ndarray, X_env: np.ndarray, noise_variance: float,
         rbf_kernel = gpflow.kernels.SquaredExponential(lengthscales=2.0, variance=1.0)
 
         kl_value = get_kl(inducing_points, X_environment, noise_var, rbf_kernel)
-        print(f"KL Divergence term: {kl_value}")
         ```
     """
     tf_Xu = tf.constant(Xu, dtype=tf.float64)
@@ -257,7 +251,6 @@ def get_rmse(y_pred: np.ndarray, y_test: np.ndarray) -> float:
         ground_truth = np.array([[1.0], [2.0], [3.0]])
 
         rmse_value = get_rmse(predictions, ground_truth)
-        print(f"RMSE: {rmse_value}") # Expected: ~0.208
         ```
     """
     error = y_pred - y_test
@@ -306,8 +299,6 @@ def get_reconstruction(
         predicted_means, predicted_vars = get_reconstruction(
             (sensor_locs, sensor_vals), test_locs, noise_var, rbf_kernel
         )
-        print(f"Predicted Means:\n{predicted_means}")
-        print(f"Predicted Variances:\n{predicted_vars}")
         ```
     """
     Xu_X, Xu_y = sensor_data
@@ -348,12 +339,10 @@ def get_distance(X: np.ndarray) -> float:
         # Example 2D path with 3 waypoints
         path_waypoints_2d = np.array([[0.0, 0.0], [3.0, 4.0], [3.0, 7.0]])
         distance_2d = get_distance(path_waypoints_2d)
-        print(f"2D Path Distance: {distance_2d}") # Expected: 5.0 + 3.0 = 8.0
 
         # Example 3D path
         path_waypoints_3d = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]])
         distance_3d = get_distance(path_waypoints_3d)
-        print(f"3D Path Distance: {distance_3d}") # Expected: sqrt(3) ~ 1.732
         ```
     """
     if X.shape[0] < 2:
@@ -374,8 +363,6 @@ def get_smse(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
     SMSE is a variant of MSE where each squared error term is divided by
     the predicted variance. It's particularly useful in Bayesian contexts
     as it accounts for the model's uncertainty in its predictions.
-
-    Formula: $SMSE = \frac{1}{N} \sum_{i=1}^{N} \frac{(y_{pred,i} - y_{test,i})^2}{var_i}$
 
     Args:
         y_pred (np.ndarray): (n, 1); NumPy array of predicted values.
@@ -400,7 +387,6 @@ def get_smse(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
         variances = np.array([[0.01], [0.04], [0.09]]) 
 
         smse_value = get_smse(predictions, ground_truth, variances)
-        print(f"SMSE: {smse_value}") # Expected: ~1.0
         ```
     """
     if np.any(var <= 0):
@@ -421,9 +407,6 @@ def get_nlpd(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
     A lower NLPD indicates a better fit. For a Gaussian predictive distribution,
     it is derived from the log-likelihood of the true observations under the
     predicted Gaussian.
-
-    Formula for Gaussian likelihood:
-    $NLPD = \frac{1}{N} \sum_{i=1}^{N} \left[ 0.5 \log(2\pi) + 0.5 \log(var_i) + 0.5 \frac{(y_{pred,i} - y_{test,i})^2}{var_i} \right]$
 
     Args:
         y_pred (np.ndarray): (n, 1); NumPy array of predicted mean values.
@@ -448,7 +431,6 @@ def get_nlpd(y_pred: np.ndarray, y_test: np.ndarray, var: np.ndarray) -> float:
         variances = np.array([[0.01], [0.04], [0.09]]) 
 
         nlpd_value = get_nlpd(predictions, ground_truth, variances)
-        print(f"NLPD: {nlpd_value}") # Expected: ~0.918
         ```
     """
     if np.any(var <= 0):

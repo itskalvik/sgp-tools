@@ -50,7 +50,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - API:
+  - API Docs:
     - Core:
       - api/core/index.md
       - AugmentedGPR: api/core/augmented_gpr.md
@@ -102,6 +102,8 @@ markdown_extensions:
   - codehilite
   - extra
   - def_list
+  - attr_list
+  - md_in_html
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.highlight:
@@ -114,8 +116,12 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.tabbed:
       alternate_style: true
-  - attr_list
-  - md_in_html
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

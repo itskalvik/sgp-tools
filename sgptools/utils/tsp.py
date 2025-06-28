@@ -236,9 +236,6 @@ def _get_routes(
         # Example 1: Single TSP, find best path through 5 points
         nodes_single = np.array([[0,0], [1,1], [0,2], [2,2], [1,0]], dtype=np.float64)
         paths_single, dists_single = run_tsp(nodes_single, num_vehicles=1, time_limit=5)
-        if paths_single:
-            print("Single Vehicle Path:", paths_single[0])
-            print("Single Vehicle Distance:", dists_single[0])
 
         # Example 2: Multi-robot VRP with start/end nodes and resampling
         nodes_multi = np.array([[1,1], [2,2], [3,3], [4,4], [5,5], [6,6]], dtype=np.float64)
@@ -254,11 +251,6 @@ def _get_routes(
             end_nodes=end_points,
             time_limit=15
         )
-        if paths_multi:
-            print("\nMulti-Vehicle Paths:")
-            for i, path in enumerate(paths_multi):
-                print(f"  Robot {i+1} Path:\n{path}")
-                print(f"  Robot {i+1} Distance: {dists_multi[i]}")
         ```
     """
     paths: List[np.ndarray] = []
@@ -329,14 +321,10 @@ def resample_path(waypoints: np.ndarray, num_inducing: int = 10) -> np.ndarray:
         # Example 2D path
         original_path_2d = np.array([[0,0], [1,5], [3,0], [5,5]], dtype=np.float64)
         resampled_path_2d = resample_path(original_path_2d, num_inducing=5)
-        print(f"Original 2D path:\n{original_path_2d}")
-        print(f"Resampled 2D path ({resampled_path_2d.shape[0]} points):\n{resampled_path_2d}")
 
         # Example 3D path
         original_path_3d = np.array([[0,0,0], [1,1,1], [2,0,2]], dtype=np.float64)
         resampled_path_3d = resample_path(original_path_3d, num_inducing=7)
-        print(f"\nOriginal 3D path:\n{original_path_3d}")
-        print(f"Resampled 3D path ({resampled_path_3d.shape[0]} points):\n{resampled_path_3d}")
         ```
     """
     ndim = np.shape(waypoints)[-1]

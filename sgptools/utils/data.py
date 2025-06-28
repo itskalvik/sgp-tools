@@ -238,12 +238,13 @@ class Dataset:
     A class to load, preprocess, and manage access to a dataset for sensor placement
     and informative path planning tasks.
 
-    It handles:
-    - Loading from a GeoTIFF file, loading from a numpy array, and generating a synthetic dataset.
-    - Sampling training, testing, and candidate points from valid (non-NaN) locations.
-    - Standardizing both the input coordinates (X) and the labels (y) using `StandardScaler`.
-    - Providing methods to retrieve different subsets of the data (train, test, candidates)
-      and to sample sensor data at specified locations or along a path.
+    It handles the following operations:
+    
+    * Loading from a GeoTIFF file, loading from a numpy array, and generating a synthetic dataset.
+    * Sampling training, testing, and candidate points from valid (non-NaN) locations.
+    * Standardizing both the input coordinates (X) and the labels (y) using `StandardScaler`.
+    * Providing methods to retrieve different subsets of the data (train, test, candidates)
+    and to sample sensor data at specified locations or along a path.
 
     The dataset is expected to be a 2D array where each element represents a label
     (e.g., elevation, temperature, environmental reading).

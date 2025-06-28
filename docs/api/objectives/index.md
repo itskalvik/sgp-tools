@@ -2,7 +2,7 @@
 
 This section describes the objective functions used for optimization in SGP-Tools.
 
-::: sgptools.objectives
-    options:
-      show_root_heading: true
-      show_source: true
+Objective functions in this package:
+
+- `MI`: Provides a naive implementation of mutual information
+- `SLogMI`: Provides a numerically stable implementation of mutual information

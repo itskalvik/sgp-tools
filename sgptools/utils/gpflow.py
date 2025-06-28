@@ -290,16 +290,12 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
         model = gpflow.models.GPR((X, y), kernel=kernel, noise_variance=0.1)
 
         # 1. Optimize using SciPy's L-BFGS-B (default)
-        print("Optimizing with SciPy (L-BFGS-B)...")
         losses_scipy = optimize_model(model, max_steps=500, verbose=True)
-        print(f"Losses (SciPy): {losses_scipy[:5]}...")
 
         # 2. Optimize using TensorFlow's Adam optimizer
-        print("\nOptimizing with TensorFlow (Adam)...")
         # Re-initialize model to reset parameters for new optimization
         model_tf = gpflow.models.GPR((X, y), kernel=gpflow.kernels.SquaredExponential(), noise_variance=0.1)
         losses_tf = optimize_model(model_tf, max_steps=1000, learning_rate=0.01, optimizer='tf.Adam', verbose=False)
-        print(f"Losses (TensorFlow): {losses_tf[:5]}...")
 
         # 3. Optimize SGPR and trace inducing points
         X_sgpr = np.random.rand(2000, 2)
@@ -307,9 +303,7 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
         inducing_points_init = get_inducing_pts(X_sgpr, 100)
         sgpr_model = gpflow.models.SGPR((X_sgpr, y_sgpr), kernel=gpflow.kernels.SquaredExponential(),
                                         inducing_variable=inducing_points_init, noise_variance=0.1)
-        print("\nOptimizing SGPR and tracing inducing points...")
         traced_ips = optimize_model(sgpr_model, max_steps=100, optimizer='tf.Adam', trace_fn='traceXu', verbose=False)
-        print(f"Shape of traced inducing points: {traced_ips.shape}")
         ```
     """
     # Determine which variables to train

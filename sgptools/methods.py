@@ -112,8 +112,8 @@ class BayesianOpt(Method):
     model, and using an acquisition function to guide further sampling.
 
     Refer to the following papers for more details:
-    - UAV route planning for active disease classification [Vivaldini et al., 2019]
-    - Occupancy map building through Bayesian exploration [Francis et al., 2019]
+        - UAV route planning for active disease classification [Vivaldini et al., 2019]
+        - Occupancy map building through Bayesian exploration [Francis et al., 2019]
 
     Attributes:
         objective (object): The objective function to be optimized.
@@ -291,7 +291,7 @@ class CMA(Method):
     CMA-ES is a powerful black-box optimization algorithm for non-convex problems.
 
     Refer to the following paper for more details:
-    - Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
+        - Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
 
     Attributes:
         objective (object): The objective function to be minimized/maximized.
@@ -444,8 +444,7 @@ class CMA(Method):
         Internal objective function to be minimized by CMA-ES.
 
         This function reshapes the input array, applies any specified transformations,
-        calcu
-        lates the objective value, and applies a penalty for constraint violations.
+        calculates the objective value, and applies a penalty for constraint violations.
         Note: CMA-ES minimizes, so the reward (which is to be maximized) is returned as negative.
 
         Args:
@@ -493,8 +492,8 @@ class ContinuousSGP(Method):
     This method optimizes the inducing points of an SGP model to maximize the ELBO or other SGP-related objectives.
 
     Refer to the following papers for more details:
-    - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
-    - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [[Jakkala and Akella, 2024](https://www.itskalvik.com/publication/sgp-ipp/)]
+        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
+        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [[Jakkala and Akella, 2024](https://www.itskalvik.com/publication/sgp-ipp/)]
 
     Attributes:
         sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.
@@ -657,8 +656,8 @@ class GreedyObjective(Method):
     that maximizes the objective function. It currently supports only single-robot scenarios.
 
     Refer to the following papers for more details:
-    - Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
-    - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
+        - Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
+        - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
 
     Attributes:
         objective (object): The objective function to be maximized (e.g., Mutual Information).
