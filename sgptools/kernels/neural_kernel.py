@@ -298,8 +298,6 @@ def init_neural_kernel(X_train: np.ndarray,
             n_inits=3,        # 3 initializations
             hidden_sizes=[16, 16] # Custom hidden layer sizes
         )
-        print(f"Model initialized with kernel type: {type(model_ns_kernel.kernel).__name__}")
-        print(f"Initial ELBO of the best model: {model_ns_kernel.elbo().numpy():.3f}")
 
         # You would typically optimize this model further using optimize_model:
         # from sgptools.utils.gpflow import optimize_model

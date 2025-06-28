@@ -1,14 +1,20 @@
-![Image title](assets/SGP-Tools.png#only-light)
-![Image title](assets/logo_dark.png#only-dark)
+<p align="center">
+  <img src="assets/SGP-Tools.png#only-light" alt="SGP-Tools Logo" width="600"/>
+  <img src="assets/logo_dark.png#only-dark" alt="SGP-Tools Logo" width="600"/>
+</p>
 
-SGP-Tools is a software suite for [Sensor Placement](https://www.itskalvik.com/research/publication/sgp-sp/) and [Informative Path Planning](https://www.itskalvik.com/research/publication/sgp-ipp/).
+<p align="center">
+  <em>A Python library for efficient sensor placement and informative path planning</em>
+</p>
 
-The library includes python code for the following:
+<p align="center">
+  <a href="https://pypi.org/project/sgptools/"><img alt="PyPI" src="https://img.shields.io/pypi/v/sgptools.svg"></a>
+  <a href="https://github.com/itskalvik/sgptools/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/sgptools.svg"></a>
+</p>
 
-- Greedy algorithm-based approaches
-- Bayesian optimization-based approaches
-- Genetic algorithm-based approaches
-- Sparse Gaussian process (SGP)-based approaches
+---
+
+**SGP-Tools** is a powerful and flexible Python library designed for optimizing sensor placements and planning informative paths for robotic systems, enabling efficient and scalable solutions for environment monitoring.
 
 <p align="center">
   <img src="assets/point_sensing.gif" width="49%">
@@ -16,6 +22,17 @@ The library includes python code for the following:
   <img src="assets/AIPP-4R.gif" width="49%">
   <img src="assets/AIPP-non-point_sensing.gif" width="49%">
 </p>
+
+---
+
+## Why SGP-Tools?
+
+-   **State-of-the-Art Algorithms**: Includes a variety of optimization methods including greedy algorithms, Bayesian optimization, CMA-ES, and SGP-based optimization.
+-   **Advanced Modeling Capabilities**: Go beyond simple point sensing with tools for informative path planning for multi-robot systems and complex sensor field-of-view (FoV) models.
+-   **Non-Stationary Kernels**: Capture complex, real-world phenomena with specialized non-stationary kernels like the Neural Spectral Kernel and the Attentive Kernel.
+-   **Flexible and Extensible**: Built on GPflow and TensorFlow, the library is designed to be modular and easy to extend with your own custom methods, kernels, and objectives.
+
+---
 
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:
@@ -38,12 +55,11 @@ Note: The requirements.txt file contains packages and their latest versions that
 ## Quick Start
 Please refer to the [example Jupyter notebooks](examples/IPP.html) demonstrating the methods included in the library 😄
 
-## Method Summary
+## SGP-based Informative Path Planning
 <p align="center"><div class="video-con"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></p>
 
 ## Datasets
-* High-resolution topography data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:ID=10046/details/10046)
-* High-resolution bathymetry data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:id=2475/details/2475)
+* High-resolution topography and bathymetry data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/digitalcoast/)
 
 ## About
 Please consider citing the following papers if you use SGP-Tools in your academic work 😄
@@ -78,7 +94,3 @@ URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
 
 ## Acknowledgements
 This work was funded in part by the UNC Charlotte Office of Research and Economic Development and by NSF under Award Number IIP-1919233.
-
-## License
-The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.
-See LICENSE for more information.

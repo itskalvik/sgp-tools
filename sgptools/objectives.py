@@ -145,7 +145,6 @@ class MI(Objective):
             mi_objective = MI(X_objective=X_objective, kernel=kernel, noise_variance=noise_variance)
             X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
             mi_value = mi_objective(X_sensing)
-            print(f"Mutual Information: {mi_value.numpy()}")
             ```
         """
         # K(X_objective, X_objective)
@@ -226,7 +225,6 @@ class SLogMI(MI):
             slogmi_objective = SLogMI(X_objective=X_objective, kernel=kernel, noise_variance=noise_variance)
             X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
             mi_value = slogmi_objective(X_sensing)
-            print(f"SLog Mutual Information: {mi_value.numpy()}")
             ```
         """
         # K(X_objective, X_objective)

@@ -56,8 +56,6 @@ def remove_polygons(
         square_polygon = mpath.Path(polygon_vertices)
 
         filtered_X, filtered_Y = remove_polygons(X_coords, Y_coords, [square_polygon])
-        print("Filtered X:", filtered_X) # Expected: [0 4 5]
-        print("Filtered Y:", filtered_Y) # Expected: [0 4 5]
         ```
     """
     points = np.array([X.flatten(), Y.flatten()]).T
@@ -100,8 +98,6 @@ def remove_circle_patches(
         circle = Circle((2, 2), 1.5)
 
         filtered_X, filtered_Y = remove_circle_patches(X_coords, Y_coords, [circle])
-        print("Filtered X:", filtered_X) # Expected: [0 4 5]
-        print("Filtered Y:", filtered_Y) # Expected: [0 4 5]
         ```
     """
     points = np.array([X.flatten(), Y.flatten()]).T
@@ -132,7 +128,6 @@ def point_pos(point: np.ndarray, d: float, theta: float) -> np.ndarray:
         initial_points = np.array([[0.0, 0.0], [1.0, 1.0]])
         # Displace by distance 5.0 at angle pi/4 (45 degrees)
         new_points = point_pos(initial_points, 5.0, np.pi/4)
-        print("New points:\n", new_points)
         # Expected:
         # New points:
         # [[3.53553391 3.53553391]
@@ -169,7 +164,6 @@ def prep_tif_dataset(dataset_path: str,
         # Assuming 'path/to/your/dataset.tif' exists
         # from sgptools.utils.data import prep_tif_dataset
         # dataset_array = prep_tif_dataset('path/to/your/dataset.tif', dim_max=1000)
-        # print("Preprocessed dataset shape:", dataset_array.shape)
         ```
     """
     data = PIL.Image.open(dataset_path)
@@ -221,7 +215,6 @@ def prep_synthetic_dataset(shape: Tuple[int, int] = (1000, 1000),
         ```python
         # from sgptools.utils.data import prep_synthetic_dataset
         # synthetic_data = prep_synthetic_dataset(shape=(256, 256), roughness=0.7, random_seed=42)
-        # print("Synthetic dataset shape:", synthetic_data.shape)
         ```
     """
     data = diamond_square(shape=shape,

@@ -86,14 +86,12 @@ def get_model_params(
 
         # Train a GPR model (since 1000 samples <= 1500)
         losses, noise_var, trained_kernel = get_model_params(X, y, max_steps=500, verbose=True)
-        print(f"Optimized Noise Variance: {noise_var}")
 
         # Train an SGPR model (more than 1500 samples)
         X_large = np.random.rand(2000, 2) * 10
         y_large = np.sin(X_large[:, 0:1]) + np.cos(X_large[:, 1:2]) + np.random.randn(2000, 1) * 0.1
         losses_sgpr, noise_var_sgpr, trained_kernel_sgpr, sgpr_model = \
             get_model_params(X_large, y_large, max_steps=500, num_inducing_pts=100, return_model=True)
-        print(f"Optimized SGPR Noise Variance: {noise_var_sgpr}")
         ```
     """
     if kernel is None:
@@ -221,7 +219,6 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
             # trace_task = TraceInducingPts(model)
             # Then retrieve trace after optimization
             # inducing_points_history = trace_task.get_trace()
-            # print(f"Shape of inducing points history: {inducing_points_history.shape}")
             ```
         """
         return np.array(self.trace)

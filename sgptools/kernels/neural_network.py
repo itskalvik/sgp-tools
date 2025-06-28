@@ -102,7 +102,6 @@ class NN(gpflow.base.Module):
 
             # Pass input through the network
             output = mlp(input_data)
-            print("MLP output shape:", output.shape)
             ```
         """
         super().__init__()

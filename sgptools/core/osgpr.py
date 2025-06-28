@@ -351,14 +351,11 @@ def init_osgpr(X_train: np.ndarray,
             variance=1.5,
             noise_variance=0.01
         )
-        print("OSGPR model initialized.")
-        print(f"Initial inducing points shape: {online_gp_model.inducing_variable.Z.shape}")
 
         # Example of updating the model with new data (typically in a loop)
         # new_X_batch = np.random.rand(10, 2) * 10
         # new_y_batch = np.sin(new_X_batch[:, 0:1]) + np.random.randn(10, 1) * 0.1
         # online_gp_model.update(data=(new_X_batch, new_y_batch))
-        # print("Model updated with new data.")
         ```
     """
     if kernel is None:
