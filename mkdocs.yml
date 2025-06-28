@@ -1,9 +1,10 @@
 site_name: SGP-Tools
 site_author: Kalvik Jakkala
 site_url: https://www.itskalvik.com/sgp-tools/
+repo_name: sgptools
 
 theme:
-  name: "material"
+  name: material
   custom_dir: overrides
   favicon: assets/favicon.png
   logo: assets/SGP-Tools.png
@@ -42,10 +43,10 @@ theme:
     - content.code.copy
 
 plugins:
-  - mkdocstrings
   - search
   - offline
   - mkdocs-jupyter
+  - mkdocstrings
 
 nav:
   - Home: index.md
@@ -93,6 +94,13 @@ extra:
 repo_url: https://github.com/itskalvik/SGP-Tools
 
 markdown_extensions:
+  - toc:
+      permalink: true
+  - markdown.extensions.codehilite:
+      guess_lang: false
+  - admonition
+  - codehilite
+  - extra
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true
@@ -103,7 +111,11 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
   - attr_list
+  - md_in_html
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
