@@ -12,7 +12,6 @@
   <a href="https://github.com/itskalvik/sgptools/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/sgptools.svg"></a>
 </p>
 
-
 <p align="center">
   <img src="assets/point_sensing.gif" width="49%">
   <img src="assets/non-point_sensing.gif" width="49%">
@@ -39,7 +38,7 @@ A common approach to surveying an area is to use a "lawnmower" path, a simple ba
 | Factor | Lawnmower Path | Informative Path Planning (IPP) |
 | :--- | :--- | :--- |
 | **Primary Goal** | Complete and uniform coverage of a predefined area. | Targeted data collection in areas of high information or uncertainty. |
-| **Performance** | Slow data collection but provides a high accuracy reconstruction of an envionment. | Fast data collection but provides an approximate reconstruction of an envionment. |
+| **Performance** | Slow data collection but provides a high accuracy reconstruction of the envionment. | Fast data collection but provides an approximate reconstruction of the envionment. |
 | **Prior Knowledge** | Not required; often used when no prior information is available. | Beneficial, but not required for adaptiev IPP; uses prior information to guide the sampling strategy. |
 | **Adaptability** | Non-adaptive; the path is fixed before the mission starts. | Highly adaptive; the path is updated in real-time based on sensor data. |
 | **Efficiency** | Can be inefficient if the phenomenon of interest is sparse. | Highly efficient for sparse or spatially variable phenomena. |
@@ -73,11 +72,9 @@ Note: The requirements.txt file contains packages and their latest versions that
 
 ## Quick Start
 
-Here's an example of how to use SGP-Tools to get an informative path using the ContinuousSGP method:
+Here's an example of how to use SGP-Tools to get an informative path using the `ContinuousSGP` method:
 
 ```python
-import numpy as np
-import matplotlib.pyplot as plt
 from sgptools.utils.data import Dataset # Class for loading and managing datasets
 from sgptools.utils.misc import get_inducing_pts # Utility for selecting inducing points
 from sgptools.utils.tsp import run_tsp # TSP/VRP solver for initial path planning
