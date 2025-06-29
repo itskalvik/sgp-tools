@@ -1,8 +1,8 @@
-# Objectives
+# `objectives`: Information-Theoretic Objectives
 
-This section describes the objective functions used for optimization in SGP-Tools.
+This module defines the objective functions that the optimization methods aim to maximize.
 
-Objective functions in this package:
+* **`MI` and `SLogMI`:** These classes compute the Mutual Information between a set of sensing locations and a set of objective locations. 
 
-- `MI`: Provides a naive implementation of mutual information
-- `SLogMI`: Provides a numerically stable implementation of mutual information
+    * `MI` quantifies the expected information gain from making measurements at the chosen locations. 
+    * `SLogMI` uses a more numerically stable implementation of MI based on the log-determinant of the covariance matrix.
