@@ -12,9 +12,6 @@
   <a href="https://github.com/itskalvik/sgptools/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/sgptools.svg"></a>
 </p>
 
----
-
-**SGP-Tools** is a powerful and flexible Python library designed for optimizing sensor placements and planning informative paths for robotic systems, enabling efficient and scalable solutions for environment monitoring.
 
 <p align="center">
   <img src="assets/point_sensing.gif" width="49%">
@@ -23,7 +20,25 @@
   <img src="assets/AIPP-non-point_sensing.gif" width="49%">
 </p>
 
----
+## What is SGP-Tools?
+
+**SGP-Tools** is a powerful and flexible Python library designed for solving **Sensor Placement** and **Informative Path Planning** problems, enabling efficient and scalable solutions for environment monitoring, e.g., monitoring air/water quality, soil moisture, or temperature.
+
+### Sensor Placement
+
+**Sensor Placement** is the problem of finding ideal locations to deploy a set of static sensors to best monitor a spatial phenomenon. The goal is to select a finite number of locations from a continuous space or a discrete set of candidates to maximize the information gathered about an entire area of interest. This is crucial when deploying a limited number of sensors to cover a large field.
+
+### Informative Path Planning (IPP)
+
+**Informative Path Planning** extends this concept to mobile sensors. Instead of finding static locations, IPP aims to compute an informative path for one or more robots to travel along. The path is designed to maximize information gain about the environment, often while adhering to constraints such as a limited travel distance. This is essential for applications like aerial surveying or robotic exploration.
+
+### Why is IPP instead of a lawnmower path?
+
+While a lawnmower path guarantees complete coverage, it is often inefficient. IPP is ideal for scientific and exploration missions because it focuses on smart data collection:
+
+* **Maximizes Information, Not Just Area**: IPP intelligently directs the robot to areas of high uncertainty or interest, rather than wasting time on predictable regions. This can yield a much more informative dataset for the same amount of effort.
+* **Works Within Constraints**: IPP can find a highly informative path that respects real-world limits, like a robot's battery life or a mission's time limit. A lawnmower path for a large area is often infeasible.
+* **Adapts to the Environment**: Using learning-based models, IPP can adapt its path based on the data it collects, focusing on complex features as they are discovered—something a rigid lawnmower pattern cannot do.
 
 ## Why SGP-Tools?
 
@@ -31,8 +46,6 @@
 -   **Advanced Modeling Capabilities**: Go beyond simple point sensing with tools for informative path planning for multi-robot systems and complex sensor field-of-view (FoV) models.
 -   **Non-Stationary Kernels**: Capture complex, real-world phenomena with specialized non-stationary kernels like the Neural Spectral Kernel and the Attentive Kernel.
 -   **Flexible and Extensible**: Built on GPflow and TensorFlow, the library is designed to be modular and easy to extend with your own custom methods, kernels, and objectives.
-
----
 
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:
@@ -53,9 +66,67 @@ python3 -m pip install -e .
 Note: The requirements.txt file contains packages and their latest versions that were last verified to be working without any issues.
 
 ## Quick Start
-Please refer to the [example Jupyter notebooks](examples/IPP.html) demonstrating the methods included in the library 😄
 
-## SGP-based Informative Path Planning
+Here's an example of how to use SGP-Tools to get an informative path using the ContinuousSGP method:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sgptools.utils.data import Dataset # Class for loading and managing datasets
+from sgptools.utils.misc import get_inducing_pts # Utility for selecting inducing points
+from sgptools.utils.tsp import run_tsp # TSP/VRP solver for initial path planning
+from sgptools.utils.gpflow import get_model_params # For training initial GP/SGP hyperparameters
+from sgptools.methods import get_method # Gets the class for continuous SGP optimization
+from sgptools.core.transformations import IPPTransform # Transforms for IPP
+
+# 1. Load or generate a dataset
+# This will create a synthetic dataset for demonstration
+dataset = Dataset(num_train=500, num_test=10000, 
+                  shape=(100, 100))
+X_train, y_train = dataset.get_train()
+X_test, y_test = dataset.get_test()
+
+# 2. Learn the GP hyperparameters from the training data
+print("Learning GP hyperparameters...")
+_, noise_variance, kernel = get_model_params(
+    X_train, y_train, max_steps=1000, verbose=True
+)
+
+# 3. Setup the IPP model
+num_placements = 15
+
+# Initialize inducing points and get initial path
+Xu_init = get_inducing_pts(X_train, num_placements)
+Xu_init, _ = run_tsp(Xu_init, time_limit=10)
+
+# Setup IPP transform with a sampling rate for continuous sensing
+transform_continuous_sensing = IPPTransform(sampling_rate=4)
+
+# Initialize the ContinuousSGP model
+method = get_method('ContinuousSGP')
+csgp_optimizer = method(
+    num_placements, 
+    X_train, 
+    kernel,
+    noise_variance, 
+    transform_continuous_sensing,
+    X_init=Xu_init[0]
+)
+
+# 4. Run the optimization
+print("Optimizing sensor placements...")
+solution_path = csgp_optimizer.optimize(max_steps=200)
+
+print(f"Solution Path: {solution_path}")
+```
+
+<p align="center">
+  <img src="assets/quick_start.png" width="600">
+</p>
+
+For more detailed examples, check out our example notebooks.
+
+## SGP-based IPP
 <p align="center"><div class="video-con"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></p>
 
 ## Datasets
