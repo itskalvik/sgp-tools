@@ -1,15 +1,16 @@
-<div style="text-align:left">
-<img width="472" src="docs/assets/SGP-Tools.png">
-</div>
+<p align="center">
+  <img src="docs/assets/SGP-Tools.png#gh-light-mode-only" alt="SGP-Tools Logo" width="600"/>
+  <img src="docs/assets/logo_dark.png#gh-dark-mode-only" alt="SGP-Tools Logo" width="600"/>
+</p>
 
-# SGP-based Optimization Tools
-Software Suite for [Sensor Placement](https://www.itskalvik.com/research/publication/sgp-sp/) (SP) and [Informative Path Planning](https://www.itskalvik.com/research/publication/sgp-ipp/) (IPP). 
+<p align="center">
+  <em>A Python library for efficient sensor placement and informative path planning</em>
+</p>
 
-The library includes python code for the following:
-- Greedy algorithm-based approaches
-- Bayesian optimization-based approaches
-- Genetic algorithm-based approaches
-- Sparse Gaussian process (SGP)-based approaches
+<p align="center">
+  <a href="https://pypi.org/project/sgptools/"><img alt="PyPI" src="https://img.shields.io/pypi/v/sgptools.svg"></a>
+  <a href="https://github.com/itskalvik/sgptools/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/sgptools.svg"></a>
+</p>
 
 <p align="center">
   <img src="docs/assets/point_sensing.gif" width="49%">
@@ -18,10 +19,38 @@ The library includes python code for the following:
   <img src="docs/assets/AIPP-non-point_sensing.gif" width="49%">
 </p>
 
-## Related Packages
+## What is SGP-Tools?
 
-- The [ros_sgp_tools](https://github.com/itskalvik/ros_sgp_tools) package provides a ROS2 companion package for SGP-Tools that can be deployed on ArduPilot-based vehicles. 
-- The [docker-sgp-tools](https://github.com/itskalvik/docker-sgp-tools) package provides docker containers for running SGP-Tools in simulation and on ArduPilot-based vehicles.
+**SGP-Tools** is a powerful and flexible Python library designed for solving **Sensor Placement** and **Informative Path Planning** problems, enabling efficient and scalable solutions for environment monitoring, e.g., monitoring air/water quality, soil moisture, or temperature.
+
+### Sensor Placement
+
+**Sensor Placement** is the problem of finding ideal locations to deploy a set of static sensors to best monitor a spatial phenomenon. The goal is to select a finite number of locations from a continuous space or a discrete set of candidates to maximize the information gathered about an entire area of interest. This is crucial when deploying a limited number of sensors to cover a large field.
+
+### Informative Path Planning (IPP)
+
+**Informative Path Planning** extends this concept to mobile sensors. Instead of finding static locations, IPP aims to compute an informative path for one or more robots to travel along. The path is designed to maximize information gain about the environment, often while adhering to constraints such as a limited travel distance. This is essential for applications like aerial surveying or robotic exploration.
+
+### IPP vs. Lawnmower Paths
+
+A common approach to surveying an area is to use a "lawnmower" path, a simple back-and-forth pattern designed for complete coverage. The following table summarizes the key differences between IPP and Lawnmower Paths:
+
+| Factor | Lawnmower Path | Informative Path Planning (IPP) |
+| :--- | :--- | :--- |
+| **Primary Goal** | Complete and uniform coverage of a predefined area. | Targeted data collection in areas of high information or uncertainty. |
+| **Performance** | Slow data collection but provides a high accuracy reconstruction of the envionment. | Fast data collection but provides an approximate reconstruction of the envionment. |
+| **Prior Knowledge** | Not required; often used when no prior information is available. | Beneficial, but not required for adaptiev IPP; uses prior information to guide the sampling strategy. |
+| **Adaptability** | Non-adaptive; the path is fixed before the mission starts. | Highly adaptive; the path is updated in real-time based on sensor data. |
+| **Efficiency** | Can be inefficient if the phenomenon of interest is sparse. | Highly efficient for sparse or spatially variable phenomena. |
+| **Computational Cost** | Low; simple to plan and execute. | Medium; requires onboard processing to analyze data and update the path. |
+| **Best For** | Baseline mapping, homogenous environments, initial surveys. | Dynamic phenomena, resource-constrained missions. |
+
+## Why SGP-Tools?
+
+-   **State-of-the-Art Algorithms**: Includes a variety of optimization methods including greedy algorithms, Bayesian optimization, CMA-ES, and SGP-based optimization.
+-   **Advanced Modeling Capabilities**: Go beyond simple point sensing with tools for informative path planning for multi-robot systems and complex sensor field-of-view (FoV) models.
+-   **Non-Stationary Kernels**: Capture complex, real-world phenomena with specialized non-stationary kernels like the Neural Spectral Kernel and the Attentive Kernel.
+-   **Flexible and Extensible**: Built on GPflow and TensorFlow, the library is designed to be modular and easy to extend with your own custom methods, kernels, and objectives.
 
 ## Installation
 The library is available as a ```pip``` package. To install the package, run the following command:
@@ -39,53 +68,75 @@ python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 
-Note: The requirements.txt file contains packages and their latest versions that were verified to be working without any issues.
+Note: The requirements.txt file contains packages and their latest versions that were last verified to be working without any issues.
 
 ## Quick Start
-Please refer to the [examples](https://www.itskalvik.com/sgp-tools/examples/IPP.html) folder for Jupyter notebooks demonstrating all the methods included in the library :smile:
 
-## Method Summary
-[![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
+Here's an example of how to use SGP-Tools to get an informative path using the `ContinuousSGP` method:
 
-## Codemap
-- `examples/`: Jupyter notebooks with code to demonstrate each method in the library
-    - `IPP.ipynb`: SGP-based IPP (point, non-point, continuous sensing, distance constrained, and multi-robot)
-    - `IPPBaselines.ipynb`: SGP-based IPP approach and baseline methods
-    - `non_point_FoV.ipynb`: IPP with non-point FoV sensors (drone camera setup)
-    - `non_stationary_demo.ipynb`: SP with non-stationary kernel
-    - `obstacles.ipynb`: SP in an environment with obstacles
-- `sgptools/`: SGP-Tools library
-    - `kernels/`: Kernel functions
-        - `attentive_kernel.py`: Attentive Kernel (Non-Stationary Kernel)
-        - `neural_kernel.py`: Neural Non-Stationary Spectral Kernel
-        - `neural_network.py`: GPFlow compatible Neural Network
-    - `models/`: Sensor placement and IPP methods
-        - `core/`: GP/SGP models used for sensor placement and IPP
-            - `augmented_gpr.py`: GPflow's GP that supports transforms (expansion and aggregation)
-            - `augmented_sgpr.py`: GPflow's SGP that supports transforms (expansion and aggregation)
-            - `transformations.py`: Expansion and aggregation transforms for IPP
-            - `osgpr.py`: Thang Bui's implementation of online sparse variational GP used for online/adaptive IPP
-        - `bo.py`: Bayesian optimization-based sensor placement method that maximizes mutual information
-        - `cma_es.py`: Genetic algorithm-based sensor placement method that maximizes mutual information
-        - `continuous_sgp.py`: Continuous SGP-based sensor placement method
-        - `greedy_mi.py`: Greedy sensor placement method that maximizes mutual information
-        - `greedy_sgp.py`: Greedy SGP-based sensor placement method
-    - `utils/`: Tools used for preprocessing the data, training GPs and SGPs, and generating paths
-        - `data.py`: Tools to preprocess datasets
-        - `gpflow.py`: Tools to interface with GPflow
-        - `metrics.py`: Metrics used to quantify the solution quality
-        - `misc.py`: Miscellaneous helper functions
-        - `tsp.py`: TSP solver
+```python
+from sgptools.utils.data import Dataset # Class for loading and managing datasets
+from sgptools.utils.misc import get_inducing_pts # Utility for selecting inducing points
+from sgptools.utils.tsp import run_tsp # TSP/VRP solver for initial path planning
+from sgptools.utils.gpflow import get_model_params # For training initial GP/SGP hyperparameters
+from sgptools.methods import get_method # Gets the class for continuous SGP optimization
+from sgptools.core.transformations import IPPTransform # Transforms for IPP
+
+# 1. Load or generate a dataset
+# This will create a synthetic dataset for demonstration
+dataset = Dataset(num_train=500, num_test=10000, 
+                  shape=(100, 100))
+X_train, y_train = dataset.get_train()
+X_test, y_test = dataset.get_test()
+
+# 2. Learn the GP hyperparameters from the training data
+print("Learning GP hyperparameters...")
+_, noise_variance, kernel = get_model_params(
+    X_train, y_train, max_steps=1000, verbose=True
+)
+
+# 3. Setup the IPP model
+num_placements = 15
+
+# Initialize inducing points and get initial path
+Xu_init = get_inducing_pts(X_train, num_placements)
+Xu_init, _ = run_tsp(Xu_init, time_limit=10)
+
+# Setup IPP transform with a sampling rate for continuous sensing
+transform_continuous_sensing = IPPTransform(sampling_rate=4)
+
+# Initialize the ContinuousSGP model
+method = get_method('ContinuousSGP')
+csgp_optimizer = method(
+    num_placements, 
+    X_train, 
+    kernel,
+    noise_variance, 
+    transform_continuous_sensing,
+    X_init=Xu_init[0]
+)
+
+# 4. Run the optimization
+print("Optimizing sensor placements...")
+solution_path = csgp_optimizer.optimize(max_steps=200)
+
+print(f"Solution Path: {solution_path}")
+```
+
+<p align="center">
+  <img src="docs/assets/quick_start.png" width="600">
+</p>
+
+For more detailed examples, check out our example notebooks.
+
+## SGP-based IPP
+<p align="center"><div class="video-con"><iframe width="560" height="315" src="https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></p>
 
 ## Datasets
-* High-resolution topography data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:ID=10046/details/10046)
-* High-resolution bathymetry data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/dataviewer/#/lidar/search/where:id=2475/details/2475)
-* Large tif files need to be downsampled using the following command (requires [GDAL package](https://gdal.org/index.html)): 
+* High-resolution topography and bathymetry data can be downloaded from [NOAA Digital Coast](https://coast.noaa.gov/digitalcoast/)
 
-    ```gdalwarp -tr 50 50 <input>.tif <output>.tif```
-
-## About SGP-Tools
-Please consider citing the following papers if you use SGP-Tools in your academic work :smile:
+## About
+Please consider citing the following papers if you use SGP-Tools in your academic work 😄
 
 ```
 @misc{JakkalaA23SP,
@@ -117,7 +168,3 @@ URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
 
 ## Acknowledgements
 This work was funded in part by the UNC Charlotte Office of Research and Economic Development and by NSF under Award Number IIP-1919233.
-
-## License
-The SGP-Tools software suite is licensed under the terms of the Apache License 2.0.
-See LICENSE for more information.
