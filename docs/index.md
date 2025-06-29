@@ -32,13 +32,19 @@
 
 **Informative Path Planning** extends this concept to mobile sensors. Instead of finding static locations, IPP aims to compute an informative path for one or more robots to travel along. The path is designed to maximize information gain about the environment, often while adhering to constraints such as a limited travel distance. This is essential for applications like aerial surveying or robotic exploration.
 
-### Why is IPP instead of a lawnmower path?
+### IPP vs. Lawnmower Paths
 
-While a lawnmower path guarantees complete coverage, it is often inefficient. IPP is ideal for scientific and exploration missions because it focuses on smart data collection:
+A common approach to surveying an area is to use a "lawnmower" path, a simple back-and-forth pattern designed for complete coverage. The following table summarizes the key differences between IPP and Lawnmower Paths:
 
-* **Maximizes Information, Not Just Area**: IPP intelligently directs the robot to areas of high uncertainty or interest, rather than wasting time on predictable regions. This can yield a much more informative dataset for the same amount of effort.
-* **Works Within Constraints**: IPP can find a highly informative path that respects real-world limits, like a robot's battery life or a mission's time limit. A lawnmower path for a large area is often infeasible.
-* **Adapts to the Environment**: Using learning-based models, IPP can adapt its path based on the data it collects, focusing on complex features as they are discovered—something a rigid lawnmower pattern cannot do.
+| Factor | Lawnmower Path | Informative Path Planning (IPP) |
+| :--- | :--- | :--- |
+| **Primary Goal** | Complete and uniform coverage of a predefined area. | Targeted data collection in areas of high information or uncertainty. |
+| **Performance** | Slow data collection but provides a high accuracy reconstruction of an envionment. | Fast data collection but provides an approximate reconstruction of an envionment. |
+| **Prior Knowledge** | Not required; often used when no prior information is available. | Beneficial, but not required for adaptiev IPP; uses prior information to guide the sampling strategy. |
+| **Adaptability** | Non-adaptive; the path is fixed before the mission starts. | Highly adaptive; the path is updated in real-time based on sensor data. |
+| **Efficiency** | Can be inefficient if the phenomenon of interest is sparse. | Highly efficient for sparse or spatially variable phenomena. |
+| **Computational Cost** | Low; simple to plan and execute. | Medium; requires onboard processing to analyze data and update the path. |
+| **Best For** | Baseline mapping, homogenous environments, initial surveys. | Dynamic phenomena, resource-constrained missions. |
 
 ## Why SGP-Tools?
 
