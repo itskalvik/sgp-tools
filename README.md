@@ -127,7 +127,7 @@ print(f"Solution Path: {solution_path}")
   <img src="docs/assets/quick_start.png" width="600">
 </p>
 
-For more detailed instructions, please refer to our [tutorials](http://sgp-tools.com/tutorials/index.html).
+For more detailed instructions, please refer to our [tutorials](http://sgp-tools.com/tutorials/index.html)
 
 ## SGP-based IPP
 [![Video Summary](https://res.cloudinary.com/marcomontalbano/image/upload/v1713536416/video_to_markdown/images/youtube--G-RKFa1vNHM-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://www.youtube.com/embed/G-RKFa1vNHM?si=PLmrmkCwXRj7mc4A "Video Summary")
