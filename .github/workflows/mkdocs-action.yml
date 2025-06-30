@@ -3,6 +3,7 @@ name: Update mkdocs website
 on:
   release:
     types: [released]
+  workflow_dispatch:
 
 permissions:
   contents: write
