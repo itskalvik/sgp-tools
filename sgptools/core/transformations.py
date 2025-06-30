@@ -693,9 +693,6 @@ class SquareHeightTransform(Transform):
         # Reshape to (number_of_points, 3)
         Xu_xyz = tf.reshape(Xu, (-1, 3))
 
-        if Xu_xyz.shape[0] < 2:
-            return tf.constant(0.0, dtype=tf.float64)
-
         # Calculate Euclidean distance between consecutive (x,y,z) points
         segment_distances = tf.norm(Xu_xyz[1:] - Xu_xyz[:-1], axis=-1)
         total_distance = tf.reduce_sum(segment_distances, axis=0)

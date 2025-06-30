@@ -85,7 +85,8 @@ nav:
       - TSP: api/utils/tsp.md
   - Tutorials:
       - tutorials/index.md
-      - IPP-2D: tutorials/IPP-2D.ipynb
+      - IPP: tutorials/IPP.ipynb
+      - AIPP: tutorials/AIPP.ipynb
       - Non-Stationary Kernels: tutorials/non_stationary_kernels.ipynb
 
 extra_css:
