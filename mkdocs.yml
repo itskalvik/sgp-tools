@@ -65,12 +65,12 @@ nav:
       - Neural Network: api/kernels/neural_network.md
     - Methods:
       - api/methods/index.md
+      - Method: api/methods/method.md
       - ContinuousSGP: api/methods/continuous_sgp.md
       - GreedySGP: api/methods/greedy_sgp.md
       - GreedyObjective: api/methods/greedy_objective.md
       - BayesianOpt: api/methods/bayesian_opt.md
       - CMA: api/methods/cma.md
-      - Method: api/methods/method.md
     - Objectives:
       - api/objectives/index.md
       - Objective: api/objectives/objective.md

@@ -1,6 +1,6 @@
 # `methods`: Optimization Algorithms
 
-This module provides various algorithms to optimize the sensor placements or paths.
+This module provides various algorithms to optimize the sensor placements or paths. Use the `get_methods` method to retrieve an optimization method class by its string name.
 
 * **`ContinuousSGP`:** This method directly optimizes the inducing points of the `AugmentedSGPR` model to maximize the Evidence Lower Bound (ELBO). This is the main SGP-based optimization approach proposed in the papers associated with this library.
 
