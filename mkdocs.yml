@@ -1,7 +1,7 @@
 site_name: SGP-Tools
 site_author: Kalvik Jakkala
-site_url: https://www.itskalvik.com/sgp-tools/
-repo_name: sgptools
+site_url: https://SGP-Tools.com
+repo_name: sgp-tools
 
 theme:
   name: material
@@ -96,7 +96,7 @@ extra:
     provider: google
     property: G-Z2TVV3MF1S
 
-repo_url: https://SGP-Tools.com
+repo_url: https://github.com/itskalvik/sgp-tools
 
 markdown_extensions:
   - toc:
