@@ -37,21 +37,33 @@ class Objective:
     Subclasses must implement the `__call__` method to define the objective.
     """
 
-    def __init__(self, X_objective: np.ndarray, kernel: gpflow.kernels.Kernel,
-                 noise_variance: float, **kwargs: Any):
+    def __init__(self,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 jitter: float = 1e-6,
+                 **kwargs: Any):
         """
         Initializes the base objective. This constructor primarily serves to define
         the expected parameters for all objective subclasses.
 
         Args:
-            X_objective (np.ndarray): The input data points that define the context or
-                                      environment for which the objective is calculated.
-                                      Shape: (N, D) where N is number of points, D is dimension.
-            kernel (gpflow.kernels.Kernel): The GPflow kernel function used in the objective.
-            noise_variance (float): The observed data noise variance.
+            X_objective (np.ndarray): The fixed set of data points (e.g., candidate locations
+                                      or training data points) against which MI is computed.
+                                      Shape: (N, D).
+            kernel (gpflow.kernels.Kernel): The GPflow kernel function to compute covariances.
+            noise_variance (float): The observed data noise variance, which is added to the jitter.
+            jitter (float): A small positive value to add for numerical stability to covariance
+                            matrix diagonals. Defaults to 1e-6.
             **kwargs: Arbitrary keyword arguments.
         """
-        pass
+        self.X_objective = tf.constant(X_objective, dtype=tf.float64)
+        self.kernel = kernel
+        self.noise_variance = noise_variance
+        # Total jitter includes the noise variance
+        self._base_jitter = jitter
+        self.jitter_fn = lambda cov: jitter_fn(
+            cov, jitter=self._base_jitter + self.noise_variance)
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -100,6 +112,7 @@ class MI(Objective):
                  kernel: gpflow.kernels.Kernel,
                  noise_variance: float,
                  jitter: float = 1e-6,
+                 cache: bool = True,
                  **kwargs: Any):
         """
         Initializes the Mutual Information (MI) objective.
@@ -112,16 +125,19 @@ class MI(Objective):
             noise_variance (float): The observed data noise variance, which is added to the jitter.
             jitter (float): A small positive value to add for numerical stability to covariance
                             matrix diagonals. Defaults to 1e-6.
+            cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`
+                          and reused in the `__call__` for faster computation time. Defaults to True.
             **kwargs: Arbitrary keyword arguments.
         """
-        self.X_objective = tf.constant(X_objective, dtype=tf.float64)
-        self.kernel = kernel
-        self.noise_variance = noise_variance
-        # Total jitter includes the noise variance
-        self._base_jitter = jitter
-        self.jitter_fn = lambda cov: jitter_fn(
-            cov, jitter=self._base_jitter + self.noise_variance)
-
+        super().__init__(X_objective, kernel, noise_variance, jitter, **kwargs)
+        self.cache = cache
+        if self.cache:
+            # K(X_objective, X_objective)
+            self.K_obj_obj = self.kernel(self.X_objective)
+            # Compute log determinants
+            self.logdet_K_obj_obj = tf.math.log(tf.linalg.det(
+                self.jitter_fn(self.K_obj_obj)))
+            
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
         Computes the Mutual Information for the given input points `X`.
@@ -148,15 +164,21 @@ class MI(Objective):
             ```
         """
         # K(X_objective, X_objective)
-        K_obj_obj = self.kernel(self.X_objective)
+        if self.cache:
+            K_obj_obj = self.K_obj_obj
+        else:
+            K_obj_obj = self.kernel(self.X_objective)
         # K(X, X)
         K_X_X = self.kernel(X)
         # K(X_objective U X, X_objective U X)
         K_combined = self.kernel(tf.concat([self.X_objective, X], axis=0))
 
         # Compute log determinants
-        logdet_K_obj_obj = tf.math.log(tf.linalg.det(
-            self.jitter_fn(K_obj_obj)))
+        if self.cache:
+            logdet_K_obj_obj = self.logdet_K_obj_obj
+        else:
+            logdet_K_obj_obj = tf.math.log(tf.linalg.det(
+                self.jitter_fn(K_obj_obj)))
         logdet_K_X_X = tf.math.log(tf.linalg.det(self.jitter_fn(K_X_X)))
         logdet_K_combined = tf.math.log(
             tf.linalg.det(self.jitter_fn(K_combined)))
@@ -187,6 +209,12 @@ class MI(Objective):
         self.jitter_fn = lambda cov: jitter_fn(
             cov, jitter=self._base_jitter + self.noise_variance)
 
+        if self.cache:
+            # K(X_objective, X_objective)
+            self.K_obj_obj = self.kernel(self.X_objective)
+            # Compute log determinants
+            self.logdet_K_obj_obj = tf.math.log(tf.linalg.det(
+                self.jitter_fn(self.K_obj_obj)))
 
 class SLogMI(MI):
     """
@@ -201,6 +229,36 @@ class SLogMI(MI):
 
     Jitter is also added to the diagonal for additional numerical stability.
     """
+
+    def __init__(self,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 jitter: float = 1e-6,
+                 cache: bool = True,
+                 **kwargs: Any):
+        """
+        Initializes the Mutual Information (MI) objective based on `tf.linalg.slogdet`.
+
+        Args:
+            X_objective (np.ndarray): The fixed set of data points (e.g., candidate locations
+                                      or training data points) against which MI is computed.
+                                      Shape: (N, D).
+            kernel (gpflow.kernels.Kernel): The GPflow kernel function to compute covariances.
+            noise_variance (float): The observed data noise variance, which is added to the jitter.
+            jitter (float): A small positive value to add for numerical stability to covariance
+                            matrix diagonals. Defaults to 1e-6.
+            cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`
+                          and reused in the `__call__` for faster computation time. Defaults to True.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(X_objective, kernel, noise_variance, jitter, cache=False, **kwargs)
+        self.cache = cache
+        if self.cache:
+            # K(X_objective, X_objective)
+            self.K_obj_obj = self.kernel(self.X_objective)
+            # Compute log determinants
+            _, self.logdet_K_obj_obj = tf.linalg.slogdet(self.jitter_fn(self.K_obj_obj))
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -228,14 +286,21 @@ class SLogMI(MI):
             ```
         """
         # K(X_objective, X_objective)
-        K_obj_obj = self.kernel(self.X_objective)
+        if self.cache:
+            K_obj_obj = self.K_obj_obj
+        else:
+            K_obj_obj = self.kernel(self.X_objective)
         # K(X, X)
         K_X_X = self.kernel(X)
         # K(X_objective U X, X_objective U X)
         K_combined = self.kernel(tf.concat([self.X_objective, X], axis=0))
 
         # Compute log determinants using slogdet for numerical stability
-        _, logdet_K_obj_obj = tf.linalg.slogdet(self.jitter_fn(K_obj_obj))
+        if self.cache:
+            logdet_K_obj_obj = self.logdet_K_obj_obj
+        else:
+            _, logdet_K_obj_obj = tf.linalg.slogdet(self.jitter_fn(K_obj_obj))
+
         _, logdet_K_X_X = tf.linalg.slogdet(self.jitter_fn(K_X_X))
         _, logdet_K_combined = tf.linalg.slogdet(self.jitter_fn(K_combined))
 
@@ -245,9 +310,111 @@ class SLogMI(MI):
         return mi
 
 
+class SchurMI(SLogMI):
+    """
+    Computes Mutual Information (MI) using the Schur complement for improved
+    numerical stability and computational efficiency.
+
+    This method leverages the properties of block matrix determinants to reformulate
+    the MI calculation. The standard MI formula is:
+    $MI = \\log|K_{XX}| + \\log|K_{oo}| - \\log|K_{combined}|$
+    where $K_{XX} = K(X, X)$, $K_{oo} = K(X_{objective}, X_{objective})$, and
+    $K_{combined}$ is the kernel of the union of the points.
+
+    Using the Schur complement identity for determinants,
+    $\\log|K_{combined}| = \\log|K_{oo}| + \\log|K_{XX} - K_{Xo} K_{oo}^{-1} K_{oX}|$,
+    the MI calculation simplifies to:
+    $MI = \\log|K_{XX}| - \\log|SchurComplement|$
+    where the Schur Complement is $K_{XX} - K_{Xo} K_{oo}^{-1} K_{oX}$.
+
+    This approach is particularly efficient when the objective is evaluated
+    multiple times for different sensing locations `X` but with a fixed set of
+    `X_objective` points. By caching the inverse of $K_{oo}$, we avoid costly
+    recomputations. Like `SLogMI`, this class uses `tf.linalg.slogdet` and
+    adds jitter for robust computation.
+    """
+    def __init__(self,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 jitter: float = 1e-6,
+                 cache: bool = True,
+                 **kwargs: Any):
+        """
+        Initializes the SchurMI objective.
+
+        Args:
+            X_objective (np.ndarray): The fixed set of data points against which
+                                      MI is computed. Shape: (N, D).
+            kernel (gpflow.kernels.Kernel): The GPflow kernel to compute covariances.
+            noise_variance (float): The observed data noise variance.
+            jitter (float): A small value added to the diagonal of covariance
+                            matrices for numerical stability. Defaults to 1e-6.
+            cache (bool): If `True`, the inverse of $K(X_objective, X_objective)$
+                          is pre-computed and cached to accelerate subsequent MI
+                          calculations. Defaults to True.
+            **kwargs: Arbitrary keyword arguments.
+        """
+        super().__init__(X_objective, kernel, noise_variance, jitter, cache=False, **kwargs)
+        self.cache = cache
+        if self.cache:
+            # K(X_objective, X_objective)
+            self.K_obj_obj = self.kernel(self.X_objective)
+            # Compute the inverse
+            self.inv_K_obj_obj = tf.linalg.inv(self.jitter(self.K_obj_obj))
+
+    def __call__(self, X: tf.Tensor) -> tf.Tensor:
+        """
+        Computes the Mutual Information for the input points `X` using the
+        Schur complement method.
+
+        Args:
+            X (tf.Tensor): The input points (e.g., sensing locations) for which
+                           MI is to be computed. Shape: (M, D).
+
+        Returns:
+            tf.Tensor: The computed Mutual Information value.
+
+        Usage:
+            ```python
+            import gpflow
+            import numpy as np
+            # Assume X_objective and kernel are defined
+            # X_objective = np.random.rand(100, 2)
+            # kernel = gpflow.kernels.SquaredExponential()
+            # noise_variance = 0.1
+
+            schur_mi_objective = SchurMI(
+                X_objective=X_objective,
+                kernel=kernel,
+                noise_variance=noise_variance
+            )
+            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            mi_value = schur_mi_objective(X_sensing)
+            ```
+        """
+        if self.cache:
+            inv_K_obj_obj = self.inv_K_obj_obj
+        else:
+            # K(X_objective, X_objective)
+            K_obj_obj = self.kernel(self.X_objective)
+            # Compute the inverse
+            inv_K_obj_obj = tf.linalg.inv(self.jitter(K_obj_obj))
+
+        K_X_X = self.kernel(X)
+        _, logdet_K_X_X = tf.linalg.slogdet(self.jitter(K_X_X))
+        K_X_obj = self.kernel(X, self.X_objective)
+        transpose_K_X_obj = tf.transpose(K_X_obj)
+        schur = K_X_X - K_X_obj @ inv_K_obj_obj @ transpose_K_X_obj
+        _, schur_det = tf.linalg.slogdet(self.jitter(schur))
+        mi = logdet_K_X_X - schur_det
+        return mi
+
+
 OBJECTIVES: Dict[str, Type[Objective]] = {
     'MI': MI,
     'SLogMI': SLogMI,
+    'SchurMI': SchurMI
 }
 
 
