@@ -9,7 +9,7 @@ import tensorflow as tf
 from typing import Optional, List, Tuple, Union, Dict, Any, Type
 
 from sgptools.utils.misc import cont2disc, get_inducing_pts
-from sgptools.objectives import get_objective
+from sgptools.objectives import get_objective, Objective
 from sgptools.utils.gpflow import optimize_model
 from sgptools.core.augmented_sgpr import AugmentedSGPR
 from sgptools.core.transformations import Transform  # Import Transform for type hinting
@@ -116,7 +116,7 @@ class BayesianOpt(Method):
         - Occupancy map building through Bayesian exploration [Francis et al., 2019]
 
     Attributes:
-        objective (object): The objective function to be optimized.
+        objective (Objective): The objective function to be optimized.
         transform (Optional[Transform]): Transform object applied to inducing points.
         pbounds (Dict[str, Tuple[float, float]]): Dictionary defining the search space bounds.
     """
@@ -130,7 +130,7 @@ class BayesianOpt(Method):
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
-                 objective: Union[str, Any] = 'SLogMI',
+                 objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
         """
         Initializes the BayesianOpt optimizer.
@@ -145,7 +145,7 @@ class BayesianOpt(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
@@ -294,7 +294,7 @@ class CMA(Method):
         - Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
 
     Attributes:
-        objective (object): The objective function to be minimized/maximized.
+        objective (Objective): The objective function to be minimized/maximized.
         transform (Optional[Transform]): Transform object applied to inducing points.
         X_init (np.ndarray): Initial solution guess for the optimization.
         pbounds (geometry.MultiPoint): The convex hull of the objective area, used implicitly for bounds.
@@ -309,7 +309,7 @@ class CMA(Method):
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
-                 objective: Union[str, Any] = 'SLogMI',
+                 objective: Union[str, Objective] = 'SLogMI',
                  X_init: Optional[np.ndarray] = None,
                  **kwargs: Any):
         """
@@ -325,7 +325,7 @@ class CMA(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.
                                             If None, initial points are randomly selected from X_objective.
@@ -660,7 +660,7 @@ class GreedyObjective(Method):
         - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
 
     Attributes:
-        objective (object): The objective function to be maximized (e.g., Mutual Information).
+        objective (Objective): The objective function to be maximized (e.g., Mutual Information).
         transform (Optional[Transform]): Transform object applied to selected locations.
     """
 
@@ -673,7 +673,7 @@ class GreedyObjective(Method):
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
-                 objective: Union[str, Any] = 'SLogMI',
+                 objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
         """
         Initializes the GreedyObjective optimizer.
@@ -688,7 +688,7 @@ class GreedyObjective(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  If None, X_objective is used as candidates.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Any]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """

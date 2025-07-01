@@ -361,7 +361,7 @@ class SchurMI(SLogMI):
             # K(X_objective, X_objective)
             self.K_obj_obj = self.kernel(self.X_objective)
             # Compute the inverse
-            self.inv_K_obj_obj = tf.linalg.inv(self.jitter(self.K_obj_obj))
+            self.inv_K_obj_obj = tf.linalg.inv(self.jitter_fn(self.K_obj_obj))
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
@@ -399,14 +399,14 @@ class SchurMI(SLogMI):
             # K(X_objective, X_objective)
             K_obj_obj = self.kernel(self.X_objective)
             # Compute the inverse
-            inv_K_obj_obj = tf.linalg.inv(self.jitter(K_obj_obj))
+            inv_K_obj_obj = tf.linalg.inv(self.jitter_fn(K_obj_obj))
 
         K_X_X = self.kernel(X)
-        _, logdet_K_X_X = tf.linalg.slogdet(self.jitter(K_X_X))
+        _, logdet_K_X_X = tf.linalg.slogdet(self.jitter_fn(K_X_X))
         K_X_obj = self.kernel(X, self.X_objective)
         transpose_K_X_obj = tf.transpose(K_X_obj)
         schur = K_X_X - K_X_obj @ inv_K_obj_obj @ transpose_K_X_obj
-        _, schur_det = tf.linalg.slogdet(self.jitter(schur))
+        _, schur_det = tf.linalg.slogdet(self.jitter_fn(schur))
         mi = logdet_K_X_X - schur_det
         return mi
 
