@@ -95,7 +95,7 @@ extra_css:
 extra:
   analytics:
     provider: google
-    property: G-B3JQYGGW0B
+    property: G-Z2TVV3MF1S
 
 repo_url: https://github.com/itskalvik/sgp-tools
 
