@@ -224,7 +224,7 @@ class TraceInducingPts(gpflow.monitor.MonitorTask):
         return np.array(self.trace)
 
 
-def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
+def optimize_model(model: Optional[Union[gpflow.models.GPR, gpflow.models.SGPR]]=None,
                    max_steps: int = 2000,
                    optimize_hparams: bool = True,
                    optimizer: str = 'scipy.L-BFGS-B',
@@ -232,12 +232,14 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
                    trace_fn: Optional[Union[str, Callable[[Any], Any]]] = None,
                    convergence_criterion: bool = True,
                    trainable_variables: Optional[List[tf.Variable]] = None,
+                   training_loss: Optional[Callable[[Any], Any]] = None,
                    **kwargs: Any) -> np.ndarray:
     """
     Trains a GPflow GP or SGP model using either SciPy's optimizers or TensorFlow's optimizers.
 
     Args:
-        model (Union[gpflow.models.GPR, gpflow.models.SGPR]): The GPflow model (GPR or SGPR) to be trained.
+        model (Union[gpflow.models.GPR, gpflow.models.SGPR]): The GPflow model (GPR or SGPR) to be trained. 
+                            Optionally, you can instead pass a loss function with the `training_loss` argument. 
         max_steps (int): Maximum number of training steps (iterations). Defaults to 2000.
         optimize_hparams (bool): If `False`, the model hyperparameters (kernel parameters and data likelihood) 
                             will not be optimized. This is ignored if `trainable_variables` is explicitly passed.
@@ -266,6 +268,7 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
                                       Defaults to True.
         trainable_variables (Optional[List[tf.Variable]]): A list of specific model variables to train.
                                     If None, variables are determined based on `kernel_grad`. Defaults to None.
+        training_loss (Optional[Callable[[Any], Any]]): A custom training loss function.
         **kwargs: Additional keyword arguments passed to the backend optimizers.
 
     Returns:
@@ -303,13 +306,19 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
         traced_ips = optimize_model(sgpr_model, max_steps=100, optimizer='tf.Adam', trace_fn='traceXu', verbose=False)
         ```
     """
+    reset_trainable = False
     # Determine which variables to train
     if trainable_variables is None:
         # Disable hyperparameter gradients (kernel and likelihood parameters)
         if not optimize_hparams:
             set_trainable(model.kernel, False)
             set_trainable(model.likelihood, False)
+            reset_trainable = True
         trainable_variables = model.trainable_variables
+
+    # Determine the training loss function
+    if training_loss is None:
+        training_loss = model.training_loss
 
     # Parse optimizer string
     optimizer_parts = optimizer.split('.')
@@ -336,7 +345,7 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
         # SciPy optimize method returns a `ScipyOptimizerResults` object
         # which has `fun` attribute for the final loss. `step_callback` is used for tracing.
         results = opt.minimize(
-            model.training_loss,
+            training_loss,
             trainable_variables,
             method=method,
             options=dict(disp=verbose, maxiter=max_steps),
@@ -371,9 +380,6 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
         # Get Keras optimizer instance
         opt = getattr(optimizers, method)(**kwargs)
 
-        # Define the training loss function
-        loss_function_to_minimize = model.training_loss
-
         # Configure convergence criterion
         tf_convergence_criterion: Optional[
             tfp.optimizer.convergence_criteria.ConvergenceCriterion] = None
@@ -389,7 +395,7 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
 
         # Run TensorFlow optimization
         results_tf = tfp.math.minimize(
-            loss_function_to_minimize,
+            training_loss,
             trainable_variables=trainable_variables,
             num_steps=max_steps,
             optimizer=opt,
@@ -404,7 +410,7 @@ def optimize_model(model: Union[gpflow.models.GPR, gpflow.models.SGPR],
             f"Invalid backend! Expected `scipy` or `tf`; got {backend}")
 
     # Reset trainable variables
-    if not optimize_hparams:
+    if not optimize_hparams and reset_trainable:
         set_trainable(model.kernel, True)
         set_trainable(model.likelihood, True)
 

@@ -543,7 +543,7 @@ class ContinuousSGP(Method):
             # override num_dim with initial inducing points dim, in case it differes from X_objective dim
             self.num_dim = X_init.shape[-1]
 
-        # Fit the SGP
+        # Initialize the SGP
         dtype = X_objective.dtype
         train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective,
                                                               dtype=dtype),
@@ -817,7 +817,7 @@ class GreedyObjective(Method):
         else:
             reward = self.objective(X_locations)  # maximize
 
-        reward -= constraint_penality  # minimize
+        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
         return reward.numpy()
 
 
@@ -877,7 +877,7 @@ class GreedySGP(Method):
         error = f"num_robots={self.num_robots}; GreedySGP only supports num_robots=1"
         assert self.num_robots == 1, error
 
-        # Fit the SGP
+        # Initialize the SGP
         dtype = X_objective.dtype
         train_set: Tuple[tf.Tensor, tf.Tensor] = (tf.constant(X_objective,
                                                               dtype=dtype),
@@ -1014,12 +1014,114 @@ class GreedySGP(Method):
         return self.sgpr.transform
 
 
+class DifferentiableObjective(Method):
+    def __init__(self,
+                 num_sensing: int,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float,
+                 transform: Optional[Transform] = None,
+                 num_robots: int = 1,
+                 X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
+                 objective: Union[str, Objective] = 'SLogMI',
+                 X_init: Optional[np.ndarray] = None,
+                 X_time: Optional[np.ndarray] = None,
+                 orientation: bool = False,
+                 **kwargs: Any):
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
+        self.transform = transform
+        if X_candidates is None:
+            self.X_candidates = X_objective  # Default candidates to objective points
+
+        if X_init is None:
+            X_init = get_inducing_pts(X_objective,
+                                      num_sensing * self.num_robots,
+                                      orientation=orientation)
+        else:
+            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            self.num_dim = X_init.shape[-1]
+        self.X_sol = tf.Variable(X_init, dtype=X_init.dtype)
+
+        if isinstance(objective, str):
+            self.objective = get_objective(objective)(X_objective, kernel,
+                                                      noise_variance, **kwargs)
+        else:
+            self.objective = objective
+
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
+        """
+        Updates the kernel and noise variance parameters of the objective function.
+
+        Args:
+            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
+            noise_variance (float): Updated data noise variance.
+        """
+        self.objective.update(kernel, noise_variance)
+
+    def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
+        """
+        Retrieves the current kernel and noise variance hyperparameters from the objective.
+
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        """
+        return deepcopy(self.objective.kernel), \
+               self.objective.noise_variance
+    
+    def optimize(self,
+                 max_steps: int = 500,
+                 optimizer: str = 'scipy.L-BFGS-B',
+                 verbose: bool = False,
+                 **kwargs: Any) -> np.ndarray:
+        _ = optimize_model(
+            training_loss = self._objective,
+            max_steps=max_steps,
+            trainable_variables=[self.X_sol],
+            optimizer=optimizer,
+            verbose=verbose,
+            **kwargs)
+
+        sol: tf.Tensor = self.X_sol
+        try:
+            sol_expanded = self.transform.expand(sol,
+                                                 expand_sensor_model=False)
+        except TypeError:
+            sol_expanded = sol
+        if not isinstance(sol_expanded, np.ndarray):
+            sol_np = sol_expanded.numpy()
+        else:
+            sol_np = sol_expanded
+
+        # Map solution locations to candidates set locations if X_candidates is provided
+        if self.X_candidates is not None:
+            sol_np = cont2disc(sol_np, self.X_candidates)
+
+        sol_np = sol_np.reshape(self.num_robots, -1, self.num_dim)
+        return sol_np
+    
+    def _objective(self) -> float:
+        constraint_penality: float = 0.0
+        if self.transform is not None:
+            X_expanded = self.transform.expand(self.X_sol)
+            constraint_penality = self.transform.constraints(self.X_sol)
+            reward = self.objective(X_expanded)  # maximize
+        else:
+            reward = self.objective(self.X_sol)  # maximize
+
+        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
+        return reward
+
+
 METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
     'CMA': CMA,
     'ContinuousSGP': ContinuousSGP,
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,
+    'DifferentiableObjective': DifferentiableObjective
 }
 
 

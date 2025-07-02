@@ -120,7 +120,6 @@ class IPPBenchmark:
 
                 for method in methods:
                     X_objective = self.dataset.candidates
-                    X_candidates = None
                     method_backend = method
 
                     if method == 'ContinuousSGP' or method == 'DiscreteSGP':
@@ -135,8 +134,7 @@ class IPPBenchmark:
                         self.kernel_opt,
                         self.noise_variance_opt,
                         transform,
-                        num_robots=self.num_robots,
-                        X_candidates=X_candidates)
+                        num_robots=self.num_robots)
 
                     start_time = time()
                     solution = model.optimize()

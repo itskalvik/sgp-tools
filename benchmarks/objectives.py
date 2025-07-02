@@ -69,7 +69,8 @@ class IPPBenchmark:
             self.continuous_sening = False
 
         # Load the dataset
-        self.dataset = Dataset(dataset_path)
+        self.dataset = Dataset(dataset_path,
+                               num_candidates=500)
 
         # Get oracle hyperparameters to benchmark rmse
         start_time = time()
@@ -121,7 +122,6 @@ class IPPBenchmark:
 
                 for method in methods:
                     X_objective = self.dataset.candidates
-                    X_candidates = None
                     method_list = method.split('.')
                     method_backend = method_list[0]
 
@@ -146,7 +146,6 @@ class IPPBenchmark:
                         self.noise_variance_opt,
                         transform,
                         num_robots=self.num_robots,
-                        X_candidates=X_candidates,
                         objective=objective,
                         cache=cache)
 
@@ -254,6 +253,10 @@ if __name__ == '__main__':
        args.num_robots == 1 and \
        not args.distance_budget:
         methods = [
+            'DifferentiableObjective.SLogMI',
+            'DifferentiableObjective.SLogMI.cache',
+            'DifferentiableObjective.SchurMI',
+            'DifferentiableObjective.SchurMI.cache',
             'CMA.SLogMI',
             'CMA.SLogMI.cache',
             'CMA.SchurMI',
