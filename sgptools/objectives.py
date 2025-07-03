@@ -85,15 +85,23 @@ class Objective:
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters used by the objective function.
-        This method should be overridden by subclasses if they maintain internal state
-        that needs updating (e.g., cached kernel matrices or jitter values).
+        Updates the kernel and noise variance for the MI objective.
+        This method is crucial for optimizing the GP hyperparameters externally
+        and having the objective function reflect those changes.
 
         Args:
             kernel (gpflow.kernels.Kernel): The updated GPflow kernel function.
             noise_variance (float): The updated data noise variance.
         """
-        pass
+        # Update kernel's trainable variables (e.g., lengthscales, variance)
+        for self_var, var in zip(self.kernel.trainable_variables,
+                                 kernel.trainable_variables):
+            self_var.assign(var)
+
+        self.noise_variance = noise_variance
+        # Update the jitter function to reflect the new noise variance
+        self.jitter_fn = lambda cov: jitter_fn(
+            cov, jitter=self._base_jitter + self.noise_variance)
 
 
 class MI(Objective):
@@ -199,16 +207,7 @@ class MI(Objective):
             kernel (gpflow.kernels.Kernel): The updated GPflow kernel function.
             noise_variance (float): The updated data noise variance.
         """
-        # Update kernel's trainable variables (e.g., lengthscales, variance)
-        for self_var, var in zip(self.kernel.trainable_variables,
-                                 kernel.trainable_variables):
-            self_var.assign(var)
-
-        self.noise_variance = noise_variance
-        # Update the jitter function to reflect the new noise variance
-        self.jitter_fn = lambda cov: jitter_fn(
-            cov, jitter=self._base_jitter + self.noise_variance)
-
+        super().update(kernel, noise_variance)
         if self.cache:
             # K(X_objective, X_objective)
             self.K_obj_obj = self.kernel(self.X_objective)
@@ -410,11 +409,172 @@ class SchurMI(SLogMI):
         mi = logdet_K_X_X - schur_det
         return mi
 
+    def update(self, kernel: gpflow.kernels.Kernel,
+               noise_variance: float) -> None:
+        """
+        Updates the kernel and noise variance for the MI objective.
+        This method is crucial for optimizing the GP hyperparameters externally
+        and having the objective function reflect those changes.
+
+        Args:
+            kernel (gpflow.kernels.Kernel): The updated GPflow kernel function.
+            noise_variance (float): The updated data noise variance.
+        """
+        super().update(kernel, noise_variance)
+        if self.cache:
+            # K(X_objective, X_objective)
+            self.K_obj_obj = self.kernel(self.X_objective)
+            # Compute the inverse
+            self.inv_K_obj_obj = tf.linalg.inv(self.jitter_fn(self.K_obj_obj))
+            
+
+class  AOptimal(Objective):          
+    """
+    Computes the A-optimal design metric.
+
+    A-optimality aims to minimize the average variance of the estimates of the
+    GP model parameters. This is achieved by minimizing the trace of the
+    covariance matrix $\text{Tr}(K(X, X))$. Since optimization algorithms typically
+    minimize a function, this objective returns the negative trace, which
+    is then maximized.
+    """  
+    def __call__(self, X: tf.Tensor) -> tf.Tensor:
+        """
+        Computes the negative trace of the covariance matrix $-\text{Tr}(K(X, X))$.
+
+        Args:
+            X (tf.Tensor): The input points (e.g., sensing locations) for which
+                           the objective is to be computed. Shape: (M, D).
+
+        Returns:
+            tf.Tensor: The computed A-optimal metric value.
+            
+        Usage:
+            ```python
+            import gpflow
+            import numpy as np
+            # Assume kernel is defined
+            # X_objective = np.random.rand(100, 2) # Not used by A-Optimal but required by base class
+            # kernel = gpflow.kernels.SquaredExponential()
+            # noise_variance = 0.1
+
+            a_optimal_objective = AOptimal(
+                X_objective=X_objective,
+                kernel=kernel,
+                noise_variance=noise_variance
+            )
+            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            a_optimal_value = a_optimal_objective(X_sensing)
+            ```
+        """
+        # K(X, X)
+        K_X_X = self.kernel(X)
+        trace_K_X_X = tf.linalg.trace(self.jitter_fn(K_X_X))
+        return -trace_K_X_X
+
+
+class  BOptimal(Objective):     
+    """
+    Computes the B-optimal design metric.
+
+    Refer to the following paper for more details:
+        - Approximate Sequential Optimization for Informative Path Planning [Ott et al., 2024]
+
+    B-optimality minimizes the trace of the inverse of the covariance matrix 
+    $-\text{Tr}(K(X, X)^{-1})$. This corresponds to minimizing the average 
+    prediction variance over the input locations `X`. Since optimization 
+    algorithms typically minimize a function, this objective returns 
+    $\text{Tr}(K(X, X)^{-1})$, which is then maximized.
+    """       
+    def __call__(self, X: tf.Tensor) -> tf.Tensor:
+        """
+        Computes the trace of the inverse of the covariance matrix $\text{Tr}(K(X, X)^{-1})$.
+
+        Args:
+            X (tf.Tensor): The input points (e.g., sensing locations) for which
+                           the objective is to be computed. Shape: (M, D).
+
+        Returns:
+            tf.Tensor: The computed B-optimal metric value.
+            
+        Usage:
+            ```python
+            import gpflow
+            import numpy as np
+            # Assume kernel is defined
+            # X_objective = np.random.rand(100, 2) # Not used by B-Optimal but required by base class
+            # kernel = gpflow.kernels.SquaredExponential()
+            # noise_variance = 0.1
+
+            b_optimal_objective = BOptimal(
+                X_objective=X_objective,
+                kernel=kernel,
+                noise_variance=noise_variance
+            )
+            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            b_optimal_value = b_optimal_objective(X_sensing)
+            ```
+        """
+        # K(X, X)
+        K_X_X = self.kernel(X)
+        inv_K_X_X = tf.linalg.inv(self.jitter_fn(K_X_X))
+        trace_inv_K_X_X = tf.linalg.trace(inv_K_X_X)
+        return trace_inv_K_X_X
+    
+
+class  DOptimal(Objective):            
+    """
+    Computes the D-optimal design metric.
+
+    D-optimality seeks to maximize the determinant of the Fisher information
+    matrix, which is equivalent to minimizing the determinant of the posterior
+    covariance matrix $|K(X, X)|$. This corresponds to minimizing the volume
+    of the confidence ellipsoid for the GP parameters. The objective returns
+    the negative log-determinant of $K(X, X)$, which is maximized during
+    optimization. `tf.linalg.slogdet` is used for numerical stability.
+    """
+    def __call__(self, X: tf.Tensor) -> tf.Tensor:
+        """
+        Computes the negative log-determinant of the covariance matrix $-log|K(X, X)|$.
+
+        Args:
+            X (tf.Tensor): The input points (e.g., sensing locations) for which
+                           the objective is to be computed. Shape: (M, D).
+
+        Returns:
+            tf.Tensor: The computed D-optimal metric value.
+            
+        Usage:
+            ```python
+            import gpflow
+            import numpy as np
+            # Assume kernel is defined
+            # X_objective = np.random.rand(100, 2) # Not used by D-Optimal but required by base class
+            # kernel = gpflow.kernels.SquaredExponential()
+            # noise_variance = 0.1
+
+            d_optimal_objective = DOptimal(
+                X_objective=X_objective,
+                kernel=kernel,
+                noise_variance=noise_variance
+            )
+            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            d_optimal_value = d_optimal_objective(X_sensing)
+            ```
+        """
+        # K(X, X)
+        K_X_X = self.kernel(X)
+        _, logdet_K_X_X = tf.linalg.slogdet(self.jitter_fn(K_X_X))
+        return -logdet_K_X_X
+    
 
 OBJECTIVES: Dict[str, Type[Objective]] = {
     'MI': MI,
     'SLogMI': SLogMI,
-    'SchurMI': SchurMI
+    'SchurMI': SchurMI,
+    'AOptimal': AOptimal,
+    'BOptimal': BOptimal,
+    'DOptimal': DOptimal,
 }
 
 
