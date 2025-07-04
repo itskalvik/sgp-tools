@@ -1,9 +1,4 @@
-# Base
-
-::: sgptools.methods.get_method
-    options:
-      show_root_heading: true
-      show_source: true
+# Method
 
 ::: sgptools.methods.Method
     options:

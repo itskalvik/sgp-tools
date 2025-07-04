@@ -9,3 +9,8 @@ This module provides various algorithms to optimize the sensor placements or pat
 * **`BayesianOpt`:** This method uses Bayesian Optimization, a powerful black-box optimization algorithm, to find the best sensor locations by maximizing a general objective function.
 
 * **`CMA`:** This method uses Covariance Matrix Adaptation Evolution Strategy (CMA-ES), a powerful black-box optimization algorithm, to find the best sensor locations by maximizing a general objective function.
+
+::: sgptools.methods.get_method
+    options:
+      show_root_heading: true
+      show_source: true
