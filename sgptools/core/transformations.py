@@ -238,10 +238,11 @@ class IPPTransform(Transform):
 
         # Initialize TensorFlow Variable for fixed waypoints if provided, for online IPP.
         if Xu_fixed is not None:
+            # Store number of fixed waypoints per robot
+            self.num_fixed = Xu_fixed.shape[1]  
             self.Xu_fixed = tf.Variable(
                 Xu_fixed,
-                shape=tf.TensorShape(
-                    None),  # Shape can be inferred dynamically
+                shape=tf.TensorShape(None),
                 trainable=False,  # Fixed points are not optimized
                 dtype=float_type)
         else:
@@ -256,15 +257,15 @@ class IPPTransform(Transform):
             Xu_fixed (np.ndarray): A NumPy array of shape (num_robots, num_visited_waypoints, num_dim)
                                    representing the new set of fixed waypoints.
         """
-        self.num_fixed = Xu_fixed.shape[
-            1]  # Store number of fixed waypoints per robot
+        # Store number of fixed waypoints per robot
+        self.num_fixed = Xu_fixed.shape[1]  
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(tf.constant(Xu_fixed, dtype=float_type))
         else:
-            self.Xu_fixed = tf.Variable(tf.constant(Xu_fixed,
-                                                    dtype=float_type),
+            self.Xu_fixed = tf.Variable(Xu_fixed,
                                         shape=tf.TensorShape(None),
-                                        trainable=False)
+                                        trainable=False,
+                                        dtype=float_type)
 
     def expand(self,
                Xu: tf.Tensor,

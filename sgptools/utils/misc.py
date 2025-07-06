@@ -194,3 +194,47 @@ def polygon2candidates(vertices: np.ndarray,
     candidates_array = candidates_geoseries.get_coordinates().to_numpy()
 
     return candidates_array
+
+
+def project_waypoints(waypoints: np.ndarray, candidates: np.ndarray) -> np.ndarray:
+    """
+    This function maps a given path (a sequence of waypoints) to a new path
+    consisting of points from a discrete set of candidate locations. It ensures
+    that the original visitation order of the waypoints is preserved in the
+    final projected path.
+
+    Args:
+        waypoints (np.ndarray): (m, d); The continuous waypoints of the robot's path,
+                                where `m` is the number of waypoints and `d` is the
+                                dimensionality.
+        candidates (np.ndarray): (n, d); The discrete set of candidate locations,
+                                 where `n` is the number of candidates.
+
+    Returns:
+        np.ndarray: (m, d); The projected waypoints on the discrete candidate set,
+                    ordered to match the original path sequence.
+
+    Usage:
+        ```python
+        import numpy as np
+        from sgptools.utils.misc import project_waypoints
+
+        # A path with 3 waypoints in a 2D space
+        path_waypoints = np.array([[0.1, 0.1], [0.8, 0.8], [0.1, 0.9]])
+
+        # A set of 4 possible discrete locations
+        candidate_locations = np.array([[0, 0], [1, 1], [0, 1], [0.5, 0.5]])
+
+        # Project the path onto the candidate locations
+        projected_path = project_waypoints(path_waypoints, candidate_locations)
+
+        # The output will be a new path of shape (3, 2) composed of points from
+        # candidate_locations, ordered to best match the original path.
+        # e.g., [[0, 0], [1, 1], [0, 1]]
+        ```
+    """
+    waypoints_disc = cont2disc(waypoints, candidates)
+    dists = pairwise_distances(waypoints, Y=waypoints_disc, metric='euclidean')
+    _, col_ind = linear_sum_assignment(dists)
+    waypoints_valid = waypoints_disc[col_ind].copy()
+    return waypoints_valid
