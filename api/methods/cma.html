@@ -16,11 +16,11 @@
         <link rel="prev" href="bayesian_opt.html">
       
       
-        <link rel="next" href="../objectives/index.html">
+        <link rel="next" href="differentiable_objective.html">
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -875,6 +875,8 @@
       
         
       
+        
+      
     
     
     
@@ -1172,6 +1174,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="differentiable_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1191,6 +1216,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1306,6 +1339,98 @@
   
   <span class="md-ellipsis">
     SLogMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/schur_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SchurMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/a_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/b_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/d_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DOptimal
     
   </span>
   
@@ -2018,7 +2143,7 @@
 </span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
 </span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">                                                 Defaults to None.</span>
 </span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">            objective (Union[str, Objective]): The objective function to use. Can be a string (&#39;SLogMI&#39;, &#39;MI&#39;)</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., &#39;SLogMI&#39;, &#39;MI&#39;)</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="sd">                                         or an instance of an objective class. Defaults to &#39;SLogMI&#39;.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a><span class="sd">            X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.</span>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">                                            If None, initial points are randomly selected from X_objective.</span>
@@ -2354,7 +2479,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>The objective function to use. Can be a string ('SLogMI', 'MI')
+                <p>The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
                          or an instance of an objective class. Defaults to 'SLogMI'.</p>
               </div>
             </td>
@@ -2477,7 +2602,7 @@
 </span><span id="__span-0-325"><a id="__codelineno-0-325" name="__codelineno-0-325"></a><span class="sd">        X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
 </span><span id="__span-0-326"><a id="__codelineno-0-326" name="__codelineno-0-326"></a><span class="sd">                                             Defaults to None.</span>
 </span><span id="__span-0-327"><a id="__codelineno-0-327" name="__codelineno-0-327"></a><span class="sd">        num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
-</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">        objective (Union[str, Objective]): The objective function to use. Can be a string (&#39;SLogMI&#39;, &#39;MI&#39;)</span>
+</span><span id="__span-0-328"><a id="__codelineno-0-328" name="__codelineno-0-328"></a><span class="sd">        objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., &#39;SLogMI&#39;, &#39;MI&#39;)</span>
 </span><span id="__span-0-329"><a id="__codelineno-0-329" name="__codelineno-0-329"></a><span class="sd">                                     or an instance of an objective class. Defaults to &#39;SLogMI&#39;.</span>
 </span><span id="__span-0-330"><a id="__codelineno-0-330" name="__codelineno-0-330"></a><span class="sd">        X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.</span>
 </span><span id="__span-0-331"><a id="__codelineno-0-331" name="__codelineno-0-331"></a><span class="sd">                                        If None, initial points are randomly selected from X_objective.</span>
@@ -3152,7 +3277,7 @@
       <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "toc.integrate", "toc.follow", "navigation.top", "navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
         <script src="../../javascripts/mathjax.js"></script>
       

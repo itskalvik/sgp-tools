@@ -20,7 +20,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -873,6 +873,8 @@
       
         
       
+        
+      
     
     
     
@@ -1059,6 +1061,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methods/differentiable_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1080,6 +1105,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1279,6 +1312,98 @@
   
   <span class="md-ellipsis">
     SLogMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="schur_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SchurMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="a_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="b_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="d_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DOptimal
     
   </span>
   
@@ -1828,7 +1953,7 @@
 </span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a><span class="sd">            noise_variance (float): The observed data noise variance, which is added to the jitter.</span>
 </span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><span class="sd">            jitter (float): A small positive value to add for numerical stability to covariance</span>
 </span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><span class="sd">                            matrix diagonals. Defaults to 1e-6.</span>
-</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">            cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`</span>
+</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">            cache (bool): If `True`, $K(X_{objective}, X_{objective})$ will be computed in the `_init__`</span>
 </span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><span class="sd">                          and reused in the `__call__` for faster computation time. Defaults to True.</span>
 </span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">            **kwargs: Arbitrary keyword arguments.</span>
 </span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a><span class="sd">        &quot;&quot;&quot;</span>
@@ -2214,7 +2339,7 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>True</code>, <span class="arithmatex">\(K(X_objective, X_objective)\)</span> will be computed in the <code>_init__</code>
+                <p>If <code>True</code>, <span class="arithmatex">\(K(X_{objective}, X_{objective})\)</span> will be computed in the <code>_init__</code>
           and reused in the <code>__call__</code> for faster computation time. Defaults to True.</p>
               </div>
             </td>
@@ -2291,7 +2416,7 @@
 </span><span id="__span-0-133"><a id="__codelineno-0-133" name="__codelineno-0-133"></a><span class="sd">        noise_variance (float): The observed data noise variance, which is added to the jitter.</span>
 </span><span id="__span-0-134"><a id="__codelineno-0-134" name="__codelineno-0-134"></a><span class="sd">        jitter (float): A small positive value to add for numerical stability to covariance</span>
 </span><span id="__span-0-135"><a id="__codelineno-0-135" name="__codelineno-0-135"></a><span class="sd">                        matrix diagonals. Defaults to 1e-6.</span>
-</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">        cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`</span>
+</span><span id="__span-0-136"><a id="__codelineno-0-136" name="__codelineno-0-136"></a><span class="sd">        cache (bool): If `True`, $K(X_{objective}, X_{objective})$ will be computed in the `_init__`</span>
 </span><span id="__span-0-137"><a id="__codelineno-0-137" name="__codelineno-0-137"></a><span class="sd">                      and reused in the `__call__` for faster computation time. Defaults to True.</span>
 </span><span id="__span-0-138"><a id="__codelineno-0-138" name="__codelineno-0-138"></a><span class="sd">        **kwargs: Arbitrary keyword arguments.</span>
 </span><span id="__span-0-139"><a id="__codelineno-0-139" name="__codelineno-0-139"></a><span class="sd">    &quot;&quot;&quot;</span>
@@ -2481,7 +2606,7 @@ and having the objective function reflect those changes.</p>
       <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "toc.integrate", "toc.follow", "navigation.top", "navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
         <script src="../../javascripts/mathjax.js"></script>
       

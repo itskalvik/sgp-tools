@@ -13,14 +13,14 @@
         <link rel="canonical" href="https://SGP-Tools.com/api/objectives/index.html">
       
       
-        <link rel="prev" href="../methods/cma.html">
+        <link rel="prev" href="../methods/differentiable_objective.html">
       
       
         <link rel="next" href="objective.html">
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
     
     
       
@@ -873,6 +873,8 @@
       
         
       
+        
+      
     
     
     
@@ -1059,6 +1061,29 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methods/differentiable_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1080,6 +1105,14 @@
       
         
           
+        
+      
+        
+      
+        
+      
+        
+      
         
       
         
@@ -1195,6 +1228,98 @@
   
   <span class="md-ellipsis">
     SLogMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="schur_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SchurMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="a_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="b_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="d_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DOptimal
     
   </span>
   
@@ -1577,11 +1702,27 @@
 <p>This module defines the objective functions that the optimization methods aim to maximize.  Use the <code>get_objective</code> method to retrieve an objective function class by its string name.</p>
 <ul>
 <li>
-<p><strong><code>MI</code> and <code>SLogMI</code>:</strong> These classes compute the Mutual Information between a set of sensing locations and a set of objective locations. </p>
+<p><strong><code>MI</code>, <code>SLogMI</code>, and <code>SchurMI</code>:</strong> These classes compute the Mutual Information (MI) between a set of sensing locations <span class="arithmatex">\(X\)</span> and a set of objective locations <span class="arithmatex">\(X_{objective}\)</span>, using the kernel fuunction <span class="arithmatex">\(K\)</span>:</p>
 <ul>
-<li><code>MI</code> quantifies the expected information gain from making measurements at the chosen locations. </li>
-<li><code>SLogMI</code> uses a more numerically stable implementation of MI based on the log-determinant of the covariance matrix.</li>
+<li>
+<p><strong><code>MI</code>:</strong> A naive implementation of MI.</p>
+</li>
+<li>
+<p><strong><code>SLogMI</code>:</strong> Uses a numerically stable implementation of MI based on the log-determinant of the covariance matrix.</p>
+</li>
+<li>
+<p><strong><code>SchurMI</code>:</strong> Computes MI using the Schur complement for improved numerical stability and computational efficiency.</p>
+</li>
 </ul>
+</li>
+<li>
+<p><strong><code>AOptimal</code>:</strong> Computes the A-optimal design metric, which minimizes <span class="arithmatex">\(Tr(K(X, X))\)</span>.</p>
+</li>
+<li>
+<p><strong><code>BOptimal</code>:</strong> Computes the B-optimal design metric, which minimizes <span class="arithmatex">\(-Tr(K(X, X)^{-1})\)</span>.</p>
+</li>
+<li>
+<p><strong><code>DOptimal</code>:</strong> Computes the D-optimal design metric, which minimizes <span class="arithmatex">\(|K(X, X)|\)</span>.</p>
 </li>
 </ul>
 
@@ -1688,7 +1829,11 @@
 
             <details class="quote">
               <summary>Source code in <code>sgptools/objectives.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-581">581</a></span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-577">577</a></span>
+<span class="normal"><a href="#__codelineno-0-578">578</a></span>
+<span class="normal"><a href="#__codelineno-0-579">579</a></span>
+<span class="normal"><a href="#__codelineno-0-580">580</a></span>
+<span class="normal"><a href="#__codelineno-0-581">581</a></span>
 <span class="normal"><a href="#__codelineno-0-582">582</a></span>
 <span class="normal"><a href="#__codelineno-0-583">583</a></span>
 <span class="normal"><a href="#__codelineno-0-584">584</a></span>
@@ -1705,32 +1850,28 @@
 <span class="normal"><a href="#__codelineno-0-595">595</a></span>
 <span class="normal"><a href="#__codelineno-0-596">596</a></span>
 <span class="normal"><a href="#__codelineno-0-597">597</a></span>
-<span class="normal"><a href="#__codelineno-0-598">598</a></span>
-<span class="normal"><a href="#__codelineno-0-599">599</a></span>
-<span class="normal"><a href="#__codelineno-0-600">600</a></span>
-<span class="normal"><a href="#__codelineno-0-601">601</a></span>
-<span class="normal"><a href="#__codelineno-0-602">602</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-581"><a id="__codelineno-0-581" name="__codelineno-0-581"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_objective</span><span class="p">(</span><span class="n">objective_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Objective</span><span class="p">]:</span>
-</span><span id="__span-0-582"><a id="__codelineno-0-582" name="__codelineno-0-582"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-583"><a id="__codelineno-0-583" name="__codelineno-0-583"></a><span class="sd">    Retrieves an objective function class by its string name.</span>
-</span><span id="__span-0-584"><a id="__codelineno-0-584" name="__codelineno-0-584"></a>
-</span><span id="__span-0-585"><a id="__codelineno-0-585" name="__codelineno-0-585"></a><span class="sd">    Args:</span>
-</span><span id="__span-0-586"><a id="__codelineno-0-586" name="__codelineno-0-586"></a><span class="sd">        objective_name (str): The name of the objective function (e.g., &#39;MI&#39;, &#39;SLogMI&#39;).</span>
-</span><span id="__span-0-587"><a id="__codelineno-0-587" name="__codelineno-0-587"></a>
-</span><span id="__span-0-588"><a id="__codelineno-0-588" name="__codelineno-0-588"></a><span class="sd">    Returns:</span>
-</span><span id="__span-0-589"><a id="__codelineno-0-589" name="__codelineno-0-589"></a><span class="sd">        Type[Objective]: The class of the requested objective function.</span>
-</span><span id="__span-0-590"><a id="__codelineno-0-590" name="__codelineno-0-590"></a>
-</span><span id="__span-0-591"><a id="__codelineno-0-591" name="__codelineno-0-591"></a><span class="sd">    Raises:</span>
-</span><span id="__span-0-592"><a id="__codelineno-0-592" name="__codelineno-0-592"></a><span class="sd">        KeyError: If the objective name is not found in the registered OBJECTIVES.</span>
-</span><span id="__span-0-593"><a id="__codelineno-0-593" name="__codelineno-0-593"></a>
-</span><span id="__span-0-594"><a id="__codelineno-0-594" name="__codelineno-0-594"></a><span class="sd">    Usage:</span>
-</span><span id="__span-0-595"><a id="__codelineno-0-595" name="__codelineno-0-595"></a><span class="sd">        ```python</span>
-</span><span id="__span-0-596"><a id="__codelineno-0-596" name="__codelineno-0-596"></a><span class="sd">        # Get the Mutual Information objective class</span>
-</span><span id="__span-0-597"><a id="__codelineno-0-597" name="__codelineno-0-597"></a><span class="sd">        MIObjectiveClass = get_objective(&#39;MI&#39;)</span>
-</span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598"></a><span class="sd">        # You can then instantiate it:</span>
-</span><span id="__span-0-599"><a id="__codelineno-0-599" name="__codelineno-0-599"></a><span class="sd">        # mi_instance = MIObjectiveClass(X_objective=..., kernel=..., noise_variance=...)</span>
-</span><span id="__span-0-600"><a id="__codelineno-0-600" name="__codelineno-0-600"></a><span class="sd">        ```</span>
-</span><span id="__span-0-601"><a id="__codelineno-0-601" name="__codelineno-0-601"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-602"><a id="__codelineno-0-602" name="__codelineno-0-602"></a>    <span class="k">return</span> <span class="n">OBJECTIVES</span><span class="p">[</span><span class="n">objective_name</span><span class="p">]</span>
+<span class="normal"><a href="#__codelineno-0-598">598</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-577"><a id="__codelineno-0-577" name="__codelineno-0-577"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_objective</span><span class="p">(</span><span class="n">objective_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Objective</span><span class="p">]:</span>
+</span><span id="__span-0-578"><a id="__codelineno-0-578" name="__codelineno-0-578"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-579"><a id="__codelineno-0-579" name="__codelineno-0-579"></a><span class="sd">    Retrieves an objective function class by its string name.</span>
+</span><span id="__span-0-580"><a id="__codelineno-0-580" name="__codelineno-0-580"></a>
+</span><span id="__span-0-581"><a id="__codelineno-0-581" name="__codelineno-0-581"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-582"><a id="__codelineno-0-582" name="__codelineno-0-582"></a><span class="sd">        objective_name (str): The name of the objective function (e.g., &#39;MI&#39;, &#39;SLogMI&#39;).</span>
+</span><span id="__span-0-583"><a id="__codelineno-0-583" name="__codelineno-0-583"></a>
+</span><span id="__span-0-584"><a id="__codelineno-0-584" name="__codelineno-0-584"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-585"><a id="__codelineno-0-585" name="__codelineno-0-585"></a><span class="sd">        Type[Objective]: The class of the requested objective function.</span>
+</span><span id="__span-0-586"><a id="__codelineno-0-586" name="__codelineno-0-586"></a>
+</span><span id="__span-0-587"><a id="__codelineno-0-587" name="__codelineno-0-587"></a><span class="sd">    Raises:</span>
+</span><span id="__span-0-588"><a id="__codelineno-0-588" name="__codelineno-0-588"></a><span class="sd">        KeyError: If the objective name is not found in the registered OBJECTIVES.</span>
+</span><span id="__span-0-589"><a id="__codelineno-0-589" name="__codelineno-0-589"></a>
+</span><span id="__span-0-590"><a id="__codelineno-0-590" name="__codelineno-0-590"></a><span class="sd">    Usage:</span>
+</span><span id="__span-0-591"><a id="__codelineno-0-591" name="__codelineno-0-591"></a><span class="sd">        ```python</span>
+</span><span id="__span-0-592"><a id="__codelineno-0-592" name="__codelineno-0-592"></a><span class="sd">        # Get the Mutual Information objective class</span>
+</span><span id="__span-0-593"><a id="__codelineno-0-593" name="__codelineno-0-593"></a><span class="sd">        MIObjectiveClass = get_objective(&#39;MI&#39;)</span>
+</span><span id="__span-0-594"><a id="__codelineno-0-594" name="__codelineno-0-594"></a><span class="sd">        # You can then instantiate it:</span>
+</span><span id="__span-0-595"><a id="__codelineno-0-595" name="__codelineno-0-595"></a><span class="sd">        # mi_instance = MIObjectiveClass(X_objective=..., kernel=..., noise_variance=...)</span>
+</span><span id="__span-0-596"><a id="__codelineno-0-596" name="__codelineno-0-596"></a><span class="sd">        ```</span>
+</span><span id="__span-0-597"><a id="__codelineno-0-597" name="__codelineno-0-597"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-598"><a id="__codelineno-0-598" name="__codelineno-0-598"></a>    <span class="k">return</span> <span class="n">OBJECTIVES</span><span class="p">[</span><span class="n">objective_name</span><span class="p">]</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
@@ -1795,7 +1936,7 @@
       <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "toc.integrate", "toc.follow", "navigation.top", "navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
       
         <script src="../../javascripts/mathjax.js"></script>
       
