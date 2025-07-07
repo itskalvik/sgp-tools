@@ -145,7 +145,7 @@ class BayesianOpt(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
@@ -325,7 +325,7 @@ class CMA(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  Defaults to None.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.
                                             If None, initial points are randomly selected from X_objective.
@@ -688,7 +688,7 @@ class GreedyObjective(Method):
             X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
                                                  If None, X_objective is used as candidates.
             num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string ('SLogMI', 'MI')
+            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
                                          or an instance of an objective class. Defaults to 'SLogMI'.
             **kwargs: Additional keyword arguments passed to the objective function.
         """
@@ -1015,6 +1015,22 @@ class GreedySGP(Method):
 
 
 class DifferentiableObjective(Method):
+    """
+    Implements informative sensor placement/path planning optimization by directly
+    differentiating through the objective function.
+
+    This method leverages TensorFlow's automatic differentiation capabilities to
+    optimize the sensing locations (or path waypoints) by treating them as
+    trainable variables and minimizing a given objective function (e.g., Mutual
+    Information). This approach can be more efficient than black-box methods like
+    Bayesian Optimization or CMA-ES, especially when the objective function is
+    smooth. However, the method is also more prone to getting stuck in local minima.
+
+    Attributes:
+        transform (Optional[Transform]): Transform object to apply to the solution.
+        X_sol (tf.Variable): The solution (e.g., sensor locations) being optimized.
+        objective (Objective): The objective function to be optimized.
+    """
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -1029,6 +1045,29 @@ class DifferentiableObjective(Method):
                  X_time: Optional[np.ndarray] = None,
                  orientation: bool = False,
                  **kwargs: Any):
+        """
+        Initializes the DifferentiableObjective optimizer.
+
+        Args:
+            num_sensing (int): Number of sensing locations to optimize.
+            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
+            kernel (gpflow.kernels.Kernel): GPflow kernel function.
+            noise_variance (float): Data noise variance.
+            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
+            num_robots (int): Number of robots/agents. Defaults to 1.
+            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
+                                                 Defaults to None.
+            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
+            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
+                                         or an instance of an objective class. Defaults to 'SLogMI'.
+            X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial solution.
+                                            If None, initial points are randomly selected from X_objective.
+            X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when
+                                            modeling spatio-temporal IPP. Defaults to None.
+            orientation (bool): If True, adds an additional dimension to model sensor FoV rotation angle
+                                when selecting initial inducing points. Defaults to False.
+            **kwargs: Additional keyword arguments passed to the objective function.
+        """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
         self.transform = transform
@@ -1076,6 +1115,33 @@ class DifferentiableObjective(Method):
                  optimizer: str = 'scipy.L-BFGS-B',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
+        """
+        Optimizes the sensor placement/path by differentiating through the objective function.
+
+        Args:
+            max_steps (int): Maximum number of optimization steps. Defaults to 500.
+            optimizer (str): Optimizer "<backend>.<method>" to use for training (e.g., 'scipy.L-BFGS-B', 'tf.adam').
+                             Defaults to 'scipy.L-BFGS-B'.
+            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
+            **kwargs: Additional keyword arguments for the optimizer.
+
+        Returns:
+            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
+
+        Usage:
+            ```python
+            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
+            diff_obj_method = DifferentiableObjective(
+                num_sensing=10,
+                X_objective=X_train,
+                kernel=kernel_opt,
+                noise_variance=noise_variance_opt,
+                transform=IPPTransform(num_robots=1), # Example transform
+                X_candidates=candidates
+            )
+            optimized_solution = diff_obj_method.optimize(max_steps=500, optimizer='scipy.L-BFGS-B')
+            ```
+        """
         _ = optimize_model(
             training_loss = self._objective,
             max_steps=max_steps,
@@ -1103,6 +1169,16 @@ class DifferentiableObjective(Method):
         return sol_np
     
     def _objective(self) -> float:
+        """
+        Internal objective function to be minimized by the optimizer.
+
+        This function applies any specified transformations to the current solution,
+        calculates the objective value, and applies a penalty for constraint
+        violations.
+
+        Returns:
+            float: The objective value (reward + constraint penalty).
+        """
         constraint_penality: float = 0.0
         if self.transform is not None:
             X_expanded = self.transform.expand(self.X_sol)

@@ -133,7 +133,7 @@ class MI(Objective):
             noise_variance (float): The observed data noise variance, which is added to the jitter.
             jitter (float): A small positive value to add for numerical stability to covariance
                             matrix diagonals. Defaults to 1e-6.
-            cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`
+            cache (bool): If `True`, $K(X_{objective}, X_{objective})$ will be computed in the `_init__`
                           and reused in the `__call__` for faster computation time. Defaults to True.
             **kwargs: Arbitrary keyword arguments.
         """
@@ -247,7 +247,7 @@ class SLogMI(MI):
             noise_variance (float): The observed data noise variance, which is added to the jitter.
             jitter (float): A small positive value to add for numerical stability to covariance
                             matrix diagonals. Defaults to 1e-6.
-            cache (bool): If `True`, $K(X_objective, X_objective)$ will be computed in the `_init__`
+            cache (bool): If `True`, $K(X_{objective}, X_{objective})$ will be computed in the `_init__`
                           and reused in the `__call__` for faster computation time. Defaults to True.
             **kwargs: Arbitrary keyword arguments.
         """
@@ -327,8 +327,8 @@ class SchurMI(SLogMI):
     where the Schur Complement is $K_{XX} - K_{Xo} K_{oo}^{-1} K_{oX}$.
 
     This approach is particularly efficient when the objective is evaluated
-    multiple times for different sensing locations `X` but with a fixed set of
-    `X_objective` points. By caching the inverse of $K_{oo}$, we avoid costly
+    multiple times for different sensing locations $X$ but with a fixed set of
+    $X_{objective}$ points. By caching the inverse of $K_{oo}$, we avoid costly
     recomputations. Like `SLogMI`, this class uses `tf.linalg.slogdet` and
     adds jitter for robust computation.
     """
@@ -349,7 +349,7 @@ class SchurMI(SLogMI):
             noise_variance (float): The observed data noise variance.
             jitter (float): A small value added to the diagonal of covariance
                             matrices for numerical stability. Defaults to 1e-6.
-            cache (bool): If `True`, the inverse of $K(X_objective, X_objective)$
+            cache (bool): If `True`, the inverse of $K(X_{objective}, X_{objective})$
                           is pre-computed and cached to accelerate subsequent MI
                           calculations. Defaults to True.
             **kwargs: Arbitrary keyword arguments.
@@ -432,15 +432,14 @@ class  AOptimal(Objective):
     """
     Computes the A-optimal design metric.
 
-    A-optimality aims to minimize the average variance of the estimates of the
-    GP model parameters. This is achieved by minimizing the trace of the
-    covariance matrix $\text{Tr}(K(X, X))$. Since optimization algorithms typically
+    A-optimality aims to minimize the trace of the
+    covariance matrix $Tr(K(X, X))$. Since optimization algorithms typically
     minimize a function, this objective returns the negative trace, which
     is then maximized.
     """  
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
-        Computes the negative trace of the covariance matrix $-\text{Tr}(K(X, X))$.
+        Computes the negative trace of the covariance matrix $-Tr(K(X, X))$.
 
         Args:
             X (tf.Tensor): The input points (e.g., sensing locations) for which
@@ -481,14 +480,13 @@ class  BOptimal(Objective):
         - Approximate Sequential Optimization for Informative Path Planning [Ott et al., 2024]
 
     B-optimality minimizes the trace of the inverse of the covariance matrix 
-    $-\text{Tr}(K(X, X)^{-1})$. This corresponds to minimizing the average 
-    prediction variance over the input locations `X`. Since optimization 
+    $-Tr(K(X, X)^{-1})$. Since optimization 
     algorithms typically minimize a function, this objective returns 
-    $\text{Tr}(K(X, X)^{-1})$, which is then maximized.
+    $Tr(K(X, X)^{-1})$, which is then maximized.
     """       
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """
-        Computes the trace of the inverse of the covariance matrix $\text{Tr}(K(X, X)^{-1})$.
+        Computes the trace of the inverse of the covariance matrix $Tr(K(X, X)^{-1})$.
 
         Args:
             X (tf.Tensor): The input points (e.g., sensing locations) for which
@@ -526,10 +524,8 @@ class  DOptimal(Objective):
     """
     Computes the D-optimal design metric.
 
-    D-optimality seeks to maximize the determinant of the Fisher information
-    matrix, which is equivalent to minimizing the determinant of the posterior
-    covariance matrix $|K(X, X)|$. This corresponds to minimizing the volume
-    of the confidence ellipsoid for the GP parameters. The objective returns
+    D-optimality seeks to minimize the determinant of the posterior
+    covariance matrix $|K(X, X)|$. The objective returns
     the negative log-determinant of $K(X, X)$, which is maximized during
     optimization. `tf.linalg.slogdet` is used for numerical stability.
     """

@@ -71,11 +71,16 @@ nav:
       - GreedyObjective: api/methods/greedy_objective.md
       - BayesianOpt: api/methods/bayesian_opt.md
       - CMA: api/methods/cma.md
+      - DifferentiableObjective: api/methods/differentiable_objective.md
     - Objectives:
       - api/objectives/index.md
       - Objective: api/objectives/objective.md
       - MI: api/objectives/mi.md
       - SLogMI: api/objectives/slog_mi.md
+      - SchurMI: api/objectives/schur_mi.md
+      - AOptimal: api/objectives/a_optimal.md
+      - BOptimal: api/objectives/b_optimal.md
+      - DOptimal: api/objectives/d_optimal.md
     - Utils:
       - api/utils/index.md
       - Data: api/utils/data.md
