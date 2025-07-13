@@ -60,8 +60,8 @@ nav:
       - Transformations: api/core/transformations.md
     - Kernels:
       - api/kernels/index.md
-      - Attentive Kernel: api/kernels/attentive_kernel.md
-      - Neural Kernel: api/kernels/neural_kernel.md
+      - Attentive: api/kernels/attentive.md
+      - Neural Spectral: api/kernels/neural_spectral.md
       - Neural Network: api/kernels/neural_network.md
     - Methods:
       - api/methods/index.md
