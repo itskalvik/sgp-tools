@@ -54,4 +54,6 @@ def get_kernel(kernel: str) -> Type[gpflow.kernels.Kernel]:
         model = gpflow.models.GPR(data=(X, Y), kernel=rbf_kernel)
         ```
     """
+    if kernel not in KERNELS:
+        raise KeyError(f"Kernel '{kernel}' not found. Available options: {list(KERNELS.keys())}")
     return KERNELS[kernel]

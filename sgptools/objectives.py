@@ -595,4 +595,6 @@ def get_objective(objective_name: str) -> Type[Objective]:
         # mi_instance = MIObjectiveClass(X_objective=..., kernel=..., noise_variance=...)
         ```
     """
+    if objective_name not in OBJECTIVES:
+        raise KeyError(f"Objective '{objective_name}' not found. Available options: {list(OBJECTIVES.keys())}")
     return OBJECTIVES[objective_name]

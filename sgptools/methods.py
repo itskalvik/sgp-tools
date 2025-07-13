@@ -462,7 +462,8 @@ class CMA(Method):
             reward = self.objective(X_expanded)  # maximize
         else:
             reward = self.objective(X_reshaped)  # maximize
-
+        if not np.isfinite(reward):
+            reward = -1e6 # CMA does not like inf values
         reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
         return -reward.numpy()  # Return negative as CMA-ES minimizes
 
@@ -1222,4 +1223,6 @@ def get_method(method: str) -> Type[Method]:
         # CSGP_instance = ContinuousSGPClass(...)
         ```
     """
+    if method not in METHODS:
+        raise KeyError(f"Method '{method}' not found. Available methods: {', '.join(METHODS.keys())}")
     return METHODS[method]
