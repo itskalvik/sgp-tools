@@ -1,17 +1,17 @@
 # sgptools/kernels/__init__.py
-from .attentive_kernel import AttentiveKernel
-from .neural_kernel import NeuralSpectralKernel
+from .attentive import Attentive
+from .neural_spectral import NeuralSpectral
 import gpflow
 
 from typing import Dict, Type
 import inspect
 
 
-KERNELS: Dict[str, Type[gpflow.kernels.Kernel]] = dict(inspect.getmembers(gpflow.kernels,                                                               inspect.isclass))
-KERNELS.update({
-    'NeuralSpectralKernel': NeuralSpectralKernel,
-    'AttentiveKernel': AttentiveKernel,
-})
+KERNELS: Dict[str, Type[gpflow.kernels.Kernel]] = {
+    'NeuralSpectral': NeuralSpectral,
+    'Attentive': Attentive,
+}
+KERNELS.update(dict(inspect.getmembers(gpflow.kernels, inspect.isclass)))
 
 
 def get_kernel(kernel: str) -> Type[gpflow.kernels.Kernel]:
@@ -43,7 +43,7 @@ def get_kernel(kernel: str) -> Type[gpflow.kernels.Kernel]:
         rbf_kernel = RBFKernelClass(lengthscales=1.2)
 
         # --- Or for a more complex custom kernel ---
-        NeuralKernelClass = get_kernel('NeuralSpectralKernel')
+        NeuralKernelClass = get_kernel('NeuralSpectral')
         neural_kernel = NeuralKernelClass(input_dim=2, Q=3, hidden_sizes=[32, 32])
 
         # --- Example of using the kernel in a GPR model ---

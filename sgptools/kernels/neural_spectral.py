@@ -29,7 +29,7 @@ from .neural_network import NN
 from typing import List, Optional, Tuple, Union, Any
 
 
-class NeuralSpectralKernel(gpflow.kernels.Kernel):
+class NeuralSpectral(gpflow.kernels.Kernel):
     """
     Neural Spectral Kernel function (non-stationary kernel function).
     This kernel models non-stationarity by using multiple Multi-Layer Perceptrons (MLPs)
@@ -51,7 +51,7 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
     """
 
     def __init__(self,
-                 input_dim: int,
+                 input_dim: int = 2,
                  active_dims: Optional[List[int]] = None,
                  Q: int = 1,
                  hidden_sizes: List[int] = None):
@@ -74,11 +74,11 @@ class NeuralSpectralKernel(gpflow.kernels.Kernel):
             ```python
             import gpflow
             import numpy as np
-            from sgptools.kernels.neural_kernel import NeuralSpectralKernel
+            from sgptools.kernels.neural_spectral import NeuralSpectral
 
             # Initialize a Neural Spectral Kernel for 2D data with 3 mixture components
             # and MLPs with 2 hidden layers of 64 units each.
-            kernel = NeuralSpectralKernel(input_dim=2, Q=3, hidden_sizes=[64, 64])
+            kernel = NeuralSpectral(input_dim=2, Q=3, hidden_sizes=[64, 64])
 
             # You can then use this kernel in a GPflow model:
             # model = gpflow.models.SGPR(data=(X_train, Y_train), kernel=kernel, ...)
@@ -278,7 +278,7 @@ def init_neural_kernel(X_train: np.ndarray,
         ```python
         import numpy as np
         import gpflow
-        from sgptools.kernels.neural_kernel import init_neural_kernel
+        from sgptools.kernels.neural_spectral import init_neural_kernel
         from sgptools.utils.misc import get_inducing_pts # For initial inducing points
 
         # Dummy data
@@ -314,9 +314,9 @@ def init_neural_kernel(X_train: np.ndarray,
 
     for k_init_idx in range(n_inits):
         # Create a new NeuralSpectralKernel instance for each initialization
-        current_kernel = NeuralSpectralKernel(input_dim=input_dim,
-                                              Q=Q,
-                                              hidden_sizes=hidden_sizes)
+        current_kernel = NeuralSpectral(input_dim=input_dim,
+                                        Q=Q,
+                                        hidden_sizes=hidden_sizes)
 
         # Create an SGPR model with the current kernel initialization
         model = SGPR(data=(X_train_tf, Y_train_tf),

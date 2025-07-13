@@ -26,7 +26,7 @@ from .neural_network import NN
 from typing import List, Union, Optional
 
 
-class AttentiveKernel(gpflow.kernels.Kernel):
+class Attentive(gpflow.kernels.Kernel):
     """
     Attentive Kernel function (non-stationary kernel function).
 
@@ -46,7 +46,7 @@ class AttentiveKernel(gpflow.kernels.Kernel):
     """
 
     def __init__(self,
-                 lengthscales: Union[List[float], np.ndarray],
+                 lengthscales: Union[List[float], np.ndarray] = None,
                  hidden_sizes: List[int] = None,
                  amplitude: float = 1.0,
                  num_dim: int = 2):
@@ -70,13 +70,13 @@ class AttentiveKernel(gpflow.kernels.Kernel):
             ```python
             import gpflow
             import numpy as np
-            from sgptools.kernels.attentive_kernel import AttentiveKernel
+            from sgptools.kernels.attentive import Attentive
 
             # Example: 10 fixed lengthscales ranging from 0.01 to 2.0
             l_scales = np.linspace(0.01, 2.0, 10).astype(np.float32)
             
             # Initialize Attentive Kernel for 2D data
-            kernel = AttentiveKernel(lengthscales=l_scales, hidden_sizes=[10, 10], num_dim=2)
+            kernel = Attentive(lengthscales=l_scales, hidden_sizes=[10, 10], num_dim=2)
 
             # You can then use this kernel in a GPflow model:
             # model = gpflow.models.GPR(data=(X_train, Y_train), kernel=kernel, noise_variance=0.1)
@@ -84,6 +84,8 @@ class AttentiveKernel(gpflow.kernels.Kernel):
             ```
         """
         super().__init__()
+        if lengthscales is None:
+            lengthscales = np.linspace(0.01, 2.0, 10)
 
         if hidden_sizes is None:
             hidden_sizes = [10, 10]  # Default if not provided

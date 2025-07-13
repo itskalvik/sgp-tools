@@ -17,3 +17,5 @@ __author__ = 'Kalvik'
 from .core import *
 from .kernels import *
 from .utils import *
+from .methods import *
+from .objectives import *
