@@ -11,7 +11,8 @@ from typing import Tuple, Optional, Union
 def get_inducing_pts(data: np.ndarray,
                      num_inducing: int,
                      orientation: bool = False,
-                     random: bool = False) -> np.ndarray:
+                     random: bool = False,
+                     seed: Optional[int] = None) -> np.ndarray:
     """
     Selects a subset of data points to be used as inducing points.
     By default, it uses k-means clustering to select representative points.
@@ -29,7 +30,8 @@ def get_inducing_pts(data: np.ndarray,
         random (bool): If True, inducing points are selected randomly from `data`.
                        If False, k-means clustering (`kmeans2`) is used for selection.
                        Defaults to False.
-
+        seed (Optional[int]): Seed for reproducibility of the random point sampling.
+                              Defaults to None.
     Returns:
         np.ndarray: (m, d_out); Inducing points. `m` is `num_inducing`.
                     `d_out` is `d_in` if `orientation` is False, or `d_in + 1` if `orientation` is True.
@@ -57,7 +59,7 @@ def get_inducing_pts(data: np.ndarray,
     else:
         # Use k-means clustering to find `num_inducing` cluster centers
         # `minit="points"` initializes centroids by picking random data points
-        Xu = kmeans2(data, num_inducing, minit="points")[0]
+        Xu = kmeans2(data, num_inducing, minit="points", seed=seed)[0]
 
     if orientation:
         # Generate random angles between 0 and 2*pi (radians)
@@ -148,7 +150,7 @@ def cont2disc(
 
 def polygon2candidates(vertices: np.ndarray,
                        num_samples: int = 5000,
-                       random_seed: Optional[int] = None) -> np.ndarray:
+                       seed: Optional[int] = None) -> np.ndarray:
     """
     Samples a specified number of candidate points randomly within a polygon defined by its vertices.
     This function leverages `geopandas` for geometric operations.
@@ -160,8 +162,8 @@ def polygon2candidates(vertices: np.ndarray,
                                the first and last vertices are not identical.
         num_samples (int): The desired number of candidate points to sample within the polygon.
                            Defaults to 5000.
-        random_seed (Optional[int]): Seed for reproducibility of the random point sampling.
-                                     Defaults to None.
+        seed (Optional[int]): Seed for reproducibility of the random point sampling.
+                              Defaults to None.
 
     Returns:
        np.ndarray: (n, 2); A NumPy array where each row represents the (x, y) coordinates
@@ -188,7 +190,7 @@ def polygon2candidates(vertices: np.ndarray,
     # Sample random points within the polygon
     candidates_geoseries = sampler.sample_points(
         size=num_samples,
-        rng=random_seed)  # `rng` is for random number generator seed
+        rng=seed)  # `rng` is for random number generator seed
 
     # Extract coordinates from the GeoSeries of points and convert to a NumPy array
     candidates_array = candidates_geoseries.get_coordinates().to_numpy()
