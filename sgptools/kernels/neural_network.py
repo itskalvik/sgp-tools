@@ -20,8 +20,6 @@ import tensorflow as tf
 import gpflow
 from gpflow.config import default_float
 
-float_type = default_float()
-
 from typing import List, Union, Callable
 
 
@@ -121,12 +119,12 @@ class NN(gpflow.base.Module):
             # Use Xavier initialization for weights
             weight_init = xavier(dim_in, dim_out)
             self._weights.append(
-                tf.Variable(weight_init, dtype=float_type, name=f'W_{i}'))
+                tf.Variable(weight_init, dtype=default_float(), name=f'W_{i}'))
 
             # Initialize biases to zeros
-            bias_init = np.zeros(dim_out, dtype=float_type)
+            bias_init = np.zeros(dim_out, dtype=default_float())
             self._biases.append(
-                tf.Variable(bias_init, dtype=float_type, name=f'b_{i}'))
+                tf.Variable(bias_init, dtype=default_float(), name=f'b_{i}'))
 
     def __call__(self, X: tf.Tensor) -> tf.Tensor:
         """

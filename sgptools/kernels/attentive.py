@@ -20,8 +20,6 @@ import tensorflow as tf
 import gpflow
 from gpflow.config import default_float
 
-float_type = default_float()
-
 from .neural_network import NN
 from typing import List, Union, Optional
 
@@ -97,13 +95,13 @@ class Attentive(gpflow.kernels.Kernel):
             self._free_amplitude = tf.Variable(amplitude,
                                                shape=[],
                                                trainable=True,
-                                               dtype=float_type)
+                                               dtype=default_float())
             # Lengthscales are treated as fixed parameters in this implementation
             self.lengthscales = tf.Variable(
-                tf.cast(lengthscales, float_type),
+                tf.cast(lengthscales, default_float()),
                 shape=[self.num_lengthscales],
                 trainable=False,  # Not trainable
-                dtype=float_type)
+                dtype=default_float())
 
             # The neural network maps input dimensions to the number of lengthscales
             # to produce attention weights for each RBF component.

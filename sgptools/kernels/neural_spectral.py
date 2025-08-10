@@ -23,8 +23,6 @@ from gpflow.config import default_jitter, default_float
 from gpflow.models import SGPR
 from gpflow.models.util import data_input_to_tensor
 
-float_type = default_float()
-
 from .neural_network import NN
 from typing import List, Optional, Tuple, Union, Any
 
@@ -150,7 +148,7 @@ class NeuralSpectral(gpflow.kernels.Kernel):
             X2_internal = X2
             equal = False
 
-        kern = tf.constant(0.0, dtype=float_type)  # Initialize kernel sum
+        kern = tf.constant(0.0, dtype=default_float())  # Initialize kernel sum
 
         for q in range(self.Q):
             # Compute latent function values (frequencies, lengthscales, variances)
@@ -241,7 +239,7 @@ def robust_kernel(kern: tf.Tensor, shape_X_0: tf.Tensor) -> tf.Tensor:
     """
     jitter_val = 1e-3  # Fixed jitter value
     # Add jitter to the diagonal of the kernel matrix
-    return kern + jitter_val * tf.eye(shape_X_0, dtype=float_type)
+    return kern + jitter_val * tf.eye(shape_X_0, dtype=default_float())
 
 
 def init_neural_kernel(X_train: np.ndarray,

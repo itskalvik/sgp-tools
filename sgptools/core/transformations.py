@@ -17,8 +17,6 @@
 import tensorflow as tf
 from gpflow.config import default_float
 
-float_type = default_float()
-
 import numpy as np
 from typing import Optional, Union, Any, Tuple, List  # Import necessary types for type hinting
 
@@ -142,7 +140,7 @@ class Transform:
         Returns:
             tf.Tensor: A scalar tensor representing the constraint penalty. Defaults to 0.0.
         """
-        return tf.constant(0.0, dtype=float_type)
+        return tf.constant(0.0, dtype=default_float())
 
 
 class IPPTransform(Transform):
@@ -244,7 +242,7 @@ class IPPTransform(Transform):
                 Xu_fixed,
                 shape=tf.TensorShape(None),
                 trainable=False,  # Fixed points are not optimized
-                dtype=float_type)
+                dtype=default_float())
         else:
             self.Xu_fixed = None
 
@@ -260,12 +258,12 @@ class IPPTransform(Transform):
         # Store number of fixed waypoints per robot
         self.num_fixed = Xu_fixed.shape[1]  
         if self.Xu_fixed is not None:
-            self.Xu_fixed.assign(tf.constant(Xu_fixed, dtype=float_type))
+            self.Xu_fixed.assign(tf.constant(Xu_fixed, dtype=default_float()))
         else:
             self.Xu_fixed = tf.Variable(Xu_fixed,
                                         shape=tf.TensorShape(None),
                                         trainable=False,
-                                        dtype=float_type)
+                                        dtype=default_float())
 
     def expand(self,
                Xu: tf.Tensor,
@@ -357,7 +355,7 @@ class IPPTransform(Transform):
                        This value is negative, and its magnitude increases with constraint violation.
         """
         if self.distance_budget is None:
-            return tf.constant(0.0, dtype=float_type)  # No distance constraint
+            return tf.constant(0.0, dtype=default_float())  # No distance constraint
         else:
             # Expand Xu without sensor model to get the true path points for distance calculation.
             # Xu is the optimizable part; self.expand will add fixed points if any.
@@ -562,7 +560,7 @@ class SquareTransform(Transform):
             Xu, (-1, self.num_dim))[:, :2]  # Assuming num_dim is 3 (x,y,angle)
 
         if Xu_xy.shape[0] < 2:
-            return tf.constant(0.0, dtype=float_type)
+            return tf.constant(0.0, dtype=default_float())
 
         # Calculate Euclidean distance between consecutive (x,y) points
         segment_distances = tf.norm(Xu_xy[1:] - Xu_xy[:-1], axis=-1)
