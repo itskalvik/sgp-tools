@@ -1,0 +1,3081 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Kalvik Jakkala">
+      
+      
+        <link rel="canonical" href="https://SGP-Tools.com/api/methods/differentiable_objective.html">
+      
+      
+        <link rel="prev" href="cma.html">
+      
+      
+        <link rel="next" href="../objectives/index.html">
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>DifferentiableObjective - SGP-Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Z2TVV3MF1S"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Z2TVV3MF1S",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Z2TVV3MF1S",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#differentiableobjective" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      <!--
+  Copyright (c) 2016-2024 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+<!-- Determine classes -->
+
+
+
+<!-- Header -->
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label="Header"
+  >
+
+    <!-- Link to home -->
+    <a
+      href="../../index.html"
+      title="SGP-Tools"
+      class="md-header__button md-logo"
+      aria-label="SGP-Tools"
+      data-md-component="logo"
+    >
+      
+  <img src="../../assets/SGP-Tools.png" alt="logo">
+
+    </a>
+
+    <!-- Button to open drawer -->
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+
+    <!-- Header title -->
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DifferentiableObjective
+            
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color palette toggle -->
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+
+    <!-- User preference: color palette -->
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+
+    <!-- Site language selector -->
+    
+
+    <!-- Button to open search modal -->
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+
+      <!-- Search interface -->
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    <!-- Repository information -->
+    
+      <div class="md-header__source">
+        <a href="https://github.com/itskalvik/sgp-tools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sgp-tools
+  </div>
+</a>
+      </div>
+    
+  </nav>
+
+  <!-- Navigation tabs (sticky) -->
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Docs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <!--
+  Copyright (c) 2016-2024 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+
+
+<!-- Determine classes -->
+
+
+  
+
+
+  
+
+
+<!-- Navigation -->
+<nav
+  class="md-nav md-nav--primary md-nav--lifted md-nav--integrated"
+  aria-label="Navigation"
+  data-md-level="0"
+>
+
+  <!-- Site title -->
+
+  <label class="md-nav__title" for="__drawer">
+    <a
+      href="../../index.html"
+      title="SGP-Tools"
+      class="md-nav__button md-logo"
+      aria-label="SGP-Tools"
+      data-md-component="logo"
+    >
+    
+  <img src="../../assets/SGP-Tools.png" alt="logo">
+
+  </a>
+  </label>
+
+  <!-- Repository information -->
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/itskalvik/sgp-tools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sgp-tools
+  </div>
+</a>
+    </div>
+  
+
+  <!-- Navigation list -->
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Docs
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Docs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../core/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Core
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Core
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/augmented_gpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AugmentedGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/augmented_sgpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AugmentedSGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/osgpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    OSGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/transformations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transformations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../kernels/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Kernels
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Kernels
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/attentive.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Attentive
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/neural_spectral.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Neural Spectral
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/neural_network.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Neural Network
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Methods
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Methods
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Method
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="continuous_sgp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ContinuousSGP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="greedy_sgp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GreedySGP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="greedy_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GreedyObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="bayesian_opt.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BayesianOpt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cma.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CMA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="differentiable_objective.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.methods.DifferentiableObjective" class="md-nav__link">
+    <span class="md-ellipsis">
+      DifferentiableObjective
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DifferentiableObjective">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.DifferentiableObjective.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.DifferentiableObjective.get_hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_hyperparameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.DifferentiableObjective.optimize" class="md-nav__link">
+    <span class="md-ellipsis">
+      optimize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.DifferentiableObjective.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../objectives/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Objectives
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Objectives
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Objective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/slog_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SLogMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/schur_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SchurMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/a_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/b_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/d_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../utils/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Utils
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            Utils
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/data.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/gpflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GPflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/metrics.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/misc.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Misc
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/tsp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    TSP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/IPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Informative Path Planning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/AIPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Adaptive Informative Path Planning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/non_stationary_kernels.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Non-Stationary Kernels
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="differentiableobjective">DifferentiableObjective<a class="headerlink" href="#differentiableobjective" title="Permanent link">&para;</a></h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="sgptools.methods.DifferentiableObjective" class="doc doc-heading">
+            <code>sgptools.methods.DifferentiableObjective</code>
+
+
+<a href="#sgptools.methods.DifferentiableObjective" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sgptools.methods.Method" href="method.html#sgptools.methods.Method">Method</a></code></p>
+
+
+        <p>Implements informative sensor placement/path planning optimization by directly
+differentiating through the objective function.</p>
+<p>This method leverages TensorFlow's automatic differentiation capabilities to
+optimize the sensing locations (or path waypoints) by treating them as
+trainable variables and minimizing a given objective function (e.g., Mutual
+Information). This approach can be more efficient than black-box methods like
+Bayesian Optimization or CMA-ES, especially when the objective function is
+smooth. However, the method is also more prone to getting stuck in local minima.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="sgptools.methods.DifferentiableObjective.transform">transform</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sgptools.core.transformations.Transform" href="../core/transformations.html#sgptools.core.transformations.Transform">Transform</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Transform object to apply to the solution.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sgptools.methods.DifferentiableObjective.X_sol">X_sol</span></code></td>
+            <td>
+                  <code><span title="tensorflow.Variable">Variable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The solution (e.g., sensor locations) being optimized.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sgptools.methods.DifferentiableObjective.objective">objective</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sgptools.objectives.Objective" href="../objectives/objective.html#sgptools.objectives.Objective">Objective</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The objective function to be optimized.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>sgptools/methods.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1018">1018</a></span>
+<span class="normal"><a href="#__codelineno-0-1019">1019</a></span>
+<span class="normal"><a href="#__codelineno-0-1020">1020</a></span>
+<span class="normal"><a href="#__codelineno-0-1021">1021</a></span>
+<span class="normal"><a href="#__codelineno-0-1022">1022</a></span>
+<span class="normal"><a href="#__codelineno-0-1023">1023</a></span>
+<span class="normal"><a href="#__codelineno-0-1024">1024</a></span>
+<span class="normal"><a href="#__codelineno-0-1025">1025</a></span>
+<span class="normal"><a href="#__codelineno-0-1026">1026</a></span>
+<span class="normal"><a href="#__codelineno-0-1027">1027</a></span>
+<span class="normal"><a href="#__codelineno-0-1028">1028</a></span>
+<span class="normal"><a href="#__codelineno-0-1029">1029</a></span>
+<span class="normal"><a href="#__codelineno-0-1030">1030</a></span>
+<span class="normal"><a href="#__codelineno-0-1031">1031</a></span>
+<span class="normal"><a href="#__codelineno-0-1032">1032</a></span>
+<span class="normal"><a href="#__codelineno-0-1033">1033</a></span>
+<span class="normal"><a href="#__codelineno-0-1034">1034</a></span>
+<span class="normal"><a href="#__codelineno-0-1035">1035</a></span>
+<span class="normal"><a href="#__codelineno-0-1036">1036</a></span>
+<span class="normal"><a href="#__codelineno-0-1037">1037</a></span>
+<span class="normal"><a href="#__codelineno-0-1038">1038</a></span>
+<span class="normal"><a href="#__codelineno-0-1039">1039</a></span>
+<span class="normal"><a href="#__codelineno-0-1040">1040</a></span>
+<span class="normal"><a href="#__codelineno-0-1041">1041</a></span>
+<span class="normal"><a href="#__codelineno-0-1042">1042</a></span>
+<span class="normal"><a href="#__codelineno-0-1043">1043</a></span>
+<span class="normal"><a href="#__codelineno-0-1044">1044</a></span>
+<span class="normal"><a href="#__codelineno-0-1045">1045</a></span>
+<span class="normal"><a href="#__codelineno-0-1046">1046</a></span>
+<span class="normal"><a href="#__codelineno-0-1047">1047</a></span>
+<span class="normal"><a href="#__codelineno-0-1048">1048</a></span>
+<span class="normal"><a href="#__codelineno-0-1049">1049</a></span>
+<span class="normal"><a href="#__codelineno-0-1050">1050</a></span>
+<span class="normal"><a href="#__codelineno-0-1051">1051</a></span>
+<span class="normal"><a href="#__codelineno-0-1052">1052</a></span>
+<span class="normal"><a href="#__codelineno-0-1053">1053</a></span>
+<span class="normal"><a href="#__codelineno-0-1054">1054</a></span>
+<span class="normal"><a href="#__codelineno-0-1055">1055</a></span>
+<span class="normal"><a href="#__codelineno-0-1056">1056</a></span>
+<span class="normal"><a href="#__codelineno-0-1057">1057</a></span>
+<span class="normal"><a href="#__codelineno-0-1058">1058</a></span>
+<span class="normal"><a href="#__codelineno-0-1059">1059</a></span>
+<span class="normal"><a href="#__codelineno-0-1060">1060</a></span>
+<span class="normal"><a href="#__codelineno-0-1061">1061</a></span>
+<span class="normal"><a href="#__codelineno-0-1062">1062</a></span>
+<span class="normal"><a href="#__codelineno-0-1063">1063</a></span>
+<span class="normal"><a href="#__codelineno-0-1064">1064</a></span>
+<span class="normal"><a href="#__codelineno-0-1065">1065</a></span>
+<span class="normal"><a href="#__codelineno-0-1066">1066</a></span>
+<span class="normal"><a href="#__codelineno-0-1067">1067</a></span>
+<span class="normal"><a href="#__codelineno-0-1068">1068</a></span>
+<span class="normal"><a href="#__codelineno-0-1069">1069</a></span>
+<span class="normal"><a href="#__codelineno-0-1070">1070</a></span>
+<span class="normal"><a href="#__codelineno-0-1071">1071</a></span>
+<span class="normal"><a href="#__codelineno-0-1072">1072</a></span>
+<span class="normal"><a href="#__codelineno-0-1073">1073</a></span>
+<span class="normal"><a href="#__codelineno-0-1074">1074</a></span>
+<span class="normal"><a href="#__codelineno-0-1075">1075</a></span>
+<span class="normal"><a href="#__codelineno-0-1076">1076</a></span>
+<span class="normal"><a href="#__codelineno-0-1077">1077</a></span>
+<span class="normal"><a href="#__codelineno-0-1078">1078</a></span>
+<span class="normal"><a href="#__codelineno-0-1079">1079</a></span>
+<span class="normal"><a href="#__codelineno-0-1080">1080</a></span>
+<span class="normal"><a href="#__codelineno-0-1081">1081</a></span>
+<span class="normal"><a href="#__codelineno-0-1082">1082</a></span>
+<span class="normal"><a href="#__codelineno-0-1083">1083</a></span>
+<span class="normal"><a href="#__codelineno-0-1084">1084</a></span>
+<span class="normal"><a href="#__codelineno-0-1085">1085</a></span>
+<span class="normal"><a href="#__codelineno-0-1086">1086</a></span>
+<span class="normal"><a href="#__codelineno-0-1087">1087</a></span>
+<span class="normal"><a href="#__codelineno-0-1088">1088</a></span>
+<span class="normal"><a href="#__codelineno-0-1089">1089</a></span>
+<span class="normal"><a href="#__codelineno-0-1090">1090</a></span>
+<span class="normal"><a href="#__codelineno-0-1091">1091</a></span>
+<span class="normal"><a href="#__codelineno-0-1092">1092</a></span>
+<span class="normal"><a href="#__codelineno-0-1093">1093</a></span>
+<span class="normal"><a href="#__codelineno-0-1094">1094</a></span>
+<span class="normal"><a href="#__codelineno-0-1095">1095</a></span>
+<span class="normal"><a href="#__codelineno-0-1096">1096</a></span>
+<span class="normal"><a href="#__codelineno-0-1097">1097</a></span>
+<span class="normal"><a href="#__codelineno-0-1098">1098</a></span>
+<span class="normal"><a href="#__codelineno-0-1099">1099</a></span>
+<span class="normal"><a href="#__codelineno-0-1100">1100</a></span>
+<span class="normal"><a href="#__codelineno-0-1101">1101</a></span>
+<span class="normal"><a href="#__codelineno-0-1102">1102</a></span>
+<span class="normal"><a href="#__codelineno-0-1103">1103</a></span>
+<span class="normal"><a href="#__codelineno-0-1104">1104</a></span>
+<span class="normal"><a href="#__codelineno-0-1105">1105</a></span>
+<span class="normal"><a href="#__codelineno-0-1106">1106</a></span>
+<span class="normal"><a href="#__codelineno-0-1107">1107</a></span>
+<span class="normal"><a href="#__codelineno-0-1108">1108</a></span>
+<span class="normal"><a href="#__codelineno-0-1109">1109</a></span>
+<span class="normal"><a href="#__codelineno-0-1110">1110</a></span>
+<span class="normal"><a href="#__codelineno-0-1111">1111</a></span>
+<span class="normal"><a href="#__codelineno-0-1112">1112</a></span>
+<span class="normal"><a href="#__codelineno-0-1113">1113</a></span>
+<span class="normal"><a href="#__codelineno-0-1114">1114</a></span>
+<span class="normal"><a href="#__codelineno-0-1115">1115</a></span>
+<span class="normal"><a href="#__codelineno-0-1116">1116</a></span>
+<span class="normal"><a href="#__codelineno-0-1117">1117</a></span>
+<span class="normal"><a href="#__codelineno-0-1118">1118</a></span>
+<span class="normal"><a href="#__codelineno-0-1119">1119</a></span>
+<span class="normal"><a href="#__codelineno-0-1120">1120</a></span>
+<span class="normal"><a href="#__codelineno-0-1121">1121</a></span>
+<span class="normal"><a href="#__codelineno-0-1122">1122</a></span>
+<span class="normal"><a href="#__codelineno-0-1123">1123</a></span>
+<span class="normal"><a href="#__codelineno-0-1124">1124</a></span>
+<span class="normal"><a href="#__codelineno-0-1125">1125</a></span>
+<span class="normal"><a href="#__codelineno-0-1126">1126</a></span>
+<span class="normal"><a href="#__codelineno-0-1127">1127</a></span>
+<span class="normal"><a href="#__codelineno-0-1128">1128</a></span>
+<span class="normal"><a href="#__codelineno-0-1129">1129</a></span>
+<span class="normal"><a href="#__codelineno-0-1130">1130</a></span>
+<span class="normal"><a href="#__codelineno-0-1131">1131</a></span>
+<span class="normal"><a href="#__codelineno-0-1132">1132</a></span>
+<span class="normal"><a href="#__codelineno-0-1133">1133</a></span>
+<span class="normal"><a href="#__codelineno-0-1134">1134</a></span>
+<span class="normal"><a href="#__codelineno-0-1135">1135</a></span>
+<span class="normal"><a href="#__codelineno-0-1136">1136</a></span>
+<span class="normal"><a href="#__codelineno-0-1137">1137</a></span>
+<span class="normal"><a href="#__codelineno-0-1138">1138</a></span>
+<span class="normal"><a href="#__codelineno-0-1139">1139</a></span>
+<span class="normal"><a href="#__codelineno-0-1140">1140</a></span>
+<span class="normal"><a href="#__codelineno-0-1141">1141</a></span>
+<span class="normal"><a href="#__codelineno-0-1142">1142</a></span>
+<span class="normal"><a href="#__codelineno-0-1143">1143</a></span>
+<span class="normal"><a href="#__codelineno-0-1144">1144</a></span>
+<span class="normal"><a href="#__codelineno-0-1145">1145</a></span>
+<span class="normal"><a href="#__codelineno-0-1146">1146</a></span>
+<span class="normal"><a href="#__codelineno-0-1147">1147</a></span>
+<span class="normal"><a href="#__codelineno-0-1148">1148</a></span>
+<span class="normal"><a href="#__codelineno-0-1149">1149</a></span>
+<span class="normal"><a href="#__codelineno-0-1150">1150</a></span>
+<span class="normal"><a href="#__codelineno-0-1151">1151</a></span>
+<span class="normal"><a href="#__codelineno-0-1152">1152</a></span>
+<span class="normal"><a href="#__codelineno-0-1153">1153</a></span>
+<span class="normal"><a href="#__codelineno-0-1154">1154</a></span>
+<span class="normal"><a href="#__codelineno-0-1155">1155</a></span>
+<span class="normal"><a href="#__codelineno-0-1156">1156</a></span>
+<span class="normal"><a href="#__codelineno-0-1157">1157</a></span>
+<span class="normal"><a href="#__codelineno-0-1158">1158</a></span>
+<span class="normal"><a href="#__codelineno-0-1159">1159</a></span>
+<span class="normal"><a href="#__codelineno-0-1160">1160</a></span>
+<span class="normal"><a href="#__codelineno-0-1161">1161</a></span>
+<span class="normal"><a href="#__codelineno-0-1162">1162</a></span>
+<span class="normal"><a href="#__codelineno-0-1163">1163</a></span>
+<span class="normal"><a href="#__codelineno-0-1164">1164</a></span>
+<span class="normal"><a href="#__codelineno-0-1165">1165</a></span>
+<span class="normal"><a href="#__codelineno-0-1166">1166</a></span>
+<span class="normal"><a href="#__codelineno-0-1167">1167</a></span>
+<span class="normal"><a href="#__codelineno-0-1168">1168</a></span>
+<span class="normal"><a href="#__codelineno-0-1169">1169</a></span>
+<span class="normal"><a href="#__codelineno-0-1170">1170</a></span>
+<span class="normal"><a href="#__codelineno-0-1171">1171</a></span>
+<span class="normal"><a href="#__codelineno-0-1172">1172</a></span>
+<span class="normal"><a href="#__codelineno-0-1173">1173</a></span>
+<span class="normal"><a href="#__codelineno-0-1174">1174</a></span>
+<span class="normal"><a href="#__codelineno-0-1175">1175</a></span>
+<span class="normal"><a href="#__codelineno-0-1176">1176</a></span>
+<span class="normal"><a href="#__codelineno-0-1177">1177</a></span>
+<span class="normal"><a href="#__codelineno-0-1178">1178</a></span>
+<span class="normal"><a href="#__codelineno-0-1179">1179</a></span>
+<span class="normal"><a href="#__codelineno-0-1180">1180</a></span>
+<span class="normal"><a href="#__codelineno-0-1181">1181</a></span>
+<span class="normal"><a href="#__codelineno-0-1182">1182</a></span>
+<span class="normal"><a href="#__codelineno-0-1183">1183</a></span>
+<span class="normal"><a href="#__codelineno-0-1184">1184</a></span>
+<span class="normal"><a href="#__codelineno-0-1185">1185</a></span>
+<span class="normal"><a href="#__codelineno-0-1186">1186</a></span>
+<span class="normal"><a href="#__codelineno-0-1187">1187</a></span>
+<span class="normal"><a href="#__codelineno-0-1188">1188</a></span>
+<span class="normal"><a href="#__codelineno-0-1189">1189</a></span>
+<span class="normal"><a href="#__codelineno-0-1190">1190</a></span>
+<span class="normal"><a href="#__codelineno-0-1191">1191</a></span>
+<span class="normal"><a href="#__codelineno-0-1192">1192</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1018"><a id="__codelineno-0-1018" name="__codelineno-0-1018"></a><span class="k">class</span><span class="w"> </span><span class="nc">DifferentiableObjective</span><span class="p">(</span><span class="n">Method</span><span class="p">):</span>
+</span><span id="__span-0-1019"><a id="__codelineno-0-1019" name="__codelineno-0-1019"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1020"><a id="__codelineno-0-1020" name="__codelineno-0-1020"></a><span class="sd">    Implements informative sensor placement/path planning optimization by directly</span>
+</span><span id="__span-0-1021"><a id="__codelineno-0-1021" name="__codelineno-0-1021"></a><span class="sd">    differentiating through the objective function.</span>
+</span><span id="__span-0-1022"><a id="__codelineno-0-1022" name="__codelineno-0-1022"></a>
+</span><span id="__span-0-1023"><a id="__codelineno-0-1023" name="__codelineno-0-1023"></a><span class="sd">    This method leverages TensorFlow&#39;s automatic differentiation capabilities to</span>
+</span><span id="__span-0-1024"><a id="__codelineno-0-1024" name="__codelineno-0-1024"></a><span class="sd">    optimize the sensing locations (or path waypoints) by treating them as</span>
+</span><span id="__span-0-1025"><a id="__codelineno-0-1025" name="__codelineno-0-1025"></a><span class="sd">    trainable variables and minimizing a given objective function (e.g., Mutual</span>
+</span><span id="__span-0-1026"><a id="__codelineno-0-1026" name="__codelineno-0-1026"></a><span class="sd">    Information). This approach can be more efficient than black-box methods like</span>
+</span><span id="__span-0-1027"><a id="__codelineno-0-1027" name="__codelineno-0-1027"></a><span class="sd">    Bayesian Optimization or CMA-ES, especially when the objective function is</span>
+</span><span id="__span-0-1028"><a id="__codelineno-0-1028" name="__codelineno-0-1028"></a><span class="sd">    smooth. However, the method is also more prone to getting stuck in local minima.</span>
+</span><span id="__span-0-1029"><a id="__codelineno-0-1029" name="__codelineno-0-1029"></a>
+</span><span id="__span-0-1030"><a id="__codelineno-0-1030" name="__codelineno-0-1030"></a><span class="sd">    Attributes:</span>
+</span><span id="__span-0-1031"><a id="__codelineno-0-1031" name="__codelineno-0-1031"></a><span class="sd">        transform (Optional[Transform]): Transform object to apply to the solution.</span>
+</span><span id="__span-0-1032"><a id="__codelineno-0-1032" name="__codelineno-0-1032"></a><span class="sd">        X_sol (tf.Variable): The solution (e.g., sensor locations) being optimized.</span>
+</span><span id="__span-0-1033"><a id="__codelineno-0-1033" name="__codelineno-0-1033"></a><span class="sd">        objective (Objective): The objective function to be optimized.</span>
+</span><span id="__span-0-1034"><a id="__codelineno-0-1034" name="__codelineno-0-1034"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-1035"><a id="__codelineno-0-1035" name="__codelineno-0-1035"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-1036"><a id="__codelineno-0-1036" name="__codelineno-0-1036"></a>                 <span class="n">num_sensing</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-0-1037"><a id="__codelineno-0-1037" name="__codelineno-0-1037"></a>                 <span class="n">X_objective</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-1038"><a id="__codelineno-0-1038" name="__codelineno-0-1038"></a>                 <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-1039"><a id="__codelineno-0-1039" name="__codelineno-0-1039"></a>                 <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-0-1040"><a id="__codelineno-0-1040" name="__codelineno-0-1040"></a>                 <span class="n">transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1041"><a id="__codelineno-0-1041" name="__codelineno-0-1041"></a>                 <span class="n">num_robots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-1042"><a id="__codelineno-0-1042" name="__codelineno-0-1042"></a>                 <span class="n">X_candidates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1043"><a id="__codelineno-0-1043" name="__codelineno-0-1043"></a>                 <span class="n">num_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1044"><a id="__codelineno-0-1044" name="__codelineno-0-1044"></a>                 <span class="n">objective</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Objective</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SLogMI&#39;</span><span class="p">,</span>
+</span><span id="__span-0-1045"><a id="__codelineno-0-1045" name="__codelineno-0-1045"></a>                 <span class="n">X_init</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1046"><a id="__codelineno-0-1046" name="__codelineno-0-1046"></a>                 <span class="n">X_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1047"><a id="__codelineno-0-1047" name="__codelineno-0-1047"></a>                 <span class="n">orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-1048"><a id="__codelineno-0-1048" name="__codelineno-0-1048"></a>                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+</span><span id="__span-0-1049"><a id="__codelineno-0-1049" name="__codelineno-0-1049"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1050"><a id="__codelineno-0-1050" name="__codelineno-0-1050"></a><span class="sd">        Initializes the DifferentiableObjective optimizer.</span>
+</span><span id="__span-0-1051"><a id="__codelineno-0-1051" name="__codelineno-0-1051"></a>
+</span><span id="__span-0-1052"><a id="__codelineno-0-1052" name="__codelineno-0-1052"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-1053"><a id="__codelineno-0-1053" name="__codelineno-0-1053"></a><span class="sd">            num_sensing (int): Number of sensing locations to optimize.</span>
+</span><span id="__span-0-1054"><a id="__codelineno-0-1054" name="__codelineno-0-1054"></a><span class="sd">            X_objective (np.ndarray): (n, d); Data points used to define the objective function.</span>
+</span><span id="__span-0-1055"><a id="__codelineno-0-1055" name="__codelineno-0-1055"></a><span class="sd">            kernel (gpflow.kernels.Kernel): GPflow kernel function.</span>
+</span><span id="__span-0-1056"><a id="__codelineno-0-1056" name="__codelineno-0-1056"></a><span class="sd">            noise_variance (float): Data noise variance.</span>
+</span><span id="__span-0-1057"><a id="__codelineno-0-1057" name="__codelineno-0-1057"></a><span class="sd">            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.</span>
+</span><span id="__span-0-1058"><a id="__codelineno-0-1058" name="__codelineno-0-1058"></a><span class="sd">            num_robots (int): Number of robots/agents. Defaults to 1.</span>
+</span><span id="__span-0-1059"><a id="__codelineno-0-1059" name="__codelineno-0-1059"></a><span class="sd">            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
+</span><span id="__span-0-1060"><a id="__codelineno-0-1060" name="__codelineno-0-1060"></a><span class="sd">                                                 Defaults to None.</span>
+</span><span id="__span-0-1061"><a id="__codelineno-0-1061" name="__codelineno-0-1061"></a><span class="sd">            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
+</span><span id="__span-0-1062"><a id="__codelineno-0-1062" name="__codelineno-0-1062"></a><span class="sd">            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., &#39;SLogMI&#39;, &#39;MI&#39;)</span>
+</span><span id="__span-0-1063"><a id="__codelineno-0-1063" name="__codelineno-0-1063"></a><span class="sd">                                         or an instance of an objective class. Defaults to &#39;SLogMI&#39;.</span>
+</span><span id="__span-0-1064"><a id="__codelineno-0-1064" name="__codelineno-0-1064"></a><span class="sd">            X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial solution.</span>
+</span><span id="__span-0-1065"><a id="__codelineno-0-1065" name="__codelineno-0-1065"></a><span class="sd">                                            If None, initial points are randomly selected from X_objective.</span>
+</span><span id="__span-0-1066"><a id="__codelineno-0-1066" name="__codelineno-0-1066"></a><span class="sd">            X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when</span>
+</span><span id="__span-0-1067"><a id="__codelineno-0-1067" name="__codelineno-0-1067"></a><span class="sd">                                            modeling spatio-temporal IPP. Defaults to None.</span>
+</span><span id="__span-0-1068"><a id="__codelineno-0-1068" name="__codelineno-0-1068"></a><span class="sd">            orientation (bool): If True, adds an additional dimension to model sensor FoV rotation angle</span>
+</span><span id="__span-0-1069"><a id="__codelineno-0-1069" name="__codelineno-0-1069"></a><span class="sd">                                when selecting initial inducing points. Defaults to False.</span>
+</span><span id="__span-0-1070"><a id="__codelineno-0-1070" name="__codelineno-0-1070"></a><span class="sd">            **kwargs: Additional keyword arguments passed to the objective function.</span>
+</span><span id="__span-0-1071"><a id="__codelineno-0-1071" name="__codelineno-0-1071"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1072"><a id="__codelineno-0-1072" name="__codelineno-0-1072"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-1073"><a id="__codelineno-0-1073" name="__codelineno-0-1073"></a>                         <span class="n">transform</span><span class="p">,</span> <span class="n">num_robots</span><span class="p">,</span> <span class="n">X_candidates</span><span class="p">,</span> <span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-1074"><a id="__codelineno-0-1074" name="__codelineno-0-1074"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+</span><span id="__span-0-1075"><a id="__codelineno-0-1075" name="__codelineno-0-1075"></a>        <span class="k">if</span> <span class="n">X_candidates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1076"><a id="__codelineno-0-1076" name="__codelineno-0-1076"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="o">=</span> <span class="n">X_objective</span>  <span class="c1"># Default candidates to objective points</span>
+</span><span id="__span-0-1077"><a id="__codelineno-0-1077" name="__codelineno-0-1077"></a>
+</span><span id="__span-0-1078"><a id="__codelineno-0-1078" name="__codelineno-0-1078"></a>        <span class="k">if</span> <span class="n">X_init</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1079"><a id="__codelineno-0-1079" name="__codelineno-0-1079"></a>            <span class="n">X_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span>
+</span><span id="__span-0-1080"><a id="__codelineno-0-1080" name="__codelineno-0-1080"></a>                                      <span class="n">num_sensing</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span>
+</span><span id="__span-0-1081"><a id="__codelineno-0-1081" name="__codelineno-0-1081"></a>                                      <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+</span><span id="__span-0-1082"><a id="__codelineno-0-1082" name="__codelineno-0-1082"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1083"><a id="__codelineno-0-1083" name="__codelineno-0-1083"></a>            <span class="c1"># override num_dim with initial inducing points dim, in case it differes from X_objective dim</span>
+</span><span id="__span-0-1084"><a id="__codelineno-0-1084" name="__codelineno-0-1084"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span> <span class="o">=</span> <span class="n">X_init</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-0-1085"><a id="__codelineno-0-1085" name="__codelineno-0-1085"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_init</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</span><span id="__span-0-1086"><a id="__codelineno-0-1086" name="__codelineno-0-1086"></a>
+</span><span id="__span-0-1087"><a id="__codelineno-0-1087" name="__codelineno-0-1087"></a>        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-0-1088"><a id="__codelineno-0-1088" name="__codelineno-0-1088"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">get_objective</span><span class="p">(</span><span class="n">objective</span><span class="p">)(</span><span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span>
+</span><span id="__span-0-1089"><a id="__codelineno-0-1089" name="__codelineno-0-1089"></a>                                                      <span class="n">noise_variance</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="__span-0-1090"><a id="__codelineno-0-1090" name="__codelineno-0-1090"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1091"><a id="__codelineno-0-1091" name="__codelineno-0-1091"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">objective</span>
+</span><span id="__span-0-1092"><a id="__codelineno-0-1092" name="__codelineno-0-1092"></a>
+</span><span id="__span-0-1093"><a id="__codelineno-0-1093" name="__codelineno-0-1093"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-1094"><a id="__codelineno-0-1094" name="__codelineno-0-1094"></a>               <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1095"><a id="__codelineno-0-1095" name="__codelineno-0-1095"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1096"><a id="__codelineno-0-1096" name="__codelineno-0-1096"></a><span class="sd">        Updates the kernel and noise variance parameters of the objective function.</span>
+</span><span id="__span-0-1097"><a id="__codelineno-0-1097" name="__codelineno-0-1097"></a>
+</span><span id="__span-0-1098"><a id="__codelineno-0-1098" name="__codelineno-0-1098"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-1099"><a id="__codelineno-0-1099" name="__codelineno-0-1099"></a><span class="sd">            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.</span>
+</span><span id="__span-0-1100"><a id="__codelineno-0-1100" name="__codelineno-0-1100"></a><span class="sd">            noise_variance (float): Updated data noise variance.</span>
+</span><span id="__span-0-1101"><a id="__codelineno-0-1101" name="__codelineno-0-1101"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1102"><a id="__codelineno-0-1102" name="__codelineno-0-1102"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span>
+</span><span id="__span-0-1103"><a id="__codelineno-0-1103" name="__codelineno-0-1103"></a>
+</span><span id="__span-0-1104"><a id="__codelineno-0-1104" name="__codelineno-0-1104"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_hyperparameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="__span-0-1105"><a id="__codelineno-0-1105" name="__codelineno-0-1105"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1106"><a id="__codelineno-0-1106" name="__codelineno-0-1106"></a><span class="sd">        Retrieves the current kernel and noise variance hyperparameters from the objective.</span>
+</span><span id="__span-0-1107"><a id="__codelineno-0-1107" name="__codelineno-0-1107"></a>
+</span><span id="__span-0-1108"><a id="__codelineno-0-1108" name="__codelineno-0-1108"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-1109"><a id="__codelineno-0-1109" name="__codelineno-0-1109"></a><span class="sd">            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</span>
+</span><span id="__span-0-1110"><a id="__codelineno-0-1110" name="__codelineno-0-1110"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1111"><a id="__codelineno-0-1111" name="__codelineno-0-1111"></a>        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">kernel</span><span class="p">),</span> \
+</span><span id="__span-0-1112"><a id="__codelineno-0-1112" name="__codelineno-0-1112"></a>               <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">noise_variance</span>
+</span><span id="__span-0-1113"><a id="__codelineno-0-1113" name="__codelineno-0-1113"></a>
+</span><span id="__span-0-1114"><a id="__codelineno-0-1114" name="__codelineno-0-1114"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-1115"><a id="__codelineno-0-1115" name="__codelineno-0-1115"></a>                 <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+</span><span id="__span-0-1116"><a id="__codelineno-0-1116" name="__codelineno-0-1116"></a>                 <span class="n">optimizer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;scipy.L-BFGS-B&#39;</span><span class="p">,</span>
+</span><span id="__span-0-1117"><a id="__codelineno-0-1117" name="__codelineno-0-1117"></a>                 <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-1118"><a id="__codelineno-0-1118" name="__codelineno-0-1118"></a>                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="__span-0-1119"><a id="__codelineno-0-1119" name="__codelineno-0-1119"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1120"><a id="__codelineno-0-1120" name="__codelineno-0-1120"></a><span class="sd">        Optimizes the sensor placement/path by differentiating through the objective function.</span>
+</span><span id="__span-0-1121"><a id="__codelineno-0-1121" name="__codelineno-0-1121"></a>
+</span><span id="__span-0-1122"><a id="__codelineno-0-1122" name="__codelineno-0-1122"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-1123"><a id="__codelineno-0-1123" name="__codelineno-0-1123"></a><span class="sd">            max_steps (int): Maximum number of optimization steps. Defaults to 500.</span>
+</span><span id="__span-0-1124"><a id="__codelineno-0-1124" name="__codelineno-0-1124"></a><span class="sd">            optimizer (str): Optimizer &quot;&lt;backend&gt;.&lt;method&gt;&quot; to use for training (e.g., &#39;scipy.L-BFGS-B&#39;, &#39;tf.adam&#39;).</span>
+</span><span id="__span-0-1125"><a id="__codelineno-0-1125" name="__codelineno-0-1125"></a><span class="sd">                             Defaults to &#39;scipy.L-BFGS-B&#39;.</span>
+</span><span id="__span-0-1126"><a id="__codelineno-0-1126" name="__codelineno-0-1126"></a><span class="sd">            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.</span>
+</span><span id="__span-0-1127"><a id="__codelineno-0-1127" name="__codelineno-0-1127"></a><span class="sd">            **kwargs: Additional keyword arguments for the optimizer.</span>
+</span><span id="__span-0-1128"><a id="__codelineno-0-1128" name="__codelineno-0-1128"></a>
+</span><span id="__span-0-1129"><a id="__codelineno-0-1129" name="__codelineno-0-1129"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-1130"><a id="__codelineno-0-1130" name="__codelineno-0-1130"></a><span class="sd">            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</span>
+</span><span id="__span-0-1131"><a id="__codelineno-0-1131" name="__codelineno-0-1131"></a>
+</span><span id="__span-0-1132"><a id="__codelineno-0-1132" name="__codelineno-0-1132"></a><span class="sd">        Usage:</span>
+</span><span id="__span-0-1133"><a id="__codelineno-0-1133" name="__codelineno-0-1133"></a><span class="sd">            ```python</span>
+</span><span id="__span-0-1134"><a id="__codelineno-0-1134" name="__codelineno-0-1134"></a><span class="sd">            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-1135"><a id="__codelineno-0-1135" name="__codelineno-0-1135"></a><span class="sd">            diff_obj_method = DifferentiableObjective(</span>
+</span><span id="__span-0-1136"><a id="__codelineno-0-1136" name="__codelineno-0-1136"></a><span class="sd">                num_sensing=10,</span>
+</span><span id="__span-0-1137"><a id="__codelineno-0-1137" name="__codelineno-0-1137"></a><span class="sd">                X_objective=X_train,</span>
+</span><span id="__span-0-1138"><a id="__codelineno-0-1138" name="__codelineno-0-1138"></a><span class="sd">                kernel=kernel_opt,</span>
+</span><span id="__span-0-1139"><a id="__codelineno-0-1139" name="__codelineno-0-1139"></a><span class="sd">                noise_variance=noise_variance_opt,</span>
+</span><span id="__span-0-1140"><a id="__codelineno-0-1140" name="__codelineno-0-1140"></a><span class="sd">                transform=IPPTransform(num_robots=1), # Example transform</span>
+</span><span id="__span-0-1141"><a id="__codelineno-0-1141" name="__codelineno-0-1141"></a><span class="sd">                X_candidates=candidates</span>
+</span><span id="__span-0-1142"><a id="__codelineno-0-1142" name="__codelineno-0-1142"></a><span class="sd">            )</span>
+</span><span id="__span-0-1143"><a id="__codelineno-0-1143" name="__codelineno-0-1143"></a><span class="sd">            optimized_solution = diff_obj_method.optimize(max_steps=500, optimizer=&#39;scipy.L-BFGS-B&#39;)</span>
+</span><span id="__span-0-1144"><a id="__codelineno-0-1144" name="__codelineno-0-1144"></a><span class="sd">            ```</span>
+</span><span id="__span-0-1145"><a id="__codelineno-0-1145" name="__codelineno-0-1145"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1146"><a id="__codelineno-0-1146" name="__codelineno-0-1146"></a>        <span class="n">_</span> <span class="o">=</span> <span class="n">optimize_model</span><span class="p">(</span>
+</span><span id="__span-0-1147"><a id="__codelineno-0-1147" name="__codelineno-0-1147"></a>            <span class="n">training_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span>
+</span><span id="__span-0-1148"><a id="__codelineno-0-1148" name="__codelineno-0-1148"></a>            <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+</span><span id="__span-0-1149"><a id="__codelineno-0-1149" name="__codelineno-0-1149"></a>            <span class="n">trainable_variables</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span><span class="p">],</span>
+</span><span id="__span-0-1150"><a id="__codelineno-0-1150" name="__codelineno-0-1150"></a>            <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+</span><span id="__span-0-1151"><a id="__codelineno-0-1151" name="__codelineno-0-1151"></a>            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+</span><span id="__span-0-1152"><a id="__codelineno-0-1152" name="__codelineno-0-1152"></a>            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="__span-0-1153"><a id="__codelineno-0-1153" name="__codelineno-0-1153"></a>
+</span><span id="__span-0-1154"><a id="__codelineno-0-1154" name="__codelineno-0-1154"></a>        <span class="n">sol</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span>
+</span><span id="__span-0-1155"><a id="__codelineno-0-1155" name="__codelineno-0-1155"></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-1156"><a id="__codelineno-0-1156" name="__codelineno-0-1156"></a>            <span class="n">sol_expanded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span>
+</span><span id="__span-0-1157"><a id="__codelineno-0-1157" name="__codelineno-0-1157"></a>                                                 <span class="n">expand_sensor_model</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-1158"><a id="__codelineno-0-1158" name="__codelineno-0-1158"></a>        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+</span><span id="__span-0-1159"><a id="__codelineno-0-1159" name="__codelineno-0-1159"></a>            <span class="n">sol_expanded</span> <span class="o">=</span> <span class="n">sol</span>
+</span><span id="__span-0-1160"><a id="__codelineno-0-1160" name="__codelineno-0-1160"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sol_expanded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="__span-0-1161"><a id="__codelineno-0-1161" name="__codelineno-0-1161"></a>            <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-1162"><a id="__codelineno-0-1162" name="__codelineno-0-1162"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1163"><a id="__codelineno-0-1163" name="__codelineno-0-1163"></a>            <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span>
+</span><span id="__span-0-1164"><a id="__codelineno-0-1164" name="__codelineno-0-1164"></a>
+</span><span id="__span-0-1165"><a id="__codelineno-0-1165" name="__codelineno-0-1165"></a>        <span class="c1"># Map solution locations to candidates set locations if X_candidates is provided</span>
+</span><span id="__span-0-1166"><a id="__codelineno-0-1166" name="__codelineno-0-1166"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1167"><a id="__codelineno-0-1167" name="__codelineno-0-1167"></a>            <span class="n">sol_np</span> <span class="o">=</span> <span class="n">cont2disc</span><span class="p">(</span><span class="n">sol_np</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">)</span>
+</span><span id="__span-0-1168"><a id="__codelineno-0-1168" name="__codelineno-0-1168"></a>
+</span><span id="__span-0-1169"><a id="__codelineno-0-1169" name="__codelineno-0-1169"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-1170"><a id="__codelineno-0-1170" name="__codelineno-0-1170"></a>        <span class="k">return</span> <span class="n">sol_np</span>
+</span><span id="__span-0-1171"><a id="__codelineno-0-1171" name="__codelineno-0-1171"></a>
+</span><span id="__span-0-1172"><a id="__codelineno-0-1172" name="__codelineno-0-1172"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-0-1173"><a id="__codelineno-0-1173" name="__codelineno-0-1173"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1174"><a id="__codelineno-0-1174" name="__codelineno-0-1174"></a><span class="sd">        Internal objective function to be minimized by the optimizer.</span>
+</span><span id="__span-0-1175"><a id="__codelineno-0-1175" name="__codelineno-0-1175"></a>
+</span><span id="__span-0-1176"><a id="__codelineno-0-1176" name="__codelineno-0-1176"></a><span class="sd">        This function applies any specified transformations to the current solution,</span>
+</span><span id="__span-0-1177"><a id="__codelineno-0-1177" name="__codelineno-0-1177"></a><span class="sd">        calculates the objective value, and applies a penalty for constraint</span>
+</span><span id="__span-0-1178"><a id="__codelineno-0-1178" name="__codelineno-0-1178"></a><span class="sd">        violations.</span>
+</span><span id="__span-0-1179"><a id="__codelineno-0-1179" name="__codelineno-0-1179"></a>
+</span><span id="__span-0-1180"><a id="__codelineno-0-1180" name="__codelineno-0-1180"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-1181"><a id="__codelineno-0-1181" name="__codelineno-0-1181"></a><span class="sd">            float: The objective value (reward + constraint penalty).</span>
+</span><span id="__span-0-1182"><a id="__codelineno-0-1182" name="__codelineno-0-1182"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1183"><a id="__codelineno-0-1183" name="__codelineno-0-1183"></a>        <span class="n">constraint_penality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="__span-0-1184"><a id="__codelineno-0-1184" name="__codelineno-0-1184"></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1185"><a id="__codelineno-0-1185" name="__codelineno-0-1185"></a>            <span class="n">X_expanded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span><span class="p">)</span>
+</span><span id="__span-0-1186"><a id="__codelineno-0-1186" name="__codelineno-0-1186"></a>            <span class="n">constraint_penality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">constraints</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span><span class="p">)</span>
+</span><span id="__span-0-1187"><a id="__codelineno-0-1187" name="__codelineno-0-1187"></a>            <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">(</span><span class="n">X_expanded</span><span class="p">)</span>  <span class="c1"># maximize</span>
+</span><span id="__span-0-1188"><a id="__codelineno-0-1188" name="__codelineno-0-1188"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1189"><a id="__codelineno-0-1189" name="__codelineno-0-1189"></a>            <span class="n">reward</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span><span class="p">)</span>  <span class="c1"># maximize</span>
+</span><span id="__span-0-1190"><a id="__codelineno-0-1190" name="__codelineno-0-1190"></a>
+</span><span id="__span-0-1191"><a id="__codelineno-0-1191" name="__codelineno-0-1191"></a>        <span class="n">reward</span> <span class="o">+=</span> <span class="n">constraint_penality</span>  <span class="c1"># minimize (large negative value when constraint is unsatisfied)</span>
+</span><span id="__span-0-1192"><a id="__codelineno-0-1192" name="__codelineno-0-1192"></a>        <span class="k">return</span> <span class="n">reward</span>
+</span></code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.DifferentiableObjective.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_robots</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">X_candidates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">objective</span><span class="o">=</span><span class="s1">&#39;SLogMI&#39;</span><span class="p">,</span> <span class="n">X_init</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">X_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.DifferentiableObjective.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Initializes the DifferentiableObjective optimizer.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_sensing</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of sensing locations to optimize.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_objective</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(n, d); Data points used to define the objective function.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>kernel</code>
+            </td>
+            <td>
+                  <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>GPflow kernel function.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>noise_variance</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Data noise variance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>transform</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sgptools.core.transformations.Transform" href="../core/transformations.html#sgptools.core.transformations.Transform">Transform</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Transform object to apply to inducing points. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_robots</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of robots/agents. Defaults to 1.</p>
+              </div>
+            </td>
+            <td>
+                  <code>1</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_candidates</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(c, d); Discrete set of candidate locations for sensor placement.
+                                 Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_dim</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>objective</code>
+            </td>
+            <td>
+                  <code><span title="typing.Union">Union</span>[<span title="str">str</span>, <a class="autorefs autorefs-internal" title="sgptools.objectives.Objective" href="../objectives/objective.html#sgptools.objectives.Objective">Objective</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
+                         or an instance of an objective class. Defaults to 'SLogMI'.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;SLogMI&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_init</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(num_sensing * num_robots, d); Initial solution.
+                            If None, initial points are randomly selected from X_objective.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_time</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(m, d); Temporal dimensions of the inducing points, used when
+                            modeling spatio-temporal IPP. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>orientation</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, adds an additional dimension to model sensor FoV rotation angle
+                when selecting initial inducing points. Defaults to False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments passed to the objective function.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1035">1035</a></span>
+<span class="normal"><a href="#__codelineno-0-1036">1036</a></span>
+<span class="normal"><a href="#__codelineno-0-1037">1037</a></span>
+<span class="normal"><a href="#__codelineno-0-1038">1038</a></span>
+<span class="normal"><a href="#__codelineno-0-1039">1039</a></span>
+<span class="normal"><a href="#__codelineno-0-1040">1040</a></span>
+<span class="normal"><a href="#__codelineno-0-1041">1041</a></span>
+<span class="normal"><a href="#__codelineno-0-1042">1042</a></span>
+<span class="normal"><a href="#__codelineno-0-1043">1043</a></span>
+<span class="normal"><a href="#__codelineno-0-1044">1044</a></span>
+<span class="normal"><a href="#__codelineno-0-1045">1045</a></span>
+<span class="normal"><a href="#__codelineno-0-1046">1046</a></span>
+<span class="normal"><a href="#__codelineno-0-1047">1047</a></span>
+<span class="normal"><a href="#__codelineno-0-1048">1048</a></span>
+<span class="normal"><a href="#__codelineno-0-1049">1049</a></span>
+<span class="normal"><a href="#__codelineno-0-1050">1050</a></span>
+<span class="normal"><a href="#__codelineno-0-1051">1051</a></span>
+<span class="normal"><a href="#__codelineno-0-1052">1052</a></span>
+<span class="normal"><a href="#__codelineno-0-1053">1053</a></span>
+<span class="normal"><a href="#__codelineno-0-1054">1054</a></span>
+<span class="normal"><a href="#__codelineno-0-1055">1055</a></span>
+<span class="normal"><a href="#__codelineno-0-1056">1056</a></span>
+<span class="normal"><a href="#__codelineno-0-1057">1057</a></span>
+<span class="normal"><a href="#__codelineno-0-1058">1058</a></span>
+<span class="normal"><a href="#__codelineno-0-1059">1059</a></span>
+<span class="normal"><a href="#__codelineno-0-1060">1060</a></span>
+<span class="normal"><a href="#__codelineno-0-1061">1061</a></span>
+<span class="normal"><a href="#__codelineno-0-1062">1062</a></span>
+<span class="normal"><a href="#__codelineno-0-1063">1063</a></span>
+<span class="normal"><a href="#__codelineno-0-1064">1064</a></span>
+<span class="normal"><a href="#__codelineno-0-1065">1065</a></span>
+<span class="normal"><a href="#__codelineno-0-1066">1066</a></span>
+<span class="normal"><a href="#__codelineno-0-1067">1067</a></span>
+<span class="normal"><a href="#__codelineno-0-1068">1068</a></span>
+<span class="normal"><a href="#__codelineno-0-1069">1069</a></span>
+<span class="normal"><a href="#__codelineno-0-1070">1070</a></span>
+<span class="normal"><a href="#__codelineno-0-1071">1071</a></span>
+<span class="normal"><a href="#__codelineno-0-1072">1072</a></span>
+<span class="normal"><a href="#__codelineno-0-1073">1073</a></span>
+<span class="normal"><a href="#__codelineno-0-1074">1074</a></span>
+<span class="normal"><a href="#__codelineno-0-1075">1075</a></span>
+<span class="normal"><a href="#__codelineno-0-1076">1076</a></span>
+<span class="normal"><a href="#__codelineno-0-1077">1077</a></span>
+<span class="normal"><a href="#__codelineno-0-1078">1078</a></span>
+<span class="normal"><a href="#__codelineno-0-1079">1079</a></span>
+<span class="normal"><a href="#__codelineno-0-1080">1080</a></span>
+<span class="normal"><a href="#__codelineno-0-1081">1081</a></span>
+<span class="normal"><a href="#__codelineno-0-1082">1082</a></span>
+<span class="normal"><a href="#__codelineno-0-1083">1083</a></span>
+<span class="normal"><a href="#__codelineno-0-1084">1084</a></span>
+<span class="normal"><a href="#__codelineno-0-1085">1085</a></span>
+<span class="normal"><a href="#__codelineno-0-1086">1086</a></span>
+<span class="normal"><a href="#__codelineno-0-1087">1087</a></span>
+<span class="normal"><a href="#__codelineno-0-1088">1088</a></span>
+<span class="normal"><a href="#__codelineno-0-1089">1089</a></span>
+<span class="normal"><a href="#__codelineno-0-1090">1090</a></span>
+<span class="normal"><a href="#__codelineno-0-1091">1091</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1035"><a id="__codelineno-0-1035" name="__codelineno-0-1035"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-1036"><a id="__codelineno-0-1036" name="__codelineno-0-1036"></a>             <span class="n">num_sensing</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-0-1037"><a id="__codelineno-0-1037" name="__codelineno-0-1037"></a>             <span class="n">X_objective</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-1038"><a id="__codelineno-0-1038" name="__codelineno-0-1038"></a>             <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-1039"><a id="__codelineno-0-1039" name="__codelineno-0-1039"></a>             <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-0-1040"><a id="__codelineno-0-1040" name="__codelineno-0-1040"></a>             <span class="n">transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1041"><a id="__codelineno-0-1041" name="__codelineno-0-1041"></a>             <span class="n">num_robots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-1042"><a id="__codelineno-0-1042" name="__codelineno-0-1042"></a>             <span class="n">X_candidates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1043"><a id="__codelineno-0-1043" name="__codelineno-0-1043"></a>             <span class="n">num_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1044"><a id="__codelineno-0-1044" name="__codelineno-0-1044"></a>             <span class="n">objective</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Objective</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SLogMI&#39;</span><span class="p">,</span>
+</span><span id="__span-0-1045"><a id="__codelineno-0-1045" name="__codelineno-0-1045"></a>             <span class="n">X_init</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1046"><a id="__codelineno-0-1046" name="__codelineno-0-1046"></a>             <span class="n">X_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-1047"><a id="__codelineno-0-1047" name="__codelineno-0-1047"></a>             <span class="n">orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-1048"><a id="__codelineno-0-1048" name="__codelineno-0-1048"></a>             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+</span><span id="__span-0-1049"><a id="__codelineno-0-1049" name="__codelineno-0-1049"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1050"><a id="__codelineno-0-1050" name="__codelineno-0-1050"></a><span class="sd">    Initializes the DifferentiableObjective optimizer.</span>
+</span><span id="__span-0-1051"><a id="__codelineno-0-1051" name="__codelineno-0-1051"></a>
+</span><span id="__span-0-1052"><a id="__codelineno-0-1052" name="__codelineno-0-1052"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-1053"><a id="__codelineno-0-1053" name="__codelineno-0-1053"></a><span class="sd">        num_sensing (int): Number of sensing locations to optimize.</span>
+</span><span id="__span-0-1054"><a id="__codelineno-0-1054" name="__codelineno-0-1054"></a><span class="sd">        X_objective (np.ndarray): (n, d); Data points used to define the objective function.</span>
+</span><span id="__span-0-1055"><a id="__codelineno-0-1055" name="__codelineno-0-1055"></a><span class="sd">        kernel (gpflow.kernels.Kernel): GPflow kernel function.</span>
+</span><span id="__span-0-1056"><a id="__codelineno-0-1056" name="__codelineno-0-1056"></a><span class="sd">        noise_variance (float): Data noise variance.</span>
+</span><span id="__span-0-1057"><a id="__codelineno-0-1057" name="__codelineno-0-1057"></a><span class="sd">        transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.</span>
+</span><span id="__span-0-1058"><a id="__codelineno-0-1058" name="__codelineno-0-1058"></a><span class="sd">        num_robots (int): Number of robots/agents. Defaults to 1.</span>
+</span><span id="__span-0-1059"><a id="__codelineno-0-1059" name="__codelineno-0-1059"></a><span class="sd">        X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
+</span><span id="__span-0-1060"><a id="__codelineno-0-1060" name="__codelineno-0-1060"></a><span class="sd">                                             Defaults to None.</span>
+</span><span id="__span-0-1061"><a id="__codelineno-0-1061" name="__codelineno-0-1061"></a><span class="sd">        num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
+</span><span id="__span-0-1062"><a id="__codelineno-0-1062" name="__codelineno-0-1062"></a><span class="sd">        objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., &#39;SLogMI&#39;, &#39;MI&#39;)</span>
+</span><span id="__span-0-1063"><a id="__codelineno-0-1063" name="__codelineno-0-1063"></a><span class="sd">                                     or an instance of an objective class. Defaults to &#39;SLogMI&#39;.</span>
+</span><span id="__span-0-1064"><a id="__codelineno-0-1064" name="__codelineno-0-1064"></a><span class="sd">        X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial solution.</span>
+</span><span id="__span-0-1065"><a id="__codelineno-0-1065" name="__codelineno-0-1065"></a><span class="sd">                                        If None, initial points are randomly selected from X_objective.</span>
+</span><span id="__span-0-1066"><a id="__codelineno-0-1066" name="__codelineno-0-1066"></a><span class="sd">        X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when</span>
+</span><span id="__span-0-1067"><a id="__codelineno-0-1067" name="__codelineno-0-1067"></a><span class="sd">                                        modeling spatio-temporal IPP. Defaults to None.</span>
+</span><span id="__span-0-1068"><a id="__codelineno-0-1068" name="__codelineno-0-1068"></a><span class="sd">        orientation (bool): If True, adds an additional dimension to model sensor FoV rotation angle</span>
+</span><span id="__span-0-1069"><a id="__codelineno-0-1069" name="__codelineno-0-1069"></a><span class="sd">                            when selecting initial inducing points. Defaults to False.</span>
+</span><span id="__span-0-1070"><a id="__codelineno-0-1070" name="__codelineno-0-1070"></a><span class="sd">        **kwargs: Additional keyword arguments passed to the objective function.</span>
+</span><span id="__span-0-1071"><a id="__codelineno-0-1071" name="__codelineno-0-1071"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-1072"><a id="__codelineno-0-1072" name="__codelineno-0-1072"></a>    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-1073"><a id="__codelineno-0-1073" name="__codelineno-0-1073"></a>                     <span class="n">transform</span><span class="p">,</span> <span class="n">num_robots</span><span class="p">,</span> <span class="n">X_candidates</span><span class="p">,</span> <span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-1074"><a id="__codelineno-0-1074" name="__codelineno-0-1074"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+</span><span id="__span-0-1075"><a id="__codelineno-0-1075" name="__codelineno-0-1075"></a>    <span class="k">if</span> <span class="n">X_candidates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1076"><a id="__codelineno-0-1076" name="__codelineno-0-1076"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="o">=</span> <span class="n">X_objective</span>  <span class="c1"># Default candidates to objective points</span>
+</span><span id="__span-0-1077"><a id="__codelineno-0-1077" name="__codelineno-0-1077"></a>
+</span><span id="__span-0-1078"><a id="__codelineno-0-1078" name="__codelineno-0-1078"></a>    <span class="k">if</span> <span class="n">X_init</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1079"><a id="__codelineno-0-1079" name="__codelineno-0-1079"></a>        <span class="n">X_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span>
+</span><span id="__span-0-1080"><a id="__codelineno-0-1080" name="__codelineno-0-1080"></a>                                  <span class="n">num_sensing</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span>
+</span><span id="__span-0-1081"><a id="__codelineno-0-1081" name="__codelineno-0-1081"></a>                                  <span class="n">orientation</span><span class="o">=</span><span class="n">orientation</span><span class="p">)</span>
+</span><span id="__span-0-1082"><a id="__codelineno-0-1082" name="__codelineno-0-1082"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1083"><a id="__codelineno-0-1083" name="__codelineno-0-1083"></a>        <span class="c1"># override num_dim with initial inducing points dim, in case it differes from X_objective dim</span>
+</span><span id="__span-0-1084"><a id="__codelineno-0-1084" name="__codelineno-0-1084"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span> <span class="o">=</span> <span class="n">X_init</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</span><span id="__span-0-1085"><a id="__codelineno-0-1085" name="__codelineno-0-1085"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">X_init</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+</span><span id="__span-0-1086"><a id="__codelineno-0-1086" name="__codelineno-0-1086"></a>
+</span><span id="__span-0-1087"><a id="__codelineno-0-1087" name="__codelineno-0-1087"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-0-1088"><a id="__codelineno-0-1088" name="__codelineno-0-1088"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">get_objective</span><span class="p">(</span><span class="n">objective</span><span class="p">)(</span><span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span>
+</span><span id="__span-0-1089"><a id="__codelineno-0-1089" name="__codelineno-0-1089"></a>                                                  <span class="n">noise_variance</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="__span-0-1090"><a id="__codelineno-0-1090" name="__codelineno-0-1090"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1091"><a id="__codelineno-0-1091" name="__codelineno-0-1091"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">objective</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.DifferentiableObjective.get_hyperparameters" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_hyperparameters</span><span class="p">()</span></code>
+
+<a href="#sgptools.methods.DifferentiableObjective.get_hyperparameters" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieves the current kernel and noise variance hyperparameters from the objective.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="gpflow.kernels.Kernel">Kernel</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1104">1104</a></span>
+<span class="normal"><a href="#__codelineno-0-1105">1105</a></span>
+<span class="normal"><a href="#__codelineno-0-1106">1106</a></span>
+<span class="normal"><a href="#__codelineno-0-1107">1107</a></span>
+<span class="normal"><a href="#__codelineno-0-1108">1108</a></span>
+<span class="normal"><a href="#__codelineno-0-1109">1109</a></span>
+<span class="normal"><a href="#__codelineno-0-1110">1110</a></span>
+<span class="normal"><a href="#__codelineno-0-1111">1111</a></span>
+<span class="normal"><a href="#__codelineno-0-1112">1112</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1104"><a id="__codelineno-0-1104" name="__codelineno-0-1104"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_hyperparameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="__span-0-1105"><a id="__codelineno-0-1105" name="__codelineno-0-1105"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1106"><a id="__codelineno-0-1106" name="__codelineno-0-1106"></a><span class="sd">    Retrieves the current kernel and noise variance hyperparameters from the objective.</span>
+</span><span id="__span-0-1107"><a id="__codelineno-0-1107" name="__codelineno-0-1107"></a>
+</span><span id="__span-0-1108"><a id="__codelineno-0-1108" name="__codelineno-0-1108"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-1109"><a id="__codelineno-0-1109" name="__codelineno-0-1109"></a><span class="sd">        Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</span>
+</span><span id="__span-0-1110"><a id="__codelineno-0-1110" name="__codelineno-0-1110"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-1111"><a id="__codelineno-0-1111" name="__codelineno-0-1111"></a>    <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">kernel</span><span class="p">),</span> \
+</span><span id="__span-0-1112"><a id="__codelineno-0-1112" name="__codelineno-0-1112"></a>           <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">noise_variance</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.DifferentiableObjective.optimize" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">optimize</span><span class="p">(</span><span class="n">max_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;scipy.L-BFGS-B&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.DifferentiableObjective.optimize" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Optimizes the sensor placement/path by differentiating through the objective function.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>max_steps</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Maximum number of optimization steps. Defaults to 500.</p>
+              </div>
+            </td>
+            <td>
+                  <code>500</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>optimizer</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optimizer "<backend>.<method>" to use for training (e.g., 'scipy.L-BFGS-B', 'tf.adam').
+             Defaults to 'scipy.L-BFGS-B'.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;scipy.L-BFGS-B&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>verbose</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Verbosity, if True additional details will by reported. Defaults to False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments for the optimizer.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">diff_obj_method</span> <span class="o">=</span> <span class="n">DifferentiableObjective</span><span class="p">(</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">num_sensing</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">X_objective</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">kernel</span><span class="o">=</span><span class="n">kernel_opt</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance_opt</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">transform</span><span class="o">=</span><span class="n">IPPTransform</span><span class="p">(</span><span class="n">num_robots</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="c1"># Example transform</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">X_candidates</span><span class="o">=</span><span class="n">candidates</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">optimized_solution</span> <span class="o">=</span> <span class="n">diff_obj_method</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">max_steps</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;scipy.L-BFGS-B&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+</details>
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1114">1114</a></span>
+<span class="normal"><a href="#__codelineno-0-1115">1115</a></span>
+<span class="normal"><a href="#__codelineno-0-1116">1116</a></span>
+<span class="normal"><a href="#__codelineno-0-1117">1117</a></span>
+<span class="normal"><a href="#__codelineno-0-1118">1118</a></span>
+<span class="normal"><a href="#__codelineno-0-1119">1119</a></span>
+<span class="normal"><a href="#__codelineno-0-1120">1120</a></span>
+<span class="normal"><a href="#__codelineno-0-1121">1121</a></span>
+<span class="normal"><a href="#__codelineno-0-1122">1122</a></span>
+<span class="normal"><a href="#__codelineno-0-1123">1123</a></span>
+<span class="normal"><a href="#__codelineno-0-1124">1124</a></span>
+<span class="normal"><a href="#__codelineno-0-1125">1125</a></span>
+<span class="normal"><a href="#__codelineno-0-1126">1126</a></span>
+<span class="normal"><a href="#__codelineno-0-1127">1127</a></span>
+<span class="normal"><a href="#__codelineno-0-1128">1128</a></span>
+<span class="normal"><a href="#__codelineno-0-1129">1129</a></span>
+<span class="normal"><a href="#__codelineno-0-1130">1130</a></span>
+<span class="normal"><a href="#__codelineno-0-1131">1131</a></span>
+<span class="normal"><a href="#__codelineno-0-1132">1132</a></span>
+<span class="normal"><a href="#__codelineno-0-1133">1133</a></span>
+<span class="normal"><a href="#__codelineno-0-1134">1134</a></span>
+<span class="normal"><a href="#__codelineno-0-1135">1135</a></span>
+<span class="normal"><a href="#__codelineno-0-1136">1136</a></span>
+<span class="normal"><a href="#__codelineno-0-1137">1137</a></span>
+<span class="normal"><a href="#__codelineno-0-1138">1138</a></span>
+<span class="normal"><a href="#__codelineno-0-1139">1139</a></span>
+<span class="normal"><a href="#__codelineno-0-1140">1140</a></span>
+<span class="normal"><a href="#__codelineno-0-1141">1141</a></span>
+<span class="normal"><a href="#__codelineno-0-1142">1142</a></span>
+<span class="normal"><a href="#__codelineno-0-1143">1143</a></span>
+<span class="normal"><a href="#__codelineno-0-1144">1144</a></span>
+<span class="normal"><a href="#__codelineno-0-1145">1145</a></span>
+<span class="normal"><a href="#__codelineno-0-1146">1146</a></span>
+<span class="normal"><a href="#__codelineno-0-1147">1147</a></span>
+<span class="normal"><a href="#__codelineno-0-1148">1148</a></span>
+<span class="normal"><a href="#__codelineno-0-1149">1149</a></span>
+<span class="normal"><a href="#__codelineno-0-1150">1150</a></span>
+<span class="normal"><a href="#__codelineno-0-1151">1151</a></span>
+<span class="normal"><a href="#__codelineno-0-1152">1152</a></span>
+<span class="normal"><a href="#__codelineno-0-1153">1153</a></span>
+<span class="normal"><a href="#__codelineno-0-1154">1154</a></span>
+<span class="normal"><a href="#__codelineno-0-1155">1155</a></span>
+<span class="normal"><a href="#__codelineno-0-1156">1156</a></span>
+<span class="normal"><a href="#__codelineno-0-1157">1157</a></span>
+<span class="normal"><a href="#__codelineno-0-1158">1158</a></span>
+<span class="normal"><a href="#__codelineno-0-1159">1159</a></span>
+<span class="normal"><a href="#__codelineno-0-1160">1160</a></span>
+<span class="normal"><a href="#__codelineno-0-1161">1161</a></span>
+<span class="normal"><a href="#__codelineno-0-1162">1162</a></span>
+<span class="normal"><a href="#__codelineno-0-1163">1163</a></span>
+<span class="normal"><a href="#__codelineno-0-1164">1164</a></span>
+<span class="normal"><a href="#__codelineno-0-1165">1165</a></span>
+<span class="normal"><a href="#__codelineno-0-1166">1166</a></span>
+<span class="normal"><a href="#__codelineno-0-1167">1167</a></span>
+<span class="normal"><a href="#__codelineno-0-1168">1168</a></span>
+<span class="normal"><a href="#__codelineno-0-1169">1169</a></span>
+<span class="normal"><a href="#__codelineno-0-1170">1170</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1114"><a id="__codelineno-0-1114" name="__codelineno-0-1114"></a><span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-1115"><a id="__codelineno-0-1115" name="__codelineno-0-1115"></a>             <span class="n">max_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span>
+</span><span id="__span-0-1116"><a id="__codelineno-0-1116" name="__codelineno-0-1116"></a>             <span class="n">optimizer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;scipy.L-BFGS-B&#39;</span><span class="p">,</span>
+</span><span id="__span-0-1117"><a id="__codelineno-0-1117" name="__codelineno-0-1117"></a>             <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-1118"><a id="__codelineno-0-1118" name="__codelineno-0-1118"></a>             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="__span-0-1119"><a id="__codelineno-0-1119" name="__codelineno-0-1119"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1120"><a id="__codelineno-0-1120" name="__codelineno-0-1120"></a><span class="sd">    Optimizes the sensor placement/path by differentiating through the objective function.</span>
+</span><span id="__span-0-1121"><a id="__codelineno-0-1121" name="__codelineno-0-1121"></a>
+</span><span id="__span-0-1122"><a id="__codelineno-0-1122" name="__codelineno-0-1122"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-1123"><a id="__codelineno-0-1123" name="__codelineno-0-1123"></a><span class="sd">        max_steps (int): Maximum number of optimization steps. Defaults to 500.</span>
+</span><span id="__span-0-1124"><a id="__codelineno-0-1124" name="__codelineno-0-1124"></a><span class="sd">        optimizer (str): Optimizer &quot;&lt;backend&gt;.&lt;method&gt;&quot; to use for training (e.g., &#39;scipy.L-BFGS-B&#39;, &#39;tf.adam&#39;).</span>
+</span><span id="__span-0-1125"><a id="__codelineno-0-1125" name="__codelineno-0-1125"></a><span class="sd">                         Defaults to &#39;scipy.L-BFGS-B&#39;.</span>
+</span><span id="__span-0-1126"><a id="__codelineno-0-1126" name="__codelineno-0-1126"></a><span class="sd">        verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.</span>
+</span><span id="__span-0-1127"><a id="__codelineno-0-1127" name="__codelineno-0-1127"></a><span class="sd">        **kwargs: Additional keyword arguments for the optimizer.</span>
+</span><span id="__span-0-1128"><a id="__codelineno-0-1128" name="__codelineno-0-1128"></a>
+</span><span id="__span-0-1129"><a id="__codelineno-0-1129" name="__codelineno-0-1129"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-1130"><a id="__codelineno-0-1130" name="__codelineno-0-1130"></a><span class="sd">        np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</span>
+</span><span id="__span-0-1131"><a id="__codelineno-0-1131" name="__codelineno-0-1131"></a>
+</span><span id="__span-0-1132"><a id="__codelineno-0-1132" name="__codelineno-0-1132"></a><span class="sd">    Usage:</span>
+</span><span id="__span-0-1133"><a id="__codelineno-0-1133" name="__codelineno-0-1133"></a><span class="sd">        ```python</span>
+</span><span id="__span-0-1134"><a id="__codelineno-0-1134" name="__codelineno-0-1134"></a><span class="sd">        # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-1135"><a id="__codelineno-0-1135" name="__codelineno-0-1135"></a><span class="sd">        diff_obj_method = DifferentiableObjective(</span>
+</span><span id="__span-0-1136"><a id="__codelineno-0-1136" name="__codelineno-0-1136"></a><span class="sd">            num_sensing=10,</span>
+</span><span id="__span-0-1137"><a id="__codelineno-0-1137" name="__codelineno-0-1137"></a><span class="sd">            X_objective=X_train,</span>
+</span><span id="__span-0-1138"><a id="__codelineno-0-1138" name="__codelineno-0-1138"></a><span class="sd">            kernel=kernel_opt,</span>
+</span><span id="__span-0-1139"><a id="__codelineno-0-1139" name="__codelineno-0-1139"></a><span class="sd">            noise_variance=noise_variance_opt,</span>
+</span><span id="__span-0-1140"><a id="__codelineno-0-1140" name="__codelineno-0-1140"></a><span class="sd">            transform=IPPTransform(num_robots=1), # Example transform</span>
+</span><span id="__span-0-1141"><a id="__codelineno-0-1141" name="__codelineno-0-1141"></a><span class="sd">            X_candidates=candidates</span>
+</span><span id="__span-0-1142"><a id="__codelineno-0-1142" name="__codelineno-0-1142"></a><span class="sd">        )</span>
+</span><span id="__span-0-1143"><a id="__codelineno-0-1143" name="__codelineno-0-1143"></a><span class="sd">        optimized_solution = diff_obj_method.optimize(max_steps=500, optimizer=&#39;scipy.L-BFGS-B&#39;)</span>
+</span><span id="__span-0-1144"><a id="__codelineno-0-1144" name="__codelineno-0-1144"></a><span class="sd">        ```</span>
+</span><span id="__span-0-1145"><a id="__codelineno-0-1145" name="__codelineno-0-1145"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-1146"><a id="__codelineno-0-1146" name="__codelineno-0-1146"></a>    <span class="n">_</span> <span class="o">=</span> <span class="n">optimize_model</span><span class="p">(</span>
+</span><span id="__span-0-1147"><a id="__codelineno-0-1147" name="__codelineno-0-1147"></a>        <span class="n">training_loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span>
+</span><span id="__span-0-1148"><a id="__codelineno-0-1148" name="__codelineno-0-1148"></a>        <span class="n">max_steps</span><span class="o">=</span><span class="n">max_steps</span><span class="p">,</span>
+</span><span id="__span-0-1149"><a id="__codelineno-0-1149" name="__codelineno-0-1149"></a>        <span class="n">trainable_variables</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span><span class="p">],</span>
+</span><span id="__span-0-1150"><a id="__codelineno-0-1150" name="__codelineno-0-1150"></a>        <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+</span><span id="__span-0-1151"><a id="__codelineno-0-1151" name="__codelineno-0-1151"></a>        <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+</span><span id="__span-0-1152"><a id="__codelineno-0-1152" name="__codelineno-0-1152"></a>        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="__span-0-1153"><a id="__codelineno-0-1153" name="__codelineno-0-1153"></a>
+</span><span id="__span-0-1154"><a id="__codelineno-0-1154" name="__codelineno-0-1154"></a>    <span class="n">sol</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_sol</span>
+</span><span id="__span-0-1155"><a id="__codelineno-0-1155" name="__codelineno-0-1155"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-1156"><a id="__codelineno-0-1156" name="__codelineno-0-1156"></a>        <span class="n">sol_expanded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span>
+</span><span id="__span-0-1157"><a id="__codelineno-0-1157" name="__codelineno-0-1157"></a>                                             <span class="n">expand_sensor_model</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-1158"><a id="__codelineno-0-1158" name="__codelineno-0-1158"></a>    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+</span><span id="__span-0-1159"><a id="__codelineno-0-1159" name="__codelineno-0-1159"></a>        <span class="n">sol_expanded</span> <span class="o">=</span> <span class="n">sol</span>
+</span><span id="__span-0-1160"><a id="__codelineno-0-1160" name="__codelineno-0-1160"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sol_expanded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="__span-0-1161"><a id="__codelineno-0-1161" name="__codelineno-0-1161"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-1162"><a id="__codelineno-0-1162" name="__codelineno-0-1162"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-1163"><a id="__codelineno-0-1163" name="__codelineno-0-1163"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span>
+</span><span id="__span-0-1164"><a id="__codelineno-0-1164" name="__codelineno-0-1164"></a>
+</span><span id="__span-0-1165"><a id="__codelineno-0-1165" name="__codelineno-0-1165"></a>    <span class="c1"># Map solution locations to candidates set locations if X_candidates is provided</span>
+</span><span id="__span-0-1166"><a id="__codelineno-0-1166" name="__codelineno-0-1166"></a>    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1167"><a id="__codelineno-0-1167" name="__codelineno-0-1167"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">cont2disc</span><span class="p">(</span><span class="n">sol_np</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">)</span>
+</span><span id="__span-0-1168"><a id="__codelineno-0-1168" name="__codelineno-0-1168"></a>
+</span><span id="__span-0-1169"><a id="__codelineno-0-1169" name="__codelineno-0-1169"></a>    <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-1170"><a id="__codelineno-0-1170" name="__codelineno-0-1170"></a>    <span class="k">return</span> <span class="n">sol_np</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.DifferentiableObjective.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.DifferentiableObjective.update" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Updates the kernel and noise variance parameters of the objective function.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>kernel</code>
+            </td>
+            <td>
+                  <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Updated GPflow kernel function.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>noise_variance</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Updated data noise variance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-1093">1093</a></span>
+<span class="normal"><a href="#__codelineno-0-1094">1094</a></span>
+<span class="normal"><a href="#__codelineno-0-1095">1095</a></span>
+<span class="normal"><a href="#__codelineno-0-1096">1096</a></span>
+<span class="normal"><a href="#__codelineno-0-1097">1097</a></span>
+<span class="normal"><a href="#__codelineno-0-1098">1098</a></span>
+<span class="normal"><a href="#__codelineno-0-1099">1099</a></span>
+<span class="normal"><a href="#__codelineno-0-1100">1100</a></span>
+<span class="normal"><a href="#__codelineno-0-1101">1101</a></span>
+<span class="normal"><a href="#__codelineno-0-1102">1102</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-1093"><a id="__codelineno-0-1093" name="__codelineno-0-1093"></a><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-1094"><a id="__codelineno-0-1094" name="__codelineno-0-1094"></a>           <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-1095"><a id="__codelineno-0-1095" name="__codelineno-0-1095"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1096"><a id="__codelineno-0-1096" name="__codelineno-0-1096"></a><span class="sd">    Updates the kernel and noise variance parameters of the objective function.</span>
+</span><span id="__span-0-1097"><a id="__codelineno-0-1097" name="__codelineno-0-1097"></a>
+</span><span id="__span-0-1098"><a id="__codelineno-0-1098" name="__codelineno-0-1098"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-1099"><a id="__codelineno-0-1099" name="__codelineno-0-1099"></a><span class="sd">        kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.</span>
+</span><span id="__span-0-1100"><a id="__codelineno-0-1100" name="__codelineno-0-1100"></a><span class="sd">        noise_variance (float): Updated data noise variance.</span>
+</span><span id="__span-0-1101"><a id="__codelineno-0-1101" name="__codelineno-0-1101"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-1102"><a id="__codelineno-0-1102" name="__codelineno-0-1102"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "toc.integrate", "toc.follow", "navigation.top", "navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3049 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+        <meta name="author" content="Kalvik Jakkala">
+      
+      
+        <link rel="canonical" href="https://SGP-Tools.com/api/methods/greedy_sgp.html">
+      
+      
+        <link rel="prev" href="continuous_sgp.html">
+      
+      
+        <link rel="next" href="greedy_objective.html">
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>GreedySGP - SGP-Tools</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+        <script src="https://unpkg.com/iframe-worker/shim"></script>
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-Z2TVV3MF1S"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-Z2TVV3MF1S",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-Z2TVV3MF1S",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#greedysgp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      <!--
+  Copyright (c) 2016-2024 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+<!-- Determine classes -->
+
+
+
+<!-- Header -->
+<header class="md-header" data-md-component="header">
+  <nav
+    class="md-header__inner md-grid"
+    aria-label="Header"
+  >
+
+    <!-- Link to home -->
+    <a
+      href="../../index.html"
+      title="SGP-Tools"
+      class="md-header__button md-logo"
+      aria-label="SGP-Tools"
+      data-md-component="logo"
+    >
+      
+  <img src="../../assets/SGP-Tools.png" alt="logo">
+
+    </a>
+
+    <!-- Button to open drawer -->
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+
+    <!-- Header title -->
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              GreedySGP
+            
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color palette toggle -->
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+
+    <!-- User preference: color palette -->
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+
+    <!-- Site language selector -->
+    
+
+    <!-- Button to open search modal -->
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+
+      <!-- Search interface -->
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    <!-- Repository information -->
+    
+      <div class="md-header__source">
+        <a href="https://github.com/itskalvik/sgp-tools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sgp-tools
+  </div>
+</a>
+      </div>
+    
+  </nav>
+
+  <!-- Navigation tabs (sticky) -->
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../index.html" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Docs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/index.html" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <!--
+  Copyright (c) 2016-2024 Martin Donath <martin.donath@squidfunk.com>
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to
+  deal in the Software without restriction, including without limitation the
+  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  sell copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in
+  all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+  IN THE SOFTWARE.
+-->
+
+
+
+<!-- Determine classes -->
+
+
+  
+
+
+  
+
+
+<!-- Navigation -->
+<nav
+  class="md-nav md-nav--primary md-nav--lifted md-nav--integrated"
+  aria-label="Navigation"
+  data-md-level="0"
+>
+
+  <!-- Site title -->
+
+  <label class="md-nav__title" for="__drawer">
+    <a
+      href="../../index.html"
+      title="SGP-Tools"
+      class="md-nav__button md-logo"
+      aria-label="SGP-Tools"
+      data-md-component="logo"
+    >
+    
+  <img src="../../assets/SGP-Tools.png" alt="logo">
+
+  </a>
+  </label>
+
+  <!-- Repository information -->
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/itskalvik/sgp-tools" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sgp-tools
+  </div>
+</a>
+    </div>
+  
+
+  <!-- Navigation list -->
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    API Docs
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Docs
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../core/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Core
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Core
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/augmented_gpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AugmentedGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/augmented_sgpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AugmentedSGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/osgpr.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    OSGPR
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/transformations.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transformations
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../kernels/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Kernels
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Kernels
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/attentive.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Attentive
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/neural_spectral.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Neural Spectral
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kernels/neural_network.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Neural Network
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Methods
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Methods
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="method.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Method
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="continuous_sgp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ContinuousSGP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    GreedySGP
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="greedy_sgp.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    GreedySGP
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP" class="md-nav__link">
+    <span class="md-ellipsis">
+      GreedySGP
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GreedySGP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP.transform" class="md-nav__link">
+    <span class="md-ellipsis">
+      transform
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      __init__
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP.get_hyperparameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_hyperparameters
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP.optimize" class="md-nav__link">
+    <span class="md-ellipsis">
+      optimize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sgptools.methods.GreedySGP.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="greedy_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GreedyObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="bayesian_opt.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BayesianOpt
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cma.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CMA
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="differentiable_objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DifferentiableObjective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../objectives/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Objectives
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_5" id="__nav_2_5_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Objectives
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/objective.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Objective
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/slog_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SLogMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/schur_mi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    SchurMI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/a_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    AOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/b_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    BOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/d_optimal.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    DOptimal
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../utils/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Utils
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            Utils
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/data.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/gpflow.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    GPflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/metrics.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Metrics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/misc.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Misc
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/tsp.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    TSP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/index.html" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Tutorials
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorials
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/IPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Informative Path Planning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/AIPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Adaptive Informative Path Planning
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/non_stationary_kernels.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Non-Stationary Kernels
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="greedysgp">GreedySGP<a class="headerlink" href="#greedysgp" title="Permanent link">&para;</a></h1>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="sgptools.methods.GreedySGP" class="doc doc-heading">
+            <code>sgptools.methods.GreedySGP</code>
+
+
+<a href="#sgptools.methods.GreedySGP" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sgptools.methods.Method" href="method.html#sgptools.methods.Method">Method</a></code></p>
+
+
+        <p>Implements informative sensor placement/path optimization using a greedy approach combined with a Sparse Gaussian Process (SGP) ELBO objective.</p>
+<p>This method iteratively selects inducing points to maximize the SGP's ELBO.
+It currently supports only single-robot scenarios.</p>
+
+
+<details class="refer-to-the-following-papers-for-more-details" open>
+  <summary>Refer to the following papers for more details</summary>
+  <ul>
+<li>Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [<a href="https://www.itskalvik.com/publication/sgp-sp/">Jakkala and Akella, 2023</a>]</li>
+</ul>
+</details>
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="sgptools.methods.GreedySGP.sgpr">sgpr</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sgptools.core.augmented_sgpr.AugmentedSGPR" href="../core/augmented_sgpr.html#sgptools.core.augmented_sgpr.AugmentedSGPR">AugmentedSGPR</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The Augmented Sparse Gaussian Process Regression model.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+              <details class="quote">
+                <summary>Source code in <code>sgptools/methods.py</code></summary>
+                <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-825"> 825</a></span>
+<span class="normal"><a href="#__codelineno-0-826"> 826</a></span>
+<span class="normal"><a href="#__codelineno-0-827"> 827</a></span>
+<span class="normal"><a href="#__codelineno-0-828"> 828</a></span>
+<span class="normal"><a href="#__codelineno-0-829"> 829</a></span>
+<span class="normal"><a href="#__codelineno-0-830"> 830</a></span>
+<span class="normal"><a href="#__codelineno-0-831"> 831</a></span>
+<span class="normal"><a href="#__codelineno-0-832"> 832</a></span>
+<span class="normal"><a href="#__codelineno-0-833"> 833</a></span>
+<span class="normal"><a href="#__codelineno-0-834"> 834</a></span>
+<span class="normal"><a href="#__codelineno-0-835"> 835</a></span>
+<span class="normal"><a href="#__codelineno-0-836"> 836</a></span>
+<span class="normal"><a href="#__codelineno-0-837"> 837</a></span>
+<span class="normal"><a href="#__codelineno-0-838"> 838</a></span>
+<span class="normal"><a href="#__codelineno-0-839"> 839</a></span>
+<span class="normal"><a href="#__codelineno-0-840"> 840</a></span>
+<span class="normal"><a href="#__codelineno-0-841"> 841</a></span>
+<span class="normal"><a href="#__codelineno-0-842"> 842</a></span>
+<span class="normal"><a href="#__codelineno-0-843"> 843</a></span>
+<span class="normal"><a href="#__codelineno-0-844"> 844</a></span>
+<span class="normal"><a href="#__codelineno-0-845"> 845</a></span>
+<span class="normal"><a href="#__codelineno-0-846"> 846</a></span>
+<span class="normal"><a href="#__codelineno-0-847"> 847</a></span>
+<span class="normal"><a href="#__codelineno-0-848"> 848</a></span>
+<span class="normal"><a href="#__codelineno-0-849"> 849</a></span>
+<span class="normal"><a href="#__codelineno-0-850"> 850</a></span>
+<span class="normal"><a href="#__codelineno-0-851"> 851</a></span>
+<span class="normal"><a href="#__codelineno-0-852"> 852</a></span>
+<span class="normal"><a href="#__codelineno-0-853"> 853</a></span>
+<span class="normal"><a href="#__codelineno-0-854"> 854</a></span>
+<span class="normal"><a href="#__codelineno-0-855"> 855</a></span>
+<span class="normal"><a href="#__codelineno-0-856"> 856</a></span>
+<span class="normal"><a href="#__codelineno-0-857"> 857</a></span>
+<span class="normal"><a href="#__codelineno-0-858"> 858</a></span>
+<span class="normal"><a href="#__codelineno-0-859"> 859</a></span>
+<span class="normal"><a href="#__codelineno-0-860"> 860</a></span>
+<span class="normal"><a href="#__codelineno-0-861"> 861</a></span>
+<span class="normal"><a href="#__codelineno-0-862"> 862</a></span>
+<span class="normal"><a href="#__codelineno-0-863"> 863</a></span>
+<span class="normal"><a href="#__codelineno-0-864"> 864</a></span>
+<span class="normal"><a href="#__codelineno-0-865"> 865</a></span>
+<span class="normal"><a href="#__codelineno-0-866"> 866</a></span>
+<span class="normal"><a href="#__codelineno-0-867"> 867</a></span>
+<span class="normal"><a href="#__codelineno-0-868"> 868</a></span>
+<span class="normal"><a href="#__codelineno-0-869"> 869</a></span>
+<span class="normal"><a href="#__codelineno-0-870"> 870</a></span>
+<span class="normal"><a href="#__codelineno-0-871"> 871</a></span>
+<span class="normal"><a href="#__codelineno-0-872"> 872</a></span>
+<span class="normal"><a href="#__codelineno-0-873"> 873</a></span>
+<span class="normal"><a href="#__codelineno-0-874"> 874</a></span>
+<span class="normal"><a href="#__codelineno-0-875"> 875</a></span>
+<span class="normal"><a href="#__codelineno-0-876"> 876</a></span>
+<span class="normal"><a href="#__codelineno-0-877"> 877</a></span>
+<span class="normal"><a href="#__codelineno-0-878"> 878</a></span>
+<span class="normal"><a href="#__codelineno-0-879"> 879</a></span>
+<span class="normal"><a href="#__codelineno-0-880"> 880</a></span>
+<span class="normal"><a href="#__codelineno-0-881"> 881</a></span>
+<span class="normal"><a href="#__codelineno-0-882"> 882</a></span>
+<span class="normal"><a href="#__codelineno-0-883"> 883</a></span>
+<span class="normal"><a href="#__codelineno-0-884"> 884</a></span>
+<span class="normal"><a href="#__codelineno-0-885"> 885</a></span>
+<span class="normal"><a href="#__codelineno-0-886"> 886</a></span>
+<span class="normal"><a href="#__codelineno-0-887"> 887</a></span>
+<span class="normal"><a href="#__codelineno-0-888"> 888</a></span>
+<span class="normal"><a href="#__codelineno-0-889"> 889</a></span>
+<span class="normal"><a href="#__codelineno-0-890"> 890</a></span>
+<span class="normal"><a href="#__codelineno-0-891"> 891</a></span>
+<span class="normal"><a href="#__codelineno-0-892"> 892</a></span>
+<span class="normal"><a href="#__codelineno-0-893"> 893</a></span>
+<span class="normal"><a href="#__codelineno-0-894"> 894</a></span>
+<span class="normal"><a href="#__codelineno-0-895"> 895</a></span>
+<span class="normal"><a href="#__codelineno-0-896"> 896</a></span>
+<span class="normal"><a href="#__codelineno-0-897"> 897</a></span>
+<span class="normal"><a href="#__codelineno-0-898"> 898</a></span>
+<span class="normal"><a href="#__codelineno-0-899"> 899</a></span>
+<span class="normal"><a href="#__codelineno-0-900"> 900</a></span>
+<span class="normal"><a href="#__codelineno-0-901"> 901</a></span>
+<span class="normal"><a href="#__codelineno-0-902"> 902</a></span>
+<span class="normal"><a href="#__codelineno-0-903"> 903</a></span>
+<span class="normal"><a href="#__codelineno-0-904"> 904</a></span>
+<span class="normal"><a href="#__codelineno-0-905"> 905</a></span>
+<span class="normal"><a href="#__codelineno-0-906"> 906</a></span>
+<span class="normal"><a href="#__codelineno-0-907"> 907</a></span>
+<span class="normal"><a href="#__codelineno-0-908"> 908</a></span>
+<span class="normal"><a href="#__codelineno-0-909"> 909</a></span>
+<span class="normal"><a href="#__codelineno-0-910"> 910</a></span>
+<span class="normal"><a href="#__codelineno-0-911"> 911</a></span>
+<span class="normal"><a href="#__codelineno-0-912"> 912</a></span>
+<span class="normal"><a href="#__codelineno-0-913"> 913</a></span>
+<span class="normal"><a href="#__codelineno-0-914"> 914</a></span>
+<span class="normal"><a href="#__codelineno-0-915"> 915</a></span>
+<span class="normal"><a href="#__codelineno-0-916"> 916</a></span>
+<span class="normal"><a href="#__codelineno-0-917"> 917</a></span>
+<span class="normal"><a href="#__codelineno-0-918"> 918</a></span>
+<span class="normal"><a href="#__codelineno-0-919"> 919</a></span>
+<span class="normal"><a href="#__codelineno-0-920"> 920</a></span>
+<span class="normal"><a href="#__codelineno-0-921"> 921</a></span>
+<span class="normal"><a href="#__codelineno-0-922"> 922</a></span>
+<span class="normal"><a href="#__codelineno-0-923"> 923</a></span>
+<span class="normal"><a href="#__codelineno-0-924"> 924</a></span>
+<span class="normal"><a href="#__codelineno-0-925"> 925</a></span>
+<span class="normal"><a href="#__codelineno-0-926"> 926</a></span>
+<span class="normal"><a href="#__codelineno-0-927"> 927</a></span>
+<span class="normal"><a href="#__codelineno-0-928"> 928</a></span>
+<span class="normal"><a href="#__codelineno-0-929"> 929</a></span>
+<span class="normal"><a href="#__codelineno-0-930"> 930</a></span>
+<span class="normal"><a href="#__codelineno-0-931"> 931</a></span>
+<span class="normal"><a href="#__codelineno-0-932"> 932</a></span>
+<span class="normal"><a href="#__codelineno-0-933"> 933</a></span>
+<span class="normal"><a href="#__codelineno-0-934"> 934</a></span>
+<span class="normal"><a href="#__codelineno-0-935"> 935</a></span>
+<span class="normal"><a href="#__codelineno-0-936"> 936</a></span>
+<span class="normal"><a href="#__codelineno-0-937"> 937</a></span>
+<span class="normal"><a href="#__codelineno-0-938"> 938</a></span>
+<span class="normal"><a href="#__codelineno-0-939"> 939</a></span>
+<span class="normal"><a href="#__codelineno-0-940"> 940</a></span>
+<span class="normal"><a href="#__codelineno-0-941"> 941</a></span>
+<span class="normal"><a href="#__codelineno-0-942"> 942</a></span>
+<span class="normal"><a href="#__codelineno-0-943"> 943</a></span>
+<span class="normal"><a href="#__codelineno-0-944"> 944</a></span>
+<span class="normal"><a href="#__codelineno-0-945"> 945</a></span>
+<span class="normal"><a href="#__codelineno-0-946"> 946</a></span>
+<span class="normal"><a href="#__codelineno-0-947"> 947</a></span>
+<span class="normal"><a href="#__codelineno-0-948"> 948</a></span>
+<span class="normal"><a href="#__codelineno-0-949"> 949</a></span>
+<span class="normal"><a href="#__codelineno-0-950"> 950</a></span>
+<span class="normal"><a href="#__codelineno-0-951"> 951</a></span>
+<span class="normal"><a href="#__codelineno-0-952"> 952</a></span>
+<span class="normal"><a href="#__codelineno-0-953"> 953</a></span>
+<span class="normal"><a href="#__codelineno-0-954"> 954</a></span>
+<span class="normal"><a href="#__codelineno-0-955"> 955</a></span>
+<span class="normal"><a href="#__codelineno-0-956"> 956</a></span>
+<span class="normal"><a href="#__codelineno-0-957"> 957</a></span>
+<span class="normal"><a href="#__codelineno-0-958"> 958</a></span>
+<span class="normal"><a href="#__codelineno-0-959"> 959</a></span>
+<span class="normal"><a href="#__codelineno-0-960"> 960</a></span>
+<span class="normal"><a href="#__codelineno-0-961"> 961</a></span>
+<span class="normal"><a href="#__codelineno-0-962"> 962</a></span>
+<span class="normal"><a href="#__codelineno-0-963"> 963</a></span>
+<span class="normal"><a href="#__codelineno-0-964"> 964</a></span>
+<span class="normal"><a href="#__codelineno-0-965"> 965</a></span>
+<span class="normal"><a href="#__codelineno-0-966"> 966</a></span>
+<span class="normal"><a href="#__codelineno-0-967"> 967</a></span>
+<span class="normal"><a href="#__codelineno-0-968"> 968</a></span>
+<span class="normal"><a href="#__codelineno-0-969"> 969</a></span>
+<span class="normal"><a href="#__codelineno-0-970"> 970</a></span>
+<span class="normal"><a href="#__codelineno-0-971"> 971</a></span>
+<span class="normal"><a href="#__codelineno-0-972"> 972</a></span>
+<span class="normal"><a href="#__codelineno-0-973"> 973</a></span>
+<span class="normal"><a href="#__codelineno-0-974"> 974</a></span>
+<span class="normal"><a href="#__codelineno-0-975"> 975</a></span>
+<span class="normal"><a href="#__codelineno-0-976"> 976</a></span>
+<span class="normal"><a href="#__codelineno-0-977"> 977</a></span>
+<span class="normal"><a href="#__codelineno-0-978"> 978</a></span>
+<span class="normal"><a href="#__codelineno-0-979"> 979</a></span>
+<span class="normal"><a href="#__codelineno-0-980"> 980</a></span>
+<span class="normal"><a href="#__codelineno-0-981"> 981</a></span>
+<span class="normal"><a href="#__codelineno-0-982"> 982</a></span>
+<span class="normal"><a href="#__codelineno-0-983"> 983</a></span>
+<span class="normal"><a href="#__codelineno-0-984"> 984</a></span>
+<span class="normal"><a href="#__codelineno-0-985"> 985</a></span>
+<span class="normal"><a href="#__codelineno-0-986"> 986</a></span>
+<span class="normal"><a href="#__codelineno-0-987"> 987</a></span>
+<span class="normal"><a href="#__codelineno-0-988"> 988</a></span>
+<span class="normal"><a href="#__codelineno-0-989"> 989</a></span>
+<span class="normal"><a href="#__codelineno-0-990"> 990</a></span>
+<span class="normal"><a href="#__codelineno-0-991"> 991</a></span>
+<span class="normal"><a href="#__codelineno-0-992"> 992</a></span>
+<span class="normal"><a href="#__codelineno-0-993"> 993</a></span>
+<span class="normal"><a href="#__codelineno-0-994"> 994</a></span>
+<span class="normal"><a href="#__codelineno-0-995"> 995</a></span>
+<span class="normal"><a href="#__codelineno-0-996"> 996</a></span>
+<span class="normal"><a href="#__codelineno-0-997"> 997</a></span>
+<span class="normal"><a href="#__codelineno-0-998"> 998</a></span>
+<span class="normal"><a href="#__codelineno-0-999"> 999</a></span>
+<span class="normal"><a href="#__codelineno-0-1000">1000</a></span>
+<span class="normal"><a href="#__codelineno-0-1001">1001</a></span>
+<span class="normal"><a href="#__codelineno-0-1002">1002</a></span>
+<span class="normal"><a href="#__codelineno-0-1003">1003</a></span>
+<span class="normal"><a href="#__codelineno-0-1004">1004</a></span>
+<span class="normal"><a href="#__codelineno-0-1005">1005</a></span>
+<span class="normal"><a href="#__codelineno-0-1006">1006</a></span>
+<span class="normal"><a href="#__codelineno-0-1007">1007</a></span>
+<span class="normal"><a href="#__codelineno-0-1008">1008</a></span>
+<span class="normal"><a href="#__codelineno-0-1009">1009</a></span>
+<span class="normal"><a href="#__codelineno-0-1010">1010</a></span>
+<span class="normal"><a href="#__codelineno-0-1011">1011</a></span>
+<span class="normal"><a href="#__codelineno-0-1012">1012</a></span>
+<span class="normal"><a href="#__codelineno-0-1013">1013</a></span>
+<span class="normal"><a href="#__codelineno-0-1014">1014</a></span>
+<span class="normal"><a href="#__codelineno-0-1015">1015</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-825"><a id="__codelineno-0-825" name="__codelineno-0-825"></a><span class="k">class</span><span class="w"> </span><span class="nc">GreedySGP</span><span class="p">(</span><span class="n">Method</span><span class="p">):</span>
+</span><span id="__span-0-826"><a id="__codelineno-0-826" name="__codelineno-0-826"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-827"><a id="__codelineno-0-827" name="__codelineno-0-827"></a><span class="sd">    Implements informative sensor placement/path optimization using a greedy approach combined with a Sparse Gaussian Process (SGP) ELBO objective.</span>
+</span><span id="__span-0-828"><a id="__codelineno-0-828" name="__codelineno-0-828"></a>
+</span><span id="__span-0-829"><a id="__codelineno-0-829" name="__codelineno-0-829"></a><span class="sd">    This method iteratively selects inducing points to maximize the SGP&#39;s ELBO.</span>
+</span><span id="__span-0-830"><a id="__codelineno-0-830" name="__codelineno-0-830"></a><span class="sd">    It currently supports only single-robot scenarios.</span>
+</span><span id="__span-0-831"><a id="__codelineno-0-831" name="__codelineno-0-831"></a>
+</span><span id="__span-0-832"><a id="__codelineno-0-832" name="__codelineno-0-832"></a><span class="sd">    Refer to the following papers for more details:</span>
+</span><span id="__span-0-833"><a id="__codelineno-0-833" name="__codelineno-0-833"></a><span class="sd">        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]</span>
+</span><span id="__span-0-834"><a id="__codelineno-0-834" name="__codelineno-0-834"></a>
+</span><span id="__span-0-835"><a id="__codelineno-0-835" name="__codelineno-0-835"></a><span class="sd">    Attributes:</span>
+</span><span id="__span-0-836"><a id="__codelineno-0-836" name="__codelineno-0-836"></a><span class="sd">        sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.</span>
+</span><span id="__span-0-837"><a id="__codelineno-0-837" name="__codelineno-0-837"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-838"><a id="__codelineno-0-838" name="__codelineno-0-838"></a>
+</span><span id="__span-0-839"><a id="__codelineno-0-839" name="__codelineno-0-839"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-840"><a id="__codelineno-0-840" name="__codelineno-0-840"></a>                 <span class="n">num_sensing</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-0-841"><a id="__codelineno-0-841" name="__codelineno-0-841"></a>                 <span class="n">X_objective</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-842"><a id="__codelineno-0-842" name="__codelineno-0-842"></a>                 <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-843"><a id="__codelineno-0-843" name="__codelineno-0-843"></a>                 <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-0-844"><a id="__codelineno-0-844" name="__codelineno-0-844"></a>                 <span class="n">transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-845"><a id="__codelineno-0-845" name="__codelineno-0-845"></a>                 <span class="n">num_robots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-846"><a id="__codelineno-0-846" name="__codelineno-0-846"></a>                 <span class="n">X_candidates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-847"><a id="__codelineno-0-847" name="__codelineno-0-847"></a>                 <span class="n">num_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-848"><a id="__codelineno-0-848" name="__codelineno-0-848"></a>                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+</span><span id="__span-0-849"><a id="__codelineno-0-849" name="__codelineno-0-849"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-850"><a id="__codelineno-0-850" name="__codelineno-0-850"></a><span class="sd">        Initializes the GreedySGP optimizer.</span>
+</span><span id="__span-0-851"><a id="__codelineno-0-851" name="__codelineno-0-851"></a>
+</span><span id="__span-0-852"><a id="__codelineno-0-852" name="__codelineno-0-852"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-853"><a id="__codelineno-0-853" name="__codelineno-0-853"></a><span class="sd">            num_sensing (int): Number of sensing locations (inducing points) to select.</span>
+</span><span id="__span-0-854"><a id="__codelineno-0-854" name="__codelineno-0-854"></a><span class="sd">            X_objective (np.ndarray): (n, d); Data points used to train the SGP model.</span>
+</span><span id="__span-0-855"><a id="__codelineno-0-855" name="__codelineno-0-855"></a><span class="sd">            kernel (gpflow.kernels.Kernel): GPflow kernel function.</span>
+</span><span id="__span-0-856"><a id="__codelineno-0-856" name="__codelineno-0-856"></a><span class="sd">            noise_variance (float): Data noise variance.</span>
+</span><span id="__span-0-857"><a id="__codelineno-0-857" name="__codelineno-0-857"></a><span class="sd">            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.</span>
+</span><span id="__span-0-858"><a id="__codelineno-0-858" name="__codelineno-0-858"></a><span class="sd">            num_robots (int): Number of robots/agents. Defaults to 1.</span>
+</span><span id="__span-0-859"><a id="__codelineno-0-859" name="__codelineno-0-859"></a><span class="sd">            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
+</span><span id="__span-0-860"><a id="__codelineno-0-860" name="__codelineno-0-860"></a><span class="sd">                                                 If None, X_objective is used as candidates.</span>
+</span><span id="__span-0-861"><a id="__codelineno-0-861" name="__codelineno-0-861"></a><span class="sd">            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
+</span><span id="__span-0-862"><a id="__codelineno-0-862" name="__codelineno-0-862"></a><span class="sd">            **kwargs: Additional keyword arguments.</span>
+</span><span id="__span-0-863"><a id="__codelineno-0-863" name="__codelineno-0-863"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-864"><a id="__codelineno-0-864" name="__codelineno-0-864"></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-865"><a id="__codelineno-0-865" name="__codelineno-0-865"></a>                         <span class="n">transform</span><span class="p">,</span> <span class="n">num_robots</span><span class="p">,</span> <span class="n">X_candidates</span><span class="p">,</span> <span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-866"><a id="__codelineno-0-866" name="__codelineno-0-866"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X_objective</span> <span class="o">=</span> <span class="n">X_objective</span>
+</span><span id="__span-0-867"><a id="__codelineno-0-867" name="__codelineno-0-867"></a>        <span class="k">if</span> <span class="n">X_candidates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-868"><a id="__codelineno-0-868" name="__codelineno-0-868"></a>            <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="o">=</span> <span class="n">X_objective</span>  <span class="c1"># Default candidates to objective points</span>
+</span><span id="__span-0-869"><a id="__codelineno-0-869" name="__codelineno-0-869"></a>
+</span><span id="__span-0-870"><a id="__codelineno-0-870" name="__codelineno-0-870"></a>        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-871"><a id="__codelineno-0-871" name="__codelineno-0-871"></a>            <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-872"><a id="__codelineno-0-872" name="__codelineno-0-872"></a>                <span class="n">num_robots_transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">num_robots</span>
+</span><span id="__span-0-873"><a id="__codelineno-0-873" name="__codelineno-0-873"></a>            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="__span-0-874"><a id="__codelineno-0-874" name="__codelineno-0-874"></a>                <span class="n">num_robots_transform</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Assume single robot if num_robots not defined in transform</span>
+</span><span id="__span-0-875"><a id="__codelineno-0-875" name="__codelineno-0-875"></a>            <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;num_robots is not equal in transform: </span><span class="si">{</span><span class="n">num_robots_transform</span><span class="si">}</span><span class="s2"> and GreedySGP: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-0-876"><a id="__codelineno-0-876" name="__codelineno-0-876"></a>            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span> <span class="o">==</span> <span class="n">num_robots_transform</span><span class="p">,</span> <span class="n">error</span>
+</span><span id="__span-0-877"><a id="__codelineno-0-877" name="__codelineno-0-877"></a>
+</span><span id="__span-0-878"><a id="__codelineno-0-878" name="__codelineno-0-878"></a>        <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;num_robots=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="si">}</span><span class="s2">; GreedySGP only supports num_robots=1&quot;</span>
+</span><span id="__span-0-879"><a id="__codelineno-0-879" name="__codelineno-0-879"></a>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">error</span>
+</span><span id="__span-0-880"><a id="__codelineno-0-880" name="__codelineno-0-880"></a>
+</span><span id="__span-0-881"><a id="__codelineno-0-881" name="__codelineno-0-881"></a>        <span class="c1"># Initialize the SGP</span>
+</span><span id="__span-0-882"><a id="__codelineno-0-882" name="__codelineno-0-882"></a>        <span class="n">dtype</span> <span class="o">=</span> <span class="n">X_objective</span><span class="o">.</span><span class="n">dtype</span>
+</span><span id="__span-0-883"><a id="__codelineno-0-883" name="__codelineno-0-883"></a>        <span class="n">train_set</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span>
+</span><span id="__span-0-884"><a id="__codelineno-0-884" name="__codelineno-0-884"></a>                                                              <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+</span><span id="__span-0-885"><a id="__codelineno-0-885" name="__codelineno-0-885"></a>                                                  <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+</span><span id="__span-0-886"><a id="__codelineno-0-886" name="__codelineno-0-886"></a>                                                      <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_objective</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-0-887"><a id="__codelineno-0-887" name="__codelineno-0-887"></a>                                                      <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">))</span>
+</span><span id="__span-0-888"><a id="__codelineno-0-888" name="__codelineno-0-888"></a>
+</span><span id="__span-0-889"><a id="__codelineno-0-889" name="__codelineno-0-889"></a>        <span class="n">X_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span> <span class="n">num_sensing</span><span class="p">)</span>
+</span><span id="__span-0-890"><a id="__codelineno-0-890" name="__codelineno-0-890"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span> <span class="o">=</span> <span class="n">AugmentedSGPR</span><span class="p">(</span><span class="n">train_set</span><span class="p">,</span>
+</span><span id="__span-0-891"><a id="__codelineno-0-891" name="__codelineno-0-891"></a>                                  <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-892"><a id="__codelineno-0-892" name="__codelineno-0-892"></a>                                  <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+</span><span id="__span-0-893"><a id="__codelineno-0-893" name="__codelineno-0-893"></a>                                  <span class="n">inducing_variable</span><span class="o">=</span><span class="n">X_init</span><span class="p">,</span>
+</span><span id="__span-0-894"><a id="__codelineno-0-894" name="__codelineno-0-894"></a>                                  <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+</span><span id="__span-0-895"><a id="__codelineno-0-895" name="__codelineno-0-895"></a>
+</span><span id="__span-0-896"><a id="__codelineno-0-896" name="__codelineno-0-896"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-897"><a id="__codelineno-0-897" name="__codelineno-0-897"></a>               <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-898"><a id="__codelineno-0-898" name="__codelineno-0-898"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-899"><a id="__codelineno-0-899" name="__codelineno-0-899"></a><span class="sd">        Updates the kernel and noise variance parameters of the SGP model.</span>
+</span><span id="__span-0-900"><a id="__codelineno-0-900" name="__codelineno-0-900"></a>
+</span><span id="__span-0-901"><a id="__codelineno-0-901" name="__codelineno-0-901"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-902"><a id="__codelineno-0-902" name="__codelineno-0-902"></a><span class="sd">            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.</span>
+</span><span id="__span-0-903"><a id="__codelineno-0-903" name="__codelineno-0-903"></a><span class="sd">            noise_variance (float): Updated data noise variance.</span>
+</span><span id="__span-0-904"><a id="__codelineno-0-904" name="__codelineno-0-904"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-905"><a id="__codelineno-0-905" name="__codelineno-0-905"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span>
+</span><span id="__span-0-906"><a id="__codelineno-0-906" name="__codelineno-0-906"></a>
+</span><span id="__span-0-907"><a id="__codelineno-0-907" name="__codelineno-0-907"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_hyperparameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="__span-0-908"><a id="__codelineno-0-908" name="__codelineno-0-908"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-909"><a id="__codelineno-0-909" name="__codelineno-0-909"></a><span class="sd">        Retrieves the current kernel and noise variance hyperparameters from the SGP model.</span>
+</span><span id="__span-0-910"><a id="__codelineno-0-910" name="__codelineno-0-910"></a>
+</span><span id="__span-0-911"><a id="__codelineno-0-911" name="__codelineno-0-911"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-912"><a id="__codelineno-0-912" name="__codelineno-0-912"></a><span class="sd">            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</span>
+</span><span id="__span-0-913"><a id="__codelineno-0-913" name="__codelineno-0-913"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-914"><a id="__codelineno-0-914" name="__codelineno-0-914"></a>        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">kernel</span><span class="p">),</span> \
+</span><span id="__span-0-915"><a id="__codelineno-0-915" name="__codelineno-0-915"></a>               <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-916"><a id="__codelineno-0-916" name="__codelineno-0-916"></a>
+</span><span id="__span-0-917"><a id="__codelineno-0-917" name="__codelineno-0-917"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-918"><a id="__codelineno-0-918" name="__codelineno-0-918"></a>                 <span class="n">optimizer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;naive&#39;</span><span class="p">,</span>
+</span><span id="__span-0-919"><a id="__codelineno-0-919" name="__codelineno-0-919"></a>                 <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-920"><a id="__codelineno-0-920" name="__codelineno-0-920"></a>                 <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="__span-0-921"><a id="__codelineno-0-921" name="__codelineno-0-921"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-922"><a id="__codelineno-0-922" name="__codelineno-0-922"></a><span class="sd">        Optimizes sensor placement using a greedy SGP approach.</span>
+</span><span id="__span-0-923"><a id="__codelineno-0-923" name="__codelineno-0-923"></a>
+</span><span id="__span-0-924"><a id="__codelineno-0-924" name="__codelineno-0-924"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-925"><a id="__codelineno-0-925" name="__codelineno-0-925"></a><span class="sd">            optimizer (str): The greedy optimizer strategy (e.g., &#39;naive&#39;, &#39;lazy&#39;). Defaults to &#39;naive&#39;.</span>
+</span><span id="__span-0-926"><a id="__codelineno-0-926" name="__codelineno-0-926"></a><span class="sd">            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.</span>
+</span><span id="__span-0-927"><a id="__codelineno-0-927" name="__codelineno-0-927"></a><span class="sd">            **kwargs: Additional keyword arguments.</span>
+</span><span id="__span-0-928"><a id="__codelineno-0-928" name="__codelineno-0-928"></a>
+</span><span id="__span-0-929"><a id="__codelineno-0-929" name="__codelineno-0-929"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-930"><a id="__codelineno-0-930" name="__codelineno-0-930"></a><span class="sd">            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</span>
+</span><span id="__span-0-931"><a id="__codelineno-0-931" name="__codelineno-0-931"></a>
+</span><span id="__span-0-932"><a id="__codelineno-0-932" name="__codelineno-0-932"></a><span class="sd">        Usage:</span>
+</span><span id="__span-0-933"><a id="__codelineno-0-933" name="__codelineno-0-933"></a><span class="sd">            ```python</span>
+</span><span id="__span-0-934"><a id="__codelineno-0-934" name="__codelineno-0-934"></a><span class="sd">            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-935"><a id="__codelineno-0-935" name="__codelineno-0-935"></a><span class="sd">            greedy_sgp_method = GreedySGP(</span>
+</span><span id="__span-0-936"><a id="__codelineno-0-936" name="__codelineno-0-936"></a><span class="sd">                num_sensing=5,</span>
+</span><span id="__span-0-937"><a id="__codelineno-0-937" name="__codelineno-0-937"></a><span class="sd">                X_objective=X_train,</span>
+</span><span id="__span-0-938"><a id="__codelineno-0-938" name="__codelineno-0-938"></a><span class="sd">                kernel=kernel_opt,</span>
+</span><span id="__span-0-939"><a id="__codelineno-0-939" name="__codelineno-0-939"></a><span class="sd">                noise_variance=noise_variance_opt,</span>
+</span><span id="__span-0-940"><a id="__codelineno-0-940" name="__codelineno-0-940"></a><span class="sd">                X_candidates=candidates</span>
+</span><span id="__span-0-941"><a id="__codelineno-0-941" name="__codelineno-0-941"></a><span class="sd">            )</span>
+</span><span id="__span-0-942"><a id="__codelineno-0-942" name="__codelineno-0-942"></a><span class="sd">            optimized_solution = greedy_sgp_method.optimize(optimizer=&#39;naive&#39;)</span>
+</span><span id="__span-0-943"><a id="__codelineno-0-943" name="__codelineno-0-943"></a><span class="sd">            ```</span>
+</span><span id="__span-0-944"><a id="__codelineno-0-944" name="__codelineno-0-944"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-945"><a id="__codelineno-0-945" name="__codelineno-0-945"></a>        <span class="n">model</span> <span class="o">=</span> <span class="n">CustomSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_sensing</span><span class="p">,</span>
+</span><span id="__span-0-946"><a id="__codelineno-0-946" name="__codelineno-0-946"></a>                                <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span>
+</span><span id="__span-0-947"><a id="__codelineno-0-947" name="__codelineno-0-947"></a>                                <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+</span><span id="__span-0-948"><a id="__codelineno-0-948" name="__codelineno-0-948"></a>                                <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+</span><span id="__span-0-949"><a id="__codelineno-0-949" name="__codelineno-0-949"></a>
+</span><span id="__span-0-950"><a id="__codelineno-0-950" name="__codelineno-0-950"></a>        <span class="c1"># apricot&#39;s CustomSelection expects indices, so pass a dummy array of indices</span>
+</span><span id="__span-0-951"><a id="__codelineno-0-951" name="__codelineno-0-951"></a>        <span class="n">sol_indices</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+</span><span id="__span-0-952"><a id="__codelineno-0-952" name="__codelineno-0-952"></a>            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</span><span id="__span-0-953"><a id="__codelineno-0-953" name="__codelineno-0-953"></a>        <span class="n">sol_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol_indices</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-954"><a id="__codelineno-0-954" name="__codelineno-0-954"></a>        <span class="n">sol_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">[</span><span class="n">sol_indices</span><span class="p">]</span>
+</span><span id="__span-0-955"><a id="__codelineno-0-955" name="__codelineno-0-955"></a>
+</span><span id="__span-0-956"><a id="__codelineno-0-956" name="__codelineno-0-956"></a>        <span class="n">sol_locations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol_locations</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-957"><a id="__codelineno-0-957" name="__codelineno-0-957"></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-958"><a id="__codelineno-0-958" name="__codelineno-0-958"></a>            <span class="n">sol_expanded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">sol_locations</span><span class="p">,</span>
+</span><span id="__span-0-959"><a id="__codelineno-0-959" name="__codelineno-0-959"></a>                                                 <span class="n">expand_sensor_model</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-960"><a id="__codelineno-0-960" name="__codelineno-0-960"></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="__span-0-961"><a id="__codelineno-0-961" name="__codelineno-0-961"></a>            <span class="n">sol_expanded</span> <span class="o">=</span> <span class="n">sol_locations</span>
+</span><span id="__span-0-962"><a id="__codelineno-0-962" name="__codelineno-0-962"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sol_expanded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="__span-0-963"><a id="__codelineno-0-963" name="__codelineno-0-963"></a>            <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-964"><a id="__codelineno-0-964" name="__codelineno-0-964"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-965"><a id="__codelineno-0-965" name="__codelineno-0-965"></a>            <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span>
+</span><span id="__span-0-966"><a id="__codelineno-0-966" name="__codelineno-0-966"></a>
+</span><span id="__span-0-967"><a id="__codelineno-0-967" name="__codelineno-0-967"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-968"><a id="__codelineno-0-968" name="__codelineno-0-968"></a>        <span class="k">return</span> <span class="n">sol_np</span>
+</span><span id="__span-0-969"><a id="__codelineno-0-969" name="__codelineno-0-969"></a>
+</span><span id="__span-0-970"><a id="__codelineno-0-970" name="__codelineno-0-970"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-0-971"><a id="__codelineno-0-971" name="__codelineno-0-971"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-972"><a id="__codelineno-0-972" name="__codelineno-0-972"></a><span class="sd">        Internal objective function for the greedy SGP selection.</span>
+</span><span id="__span-0-973"><a id="__codelineno-0-973" name="__codelineno-0-973"></a>
+</span><span id="__span-0-974"><a id="__codelineno-0-974" name="__codelineno-0-974"></a><span class="sd">        This function maps the input indices to actual locations and updates</span>
+</span><span id="__span-0-975"><a id="__codelineno-0-975" name="__codelineno-0-975"></a><span class="sd">        the SGP model&#39;s inducing points to calculate the ELBO. The ELBO is</span>
+</span><span id="__span-0-976"><a id="__codelineno-0-976" name="__codelineno-0-976"></a><span class="sd">        then used as the objective for greedy maximization.</span>
+</span><span id="__span-0-977"><a id="__codelineno-0-977" name="__codelineno-0-977"></a>
+</span><span id="__span-0-978"><a id="__codelineno-0-978" name="__codelineno-0-978"></a><span class="sd">        Args:</span>
+</span><span id="__span-0-979"><a id="__codelineno-0-979" name="__codelineno-0-979"></a><span class="sd">            X_indices (np.ndarray): (n, 1); Array of indices corresponding to candidate locations.</span>
+</span><span id="__span-0-980"><a id="__codelineno-0-980" name="__codelineno-0-980"></a>
+</span><span id="__span-0-981"><a id="__codelineno-0-981" name="__codelineno-0-981"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-982"><a id="__codelineno-0-982" name="__codelineno-0-982"></a><span class="sd">            float: The ELBO of the SGP model for the given inducing points.</span>
+</span><span id="__span-0-983"><a id="__codelineno-0-983" name="__codelineno-0-983"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-984"><a id="__codelineno-0-984" name="__codelineno-0-984"></a>        <span class="c1"># Map solution location indices to locations</span>
+</span><span id="__span-0-985"><a id="__codelineno-0-985" name="__codelineno-0-985"></a>        <span class="c1"># Since SGP requires num_sensing points,</span>
+</span><span id="__span-0-986"><a id="__codelineno-0-986" name="__codelineno-0-986"></a>        <span class="c1"># pad the current greedy solution with the</span>
+</span><span id="__span-0-987"><a id="__codelineno-0-987" name="__codelineno-0-987"></a>        <span class="c1"># first location in the solution (or zeros if no points selected yet)</span>
+</span><span id="__span-0-988"><a id="__codelineno-0-988" name="__codelineno-0-988"></a>        <span class="n">X_indices_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X_indices</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-989"><a id="__codelineno-0-989" name="__codelineno-0-989"></a>        <span class="n">num_pad</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_sensing</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_indices_flat</span><span class="p">)</span>
+</span><span id="__span-0-990"><a id="__codelineno-0-990" name="__codelineno-0-990"></a>
+</span><span id="__span-0-991"><a id="__codelineno-0-991" name="__codelineno-0-991"></a>        <span class="c1"># Ensure that if X_indices_flat is empty, we still create a valid padding array</span>
+</span><span id="__span-0-992"><a id="__codelineno-0-992" name="__codelineno-0-992"></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_indices_flat</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">num_pad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-0-993"><a id="__codelineno-0-993" name="__codelineno-0-993"></a>            <span class="n">X_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_pad</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-994"><a id="__codelineno-0-994" name="__codelineno-0-994"></a>        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_indices_flat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">num_pad</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="__span-0-995"><a id="__codelineno-0-995" name="__codelineno-0-995"></a>            <span class="n">X_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">num_pad</span><span class="p">,</span> <span class="n">X_indices_flat</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-996"><a id="__codelineno-0-996" name="__codelineno-0-996"></a>        <span class="k">else</span><span class="p">:</span>  <span class="c1"># num_pad is 0 or negative</span>
+</span><span id="__span-0-997"><a id="__codelineno-0-997" name="__codelineno-0-997"></a>            <span class="n">X_pad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-998"><a id="__codelineno-0-998" name="__codelineno-0-998"></a>
+</span><span id="__span-0-999"><a id="__codelineno-0-999" name="__codelineno-0-999"></a>        <span class="n">X_combined_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">X_indices_flat</span><span class="p">,</span> <span class="n">X_pad</span><span class="p">])</span>
+</span><span id="__span-0-1000"><a id="__codelineno-0-1000" name="__codelineno-0-1000"></a>        <span class="n">X_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_objective</span><span class="p">[</span><span class="n">X_combined_indices</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+</span><span id="__span-0-1001"><a id="__codelineno-0-1001" name="__codelineno-0-1001"></a>            <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-1002"><a id="__codelineno-0-1002" name="__codelineno-0-1002"></a>
+</span><span id="__span-0-1003"><a id="__codelineno-0-1003" name="__codelineno-0-1003"></a>        <span class="c1"># Update the SGP inducing points</span>
+</span><span id="__span-0-1004"><a id="__codelineno-0-1004" name="__codelineno-0-1004"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">inducing_variable</span><span class="o">.</span><span class="n">Z</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">X_locations</span><span class="p">)</span>
+</span><span id="__span-0-1005"><a id="__codelineno-0-1005" name="__codelineno-0-1005"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">elbo</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-1006"><a id="__codelineno-0-1006" name="__codelineno-0-1006"></a>
+</span><span id="__span-0-1007"><a id="__codelineno-0-1007" name="__codelineno-0-1007"></a>    <span class="nd">@property</span>
+</span><span id="__span-0-1008"><a id="__codelineno-0-1008" name="__codelineno-0-1008"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transform</span><span class="p">:</span>
+</span><span id="__span-0-1009"><a id="__codelineno-0-1009" name="__codelineno-0-1009"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-1010"><a id="__codelineno-0-1010" name="__codelineno-0-1010"></a><span class="sd">        Gets the transform object associated with the SGP model.</span>
+</span><span id="__span-0-1011"><a id="__codelineno-0-1011" name="__codelineno-0-1011"></a>
+</span><span id="__span-0-1012"><a id="__codelineno-0-1012" name="__codelineno-0-1012"></a><span class="sd">        Returns:</span>
+</span><span id="__span-0-1013"><a id="__codelineno-0-1013" name="__codelineno-0-1013"></a><span class="sd">            Transform: The transform object.</span>
+</span><span id="__span-0-1014"><a id="__codelineno-0-1014" name="__codelineno-0-1014"></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="__span-0-1015"><a id="__codelineno-0-1015" name="__codelineno-0-1015"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">transform</span>
+</span></code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="sgptools.methods.GreedySGP.transform" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">transform</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#sgptools.methods.GreedySGP.transform" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Gets the transform object associated with the SGP model.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>Transform</code></td>            <td>
+                  <code><a class="autorefs autorefs-internal" title="sgptools.core.transformations.Transform" href="../core/transformations.html#sgptools.core.transformations.Transform">Transform</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The transform object.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.GreedySGP.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_robots</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">X_candidates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.GreedySGP.__init__" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Initializes the GreedySGP optimizer.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_sensing</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of sensing locations (inducing points) to select.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_objective</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(n, d); Data points used to train the SGP model.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>kernel</code>
+            </td>
+            <td>
+                  <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>GPflow kernel function.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>noise_variance</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Data noise variance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>transform</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sgptools.core.transformations.Transform" href="../core/transformations.html#sgptools.core.transformations.Transform">Transform</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Transform object to apply to inducing points. Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_robots</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of robots/agents. Defaults to 1.</p>
+              </div>
+            </td>
+            <td>
+                  <code>1</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>X_candidates</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="numpy.ndarray">ndarray</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>(c, d); Discrete set of candidate locations for sensor placement.
+                                 If None, X_objective is used as candidates.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>num_dim</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-839">839</a></span>
+<span class="normal"><a href="#__codelineno-0-840">840</a></span>
+<span class="normal"><a href="#__codelineno-0-841">841</a></span>
+<span class="normal"><a href="#__codelineno-0-842">842</a></span>
+<span class="normal"><a href="#__codelineno-0-843">843</a></span>
+<span class="normal"><a href="#__codelineno-0-844">844</a></span>
+<span class="normal"><a href="#__codelineno-0-845">845</a></span>
+<span class="normal"><a href="#__codelineno-0-846">846</a></span>
+<span class="normal"><a href="#__codelineno-0-847">847</a></span>
+<span class="normal"><a href="#__codelineno-0-848">848</a></span>
+<span class="normal"><a href="#__codelineno-0-849">849</a></span>
+<span class="normal"><a href="#__codelineno-0-850">850</a></span>
+<span class="normal"><a href="#__codelineno-0-851">851</a></span>
+<span class="normal"><a href="#__codelineno-0-852">852</a></span>
+<span class="normal"><a href="#__codelineno-0-853">853</a></span>
+<span class="normal"><a href="#__codelineno-0-854">854</a></span>
+<span class="normal"><a href="#__codelineno-0-855">855</a></span>
+<span class="normal"><a href="#__codelineno-0-856">856</a></span>
+<span class="normal"><a href="#__codelineno-0-857">857</a></span>
+<span class="normal"><a href="#__codelineno-0-858">858</a></span>
+<span class="normal"><a href="#__codelineno-0-859">859</a></span>
+<span class="normal"><a href="#__codelineno-0-860">860</a></span>
+<span class="normal"><a href="#__codelineno-0-861">861</a></span>
+<span class="normal"><a href="#__codelineno-0-862">862</a></span>
+<span class="normal"><a href="#__codelineno-0-863">863</a></span>
+<span class="normal"><a href="#__codelineno-0-864">864</a></span>
+<span class="normal"><a href="#__codelineno-0-865">865</a></span>
+<span class="normal"><a href="#__codelineno-0-866">866</a></span>
+<span class="normal"><a href="#__codelineno-0-867">867</a></span>
+<span class="normal"><a href="#__codelineno-0-868">868</a></span>
+<span class="normal"><a href="#__codelineno-0-869">869</a></span>
+<span class="normal"><a href="#__codelineno-0-870">870</a></span>
+<span class="normal"><a href="#__codelineno-0-871">871</a></span>
+<span class="normal"><a href="#__codelineno-0-872">872</a></span>
+<span class="normal"><a href="#__codelineno-0-873">873</a></span>
+<span class="normal"><a href="#__codelineno-0-874">874</a></span>
+<span class="normal"><a href="#__codelineno-0-875">875</a></span>
+<span class="normal"><a href="#__codelineno-0-876">876</a></span>
+<span class="normal"><a href="#__codelineno-0-877">877</a></span>
+<span class="normal"><a href="#__codelineno-0-878">878</a></span>
+<span class="normal"><a href="#__codelineno-0-879">879</a></span>
+<span class="normal"><a href="#__codelineno-0-880">880</a></span>
+<span class="normal"><a href="#__codelineno-0-881">881</a></span>
+<span class="normal"><a href="#__codelineno-0-882">882</a></span>
+<span class="normal"><a href="#__codelineno-0-883">883</a></span>
+<span class="normal"><a href="#__codelineno-0-884">884</a></span>
+<span class="normal"><a href="#__codelineno-0-885">885</a></span>
+<span class="normal"><a href="#__codelineno-0-886">886</a></span>
+<span class="normal"><a href="#__codelineno-0-887">887</a></span>
+<span class="normal"><a href="#__codelineno-0-888">888</a></span>
+<span class="normal"><a href="#__codelineno-0-889">889</a></span>
+<span class="normal"><a href="#__codelineno-0-890">890</a></span>
+<span class="normal"><a href="#__codelineno-0-891">891</a></span>
+<span class="normal"><a href="#__codelineno-0-892">892</a></span>
+<span class="normal"><a href="#__codelineno-0-893">893</a></span>
+<span class="normal"><a href="#__codelineno-0-894">894</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-839"><a id="__codelineno-0-839" name="__codelineno-0-839"></a><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-840"><a id="__codelineno-0-840" name="__codelineno-0-840"></a>             <span class="n">num_sensing</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-0-841"><a id="__codelineno-0-841" name="__codelineno-0-841"></a>             <span class="n">X_objective</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-842"><a id="__codelineno-0-842" name="__codelineno-0-842"></a>             <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-843"><a id="__codelineno-0-843" name="__codelineno-0-843"></a>             <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+</span><span id="__span-0-844"><a id="__codelineno-0-844" name="__codelineno-0-844"></a>             <span class="n">transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Transform</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-845"><a id="__codelineno-0-845" name="__codelineno-0-845"></a>             <span class="n">num_robots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-846"><a id="__codelineno-0-846" name="__codelineno-0-846"></a>             <span class="n">X_candidates</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-847"><a id="__codelineno-0-847" name="__codelineno-0-847"></a>             <span class="n">num_dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-848"><a id="__codelineno-0-848" name="__codelineno-0-848"></a>             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+</span><span id="__span-0-849"><a id="__codelineno-0-849" name="__codelineno-0-849"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-850"><a id="__codelineno-0-850" name="__codelineno-0-850"></a><span class="sd">    Initializes the GreedySGP optimizer.</span>
+</span><span id="__span-0-851"><a id="__codelineno-0-851" name="__codelineno-0-851"></a>
+</span><span id="__span-0-852"><a id="__codelineno-0-852" name="__codelineno-0-852"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-853"><a id="__codelineno-0-853" name="__codelineno-0-853"></a><span class="sd">        num_sensing (int): Number of sensing locations (inducing points) to select.</span>
+</span><span id="__span-0-854"><a id="__codelineno-0-854" name="__codelineno-0-854"></a><span class="sd">        X_objective (np.ndarray): (n, d); Data points used to train the SGP model.</span>
+</span><span id="__span-0-855"><a id="__codelineno-0-855" name="__codelineno-0-855"></a><span class="sd">        kernel (gpflow.kernels.Kernel): GPflow kernel function.</span>
+</span><span id="__span-0-856"><a id="__codelineno-0-856" name="__codelineno-0-856"></a><span class="sd">        noise_variance (float): Data noise variance.</span>
+</span><span id="__span-0-857"><a id="__codelineno-0-857" name="__codelineno-0-857"></a><span class="sd">        transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.</span>
+</span><span id="__span-0-858"><a id="__codelineno-0-858" name="__codelineno-0-858"></a><span class="sd">        num_robots (int): Number of robots/agents. Defaults to 1.</span>
+</span><span id="__span-0-859"><a id="__codelineno-0-859" name="__codelineno-0-859"></a><span class="sd">        X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.</span>
+</span><span id="__span-0-860"><a id="__codelineno-0-860" name="__codelineno-0-860"></a><span class="sd">                                             If None, X_objective is used as candidates.</span>
+</span><span id="__span-0-861"><a id="__codelineno-0-861" name="__codelineno-0-861"></a><span class="sd">        num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.</span>
+</span><span id="__span-0-862"><a id="__codelineno-0-862" name="__codelineno-0-862"></a><span class="sd">        **kwargs: Additional keyword arguments.</span>
+</span><span id="__span-0-863"><a id="__codelineno-0-863" name="__codelineno-0-863"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-864"><a id="__codelineno-0-864" name="__codelineno-0-864"></a>    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">num_sensing</span><span class="p">,</span> <span class="n">X_objective</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-865"><a id="__codelineno-0-865" name="__codelineno-0-865"></a>                     <span class="n">transform</span><span class="p">,</span> <span class="n">num_robots</span><span class="p">,</span> <span class="n">X_candidates</span><span class="p">,</span> <span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-866"><a id="__codelineno-0-866" name="__codelineno-0-866"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">X_objective</span> <span class="o">=</span> <span class="n">X_objective</span>
+</span><span id="__span-0-867"><a id="__codelineno-0-867" name="__codelineno-0-867"></a>    <span class="k">if</span> <span class="n">X_candidates</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-868"><a id="__codelineno-0-868" name="__codelineno-0-868"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span> <span class="o">=</span> <span class="n">X_objective</span>  <span class="c1"># Default candidates to objective points</span>
+</span><span id="__span-0-869"><a id="__codelineno-0-869" name="__codelineno-0-869"></a>
+</span><span id="__span-0-870"><a id="__codelineno-0-870" name="__codelineno-0-870"></a>    <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-871"><a id="__codelineno-0-871" name="__codelineno-0-871"></a>        <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-872"><a id="__codelineno-0-872" name="__codelineno-0-872"></a>            <span class="n">num_robots_transform</span> <span class="o">=</span> <span class="n">transform</span><span class="o">.</span><span class="n">num_robots</span>
+</span><span id="__span-0-873"><a id="__codelineno-0-873" name="__codelineno-0-873"></a>        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="__span-0-874"><a id="__codelineno-0-874" name="__codelineno-0-874"></a>            <span class="n">num_robots_transform</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Assume single robot if num_robots not defined in transform</span>
+</span><span id="__span-0-875"><a id="__codelineno-0-875" name="__codelineno-0-875"></a>        <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;num_robots is not equal in transform: </span><span class="si">{</span><span class="n">num_robots_transform</span><span class="si">}</span><span class="s2"> and GreedySGP: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-0-876"><a id="__codelineno-0-876" name="__codelineno-0-876"></a>        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span> <span class="o">==</span> <span class="n">num_robots_transform</span><span class="p">,</span> <span class="n">error</span>
+</span><span id="__span-0-877"><a id="__codelineno-0-877" name="__codelineno-0-877"></a>
+</span><span id="__span-0-878"><a id="__codelineno-0-878" name="__codelineno-0-878"></a>    <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;num_robots=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="si">}</span><span class="s2">; GreedySGP only supports num_robots=1&quot;</span>
+</span><span id="__span-0-879"><a id="__codelineno-0-879" name="__codelineno-0-879"></a>    <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="n">error</span>
+</span><span id="__span-0-880"><a id="__codelineno-0-880" name="__codelineno-0-880"></a>
+</span><span id="__span-0-881"><a id="__codelineno-0-881" name="__codelineno-0-881"></a>    <span class="c1"># Initialize the SGP</span>
+</span><span id="__span-0-882"><a id="__codelineno-0-882" name="__codelineno-0-882"></a>    <span class="n">dtype</span> <span class="o">=</span> <span class="n">X_objective</span><span class="o">.</span><span class="n">dtype</span>
+</span><span id="__span-0-883"><a id="__codelineno-0-883" name="__codelineno-0-883"></a>    <span class="n">train_set</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span>
+</span><span id="__span-0-884"><a id="__codelineno-0-884" name="__codelineno-0-884"></a>                                                          <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+</span><span id="__span-0-885"><a id="__codelineno-0-885" name="__codelineno-0-885"></a>                                              <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+</span><span id="__span-0-886"><a id="__codelineno-0-886" name="__codelineno-0-886"></a>                                                  <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_objective</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-0-887"><a id="__codelineno-0-887" name="__codelineno-0-887"></a>                                                  <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">))</span>
+</span><span id="__span-0-888"><a id="__codelineno-0-888" name="__codelineno-0-888"></a>
+</span><span id="__span-0-889"><a id="__codelineno-0-889" name="__codelineno-0-889"></a>    <span class="n">X_init</span> <span class="o">=</span> <span class="n">get_inducing_pts</span><span class="p">(</span><span class="n">X_objective</span><span class="p">,</span> <span class="n">num_sensing</span><span class="p">)</span>
+</span><span id="__span-0-890"><a id="__codelineno-0-890" name="__codelineno-0-890"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span> <span class="o">=</span> <span class="n">AugmentedSGPR</span><span class="p">(</span><span class="n">train_set</span><span class="p">,</span>
+</span><span id="__span-0-891"><a id="__codelineno-0-891" name="__codelineno-0-891"></a>                              <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance</span><span class="p">,</span>
+</span><span id="__span-0-892"><a id="__codelineno-0-892" name="__codelineno-0-892"></a>                              <span class="n">kernel</span><span class="o">=</span><span class="n">kernel</span><span class="p">,</span>
+</span><span id="__span-0-893"><a id="__codelineno-0-893" name="__codelineno-0-893"></a>                              <span class="n">inducing_variable</span><span class="o">=</span><span class="n">X_init</span><span class="p">,</span>
+</span><span id="__span-0-894"><a id="__codelineno-0-894" name="__codelineno-0-894"></a>                              <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.GreedySGP.get_hyperparameters" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_hyperparameters</span><span class="p">()</span></code>
+
+<a href="#sgptools.methods.GreedySGP.get_hyperparameters" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieves the current kernel and noise variance hyperparameters from the SGP model.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="gpflow.kernels.Kernel">Kernel</span>, <span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-907">907</a></span>
+<span class="normal"><a href="#__codelineno-0-908">908</a></span>
+<span class="normal"><a href="#__codelineno-0-909">909</a></span>
+<span class="normal"><a href="#__codelineno-0-910">910</a></span>
+<span class="normal"><a href="#__codelineno-0-911">911</a></span>
+<span class="normal"><a href="#__codelineno-0-912">912</a></span>
+<span class="normal"><a href="#__codelineno-0-913">913</a></span>
+<span class="normal"><a href="#__codelineno-0-914">914</a></span>
+<span class="normal"><a href="#__codelineno-0-915">915</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-907"><a id="__codelineno-0-907" name="__codelineno-0-907"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_hyperparameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="__span-0-908"><a id="__codelineno-0-908" name="__codelineno-0-908"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-909"><a id="__codelineno-0-909" name="__codelineno-0-909"></a><span class="sd">    Retrieves the current kernel and noise variance hyperparameters from the SGP model.</span>
+</span><span id="__span-0-910"><a id="__codelineno-0-910" name="__codelineno-0-910"></a>
+</span><span id="__span-0-911"><a id="__codelineno-0-911" name="__codelineno-0-911"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-912"><a id="__codelineno-0-912" name="__codelineno-0-912"></a><span class="sd">        Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.</span>
+</span><span id="__span-0-913"><a id="__codelineno-0-913" name="__codelineno-0-913"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-914"><a id="__codelineno-0-914" name="__codelineno-0-914"></a>    <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">kernel</span><span class="p">),</span> \
+</span><span id="__span-0-915"><a id="__codelineno-0-915" name="__codelineno-0-915"></a>           <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">likelihood</span><span class="o">.</span><span class="n">variance</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.GreedySGP.optimize" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">optimize</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;naive&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.GreedySGP.optimize" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Optimizes sensor placement using a greedy SGP approach.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>optimizer</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The greedy optimizer strategy (e.g., 'naive', 'lazy'). Defaults to 'naive'.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;naive&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>verbose</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Verbosity, if True additional details will by reported. Defaults to False.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>**kwargs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments.</p>
+              </div>
+            </td>
+            <td>
+                  <code>{}</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">greedy_sgp_method</span> <span class="o">=</span> <span class="n">GreedySGP</span><span class="p">(</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">num_sensing</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">X_objective</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">kernel</span><span class="o">=</span><span class="n">kernel_opt</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_variance_opt</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">X_candidates</span><span class="o">=</span><span class="n">candidates</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">optimized_solution</span> <span class="o">=</span> <span class="n">greedy_sgp_method</span><span class="o">.</span><span class="n">optimize</span><span class="p">(</span><span class="n">optimizer</span><span class="o">=</span><span class="s1">&#39;naive&#39;</span><span class="p">)</span>
+</span></code></pre></div>
+</details>
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-917">917</a></span>
+<span class="normal"><a href="#__codelineno-0-918">918</a></span>
+<span class="normal"><a href="#__codelineno-0-919">919</a></span>
+<span class="normal"><a href="#__codelineno-0-920">920</a></span>
+<span class="normal"><a href="#__codelineno-0-921">921</a></span>
+<span class="normal"><a href="#__codelineno-0-922">922</a></span>
+<span class="normal"><a href="#__codelineno-0-923">923</a></span>
+<span class="normal"><a href="#__codelineno-0-924">924</a></span>
+<span class="normal"><a href="#__codelineno-0-925">925</a></span>
+<span class="normal"><a href="#__codelineno-0-926">926</a></span>
+<span class="normal"><a href="#__codelineno-0-927">927</a></span>
+<span class="normal"><a href="#__codelineno-0-928">928</a></span>
+<span class="normal"><a href="#__codelineno-0-929">929</a></span>
+<span class="normal"><a href="#__codelineno-0-930">930</a></span>
+<span class="normal"><a href="#__codelineno-0-931">931</a></span>
+<span class="normal"><a href="#__codelineno-0-932">932</a></span>
+<span class="normal"><a href="#__codelineno-0-933">933</a></span>
+<span class="normal"><a href="#__codelineno-0-934">934</a></span>
+<span class="normal"><a href="#__codelineno-0-935">935</a></span>
+<span class="normal"><a href="#__codelineno-0-936">936</a></span>
+<span class="normal"><a href="#__codelineno-0-937">937</a></span>
+<span class="normal"><a href="#__codelineno-0-938">938</a></span>
+<span class="normal"><a href="#__codelineno-0-939">939</a></span>
+<span class="normal"><a href="#__codelineno-0-940">940</a></span>
+<span class="normal"><a href="#__codelineno-0-941">941</a></span>
+<span class="normal"><a href="#__codelineno-0-942">942</a></span>
+<span class="normal"><a href="#__codelineno-0-943">943</a></span>
+<span class="normal"><a href="#__codelineno-0-944">944</a></span>
+<span class="normal"><a href="#__codelineno-0-945">945</a></span>
+<span class="normal"><a href="#__codelineno-0-946">946</a></span>
+<span class="normal"><a href="#__codelineno-0-947">947</a></span>
+<span class="normal"><a href="#__codelineno-0-948">948</a></span>
+<span class="normal"><a href="#__codelineno-0-949">949</a></span>
+<span class="normal"><a href="#__codelineno-0-950">950</a></span>
+<span class="normal"><a href="#__codelineno-0-951">951</a></span>
+<span class="normal"><a href="#__codelineno-0-952">952</a></span>
+<span class="normal"><a href="#__codelineno-0-953">953</a></span>
+<span class="normal"><a href="#__codelineno-0-954">954</a></span>
+<span class="normal"><a href="#__codelineno-0-955">955</a></span>
+<span class="normal"><a href="#__codelineno-0-956">956</a></span>
+<span class="normal"><a href="#__codelineno-0-957">957</a></span>
+<span class="normal"><a href="#__codelineno-0-958">958</a></span>
+<span class="normal"><a href="#__codelineno-0-959">959</a></span>
+<span class="normal"><a href="#__codelineno-0-960">960</a></span>
+<span class="normal"><a href="#__codelineno-0-961">961</a></span>
+<span class="normal"><a href="#__codelineno-0-962">962</a></span>
+<span class="normal"><a href="#__codelineno-0-963">963</a></span>
+<span class="normal"><a href="#__codelineno-0-964">964</a></span>
+<span class="normal"><a href="#__codelineno-0-965">965</a></span>
+<span class="normal"><a href="#__codelineno-0-966">966</a></span>
+<span class="normal"><a href="#__codelineno-0-967">967</a></span>
+<span class="normal"><a href="#__codelineno-0-968">968</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-917"><a id="__codelineno-0-917" name="__codelineno-0-917"></a><span class="k">def</span><span class="w"> </span><span class="nf">optimize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+</span><span id="__span-0-918"><a id="__codelineno-0-918" name="__codelineno-0-918"></a>             <span class="n">optimizer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;naive&#39;</span><span class="p">,</span>
+</span><span id="__span-0-919"><a id="__codelineno-0-919" name="__codelineno-0-919"></a>             <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+</span><span id="__span-0-920"><a id="__codelineno-0-920" name="__codelineno-0-920"></a>             <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="__span-0-921"><a id="__codelineno-0-921" name="__codelineno-0-921"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-922"><a id="__codelineno-0-922" name="__codelineno-0-922"></a><span class="sd">    Optimizes sensor placement using a greedy SGP approach.</span>
+</span><span id="__span-0-923"><a id="__codelineno-0-923" name="__codelineno-0-923"></a>
+</span><span id="__span-0-924"><a id="__codelineno-0-924" name="__codelineno-0-924"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-925"><a id="__codelineno-0-925" name="__codelineno-0-925"></a><span class="sd">        optimizer (str): The greedy optimizer strategy (e.g., &#39;naive&#39;, &#39;lazy&#39;). Defaults to &#39;naive&#39;.</span>
+</span><span id="__span-0-926"><a id="__codelineno-0-926" name="__codelineno-0-926"></a><span class="sd">        verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.</span>
+</span><span id="__span-0-927"><a id="__codelineno-0-927" name="__codelineno-0-927"></a><span class="sd">        **kwargs: Additional keyword arguments.</span>
+</span><span id="__span-0-928"><a id="__codelineno-0-928" name="__codelineno-0-928"></a>
+</span><span id="__span-0-929"><a id="__codelineno-0-929" name="__codelineno-0-929"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-930"><a id="__codelineno-0-930" name="__codelineno-0-930"></a><span class="sd">        np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.</span>
+</span><span id="__span-0-931"><a id="__codelineno-0-931" name="__codelineno-0-931"></a>
+</span><span id="__span-0-932"><a id="__codelineno-0-932" name="__codelineno-0-932"></a><span class="sd">    Usage:</span>
+</span><span id="__span-0-933"><a id="__codelineno-0-933" name="__codelineno-0-933"></a><span class="sd">        ```python</span>
+</span><span id="__span-0-934"><a id="__codelineno-0-934" name="__codelineno-0-934"></a><span class="sd">        # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined</span>
+</span><span id="__span-0-935"><a id="__codelineno-0-935" name="__codelineno-0-935"></a><span class="sd">        greedy_sgp_method = GreedySGP(</span>
+</span><span id="__span-0-936"><a id="__codelineno-0-936" name="__codelineno-0-936"></a><span class="sd">            num_sensing=5,</span>
+</span><span id="__span-0-937"><a id="__codelineno-0-937" name="__codelineno-0-937"></a><span class="sd">            X_objective=X_train,</span>
+</span><span id="__span-0-938"><a id="__codelineno-0-938" name="__codelineno-0-938"></a><span class="sd">            kernel=kernel_opt,</span>
+</span><span id="__span-0-939"><a id="__codelineno-0-939" name="__codelineno-0-939"></a><span class="sd">            noise_variance=noise_variance_opt,</span>
+</span><span id="__span-0-940"><a id="__codelineno-0-940" name="__codelineno-0-940"></a><span class="sd">            X_candidates=candidates</span>
+</span><span id="__span-0-941"><a id="__codelineno-0-941" name="__codelineno-0-941"></a><span class="sd">        )</span>
+</span><span id="__span-0-942"><a id="__codelineno-0-942" name="__codelineno-0-942"></a><span class="sd">        optimized_solution = greedy_sgp_method.optimize(optimizer=&#39;naive&#39;)</span>
+</span><span id="__span-0-943"><a id="__codelineno-0-943" name="__codelineno-0-943"></a><span class="sd">        ```</span>
+</span><span id="__span-0-944"><a id="__codelineno-0-944" name="__codelineno-0-944"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-945"><a id="__codelineno-0-945" name="__codelineno-0-945"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">CustomSelection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_sensing</span><span class="p">,</span>
+</span><span id="__span-0-946"><a id="__codelineno-0-946" name="__codelineno-0-946"></a>                            <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span>
+</span><span id="__span-0-947"><a id="__codelineno-0-947" name="__codelineno-0-947"></a>                            <span class="n">optimizer</span><span class="o">=</span><span class="n">optimizer</span><span class="p">,</span>
+</span><span id="__span-0-948"><a id="__codelineno-0-948" name="__codelineno-0-948"></a>                            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+</span><span id="__span-0-949"><a id="__codelineno-0-949" name="__codelineno-0-949"></a>
+</span><span id="__span-0-950"><a id="__codelineno-0-950" name="__codelineno-0-950"></a>    <span class="c1"># apricot&#39;s CustomSelection expects indices, so pass a dummy array of indices</span>
+</span><span id="__span-0-951"><a id="__codelineno-0-951" name="__codelineno-0-951"></a>    <span class="n">sol_indices</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span>
+</span><span id="__span-0-952"><a id="__codelineno-0-952" name="__codelineno-0-952"></a>        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+</span><span id="__span-0-953"><a id="__codelineno-0-953" name="__codelineno-0-953"></a>    <span class="n">sol_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol_indices</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="__span-0-954"><a id="__codelineno-0-954" name="__codelineno-0-954"></a>    <span class="n">sol_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X_candidates</span><span class="p">[</span><span class="n">sol_indices</span><span class="p">]</span>
+</span><span id="__span-0-955"><a id="__codelineno-0-955" name="__codelineno-0-955"></a>
+</span><span id="__span-0-956"><a id="__codelineno-0-956" name="__codelineno-0-956"></a>    <span class="n">sol_locations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sol_locations</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-957"><a id="__codelineno-0-957" name="__codelineno-0-957"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-0-958"><a id="__codelineno-0-958" name="__codelineno-0-958"></a>        <span class="n">sol_expanded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="n">sol_locations</span><span class="p">,</span>
+</span><span id="__span-0-959"><a id="__codelineno-0-959" name="__codelineno-0-959"></a>                                             <span class="n">expand_sensor_model</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-960"><a id="__codelineno-0-960" name="__codelineno-0-960"></a>    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+</span><span id="__span-0-961"><a id="__codelineno-0-961" name="__codelineno-0-961"></a>        <span class="n">sol_expanded</span> <span class="o">=</span> <span class="n">sol_locations</span>
+</span><span id="__span-0-962"><a id="__codelineno-0-962" name="__codelineno-0-962"></a>    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sol_expanded</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+</span><span id="__span-0-963"><a id="__codelineno-0-963" name="__codelineno-0-963"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+</span><span id="__span-0-964"><a id="__codelineno-0-964" name="__codelineno-0-964"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-0-965"><a id="__codelineno-0-965" name="__codelineno-0-965"></a>        <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_expanded</span>
+</span><span id="__span-0-966"><a id="__codelineno-0-966" name="__codelineno-0-966"></a>
+</span><span id="__span-0-967"><a id="__codelineno-0-967" name="__codelineno-0-967"></a>    <span class="n">sol_np</span> <span class="o">=</span> <span class="n">sol_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_robots</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_dim</span><span class="p">)</span>
+</span><span id="__span-0-968"><a id="__codelineno-0-968" name="__codelineno-0-968"></a>    <span class="k">return</span> <span class="n">sol_np</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sgptools.methods.GreedySGP.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span></code>
+
+<a href="#sgptools.methods.GreedySGP.update" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Updates the kernel and noise variance parameters of the SGP model.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>kernel</code>
+            </td>
+            <td>
+                  <code><span title="gpflow.kernels.Kernel">Kernel</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Updated GPflow kernel function.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>noise_variance</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Updated data noise variance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="quote">
+              <summary>Source code in <code>sgptools/methods.py</code></summary>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-896">896</a></span>
+<span class="normal"><a href="#__codelineno-0-897">897</a></span>
+<span class="normal"><a href="#__codelineno-0-898">898</a></span>
+<span class="normal"><a href="#__codelineno-0-899">899</a></span>
+<span class="normal"><a href="#__codelineno-0-900">900</a></span>
+<span class="normal"><a href="#__codelineno-0-901">901</a></span>
+<span class="normal"><a href="#__codelineno-0-902">902</a></span>
+<span class="normal"><a href="#__codelineno-0-903">903</a></span>
+<span class="normal"><a href="#__codelineno-0-904">904</a></span>
+<span class="normal"><a href="#__codelineno-0-905">905</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-896"><a id="__codelineno-0-896" name="__codelineno-0-896"></a><span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel</span><span class="p">:</span> <span class="n">gpflow</span><span class="o">.</span><span class="n">kernels</span><span class="o">.</span><span class="n">Kernel</span><span class="p">,</span>
+</span><span id="__span-0-897"><a id="__codelineno-0-897" name="__codelineno-0-897"></a>           <span class="n">noise_variance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-898"><a id="__codelineno-0-898" name="__codelineno-0-898"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-0-899"><a id="__codelineno-0-899" name="__codelineno-0-899"></a><span class="sd">    Updates the kernel and noise variance parameters of the SGP model.</span>
+</span><span id="__span-0-900"><a id="__codelineno-0-900" name="__codelineno-0-900"></a>
+</span><span id="__span-0-901"><a id="__codelineno-0-901" name="__codelineno-0-901"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-902"><a id="__codelineno-0-902" name="__codelineno-0-902"></a><span class="sd">        kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.</span>
+</span><span id="__span-0-903"><a id="__codelineno-0-903" name="__codelineno-0-903"></a><span class="sd">        noise_variance (float): Updated data noise variance.</span>
+</span><span id="__span-0-904"><a id="__codelineno-0-904" name="__codelineno-0-904"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-905"><a id="__codelineno-0-905" name="__codelineno-0-905"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">sgpr</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">noise_variance</span><span class="p">)</span>
+</span></code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["search.suggest", "search.highlight", "search.share", "toc.integrate", "toc.follow", "navigation.top", "navigation.tabs", "navigation.sections", "navigation.indexes", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
