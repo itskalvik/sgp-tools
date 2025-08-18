@@ -1,5 +1,4 @@
 import os
-
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
@@ -15,6 +14,7 @@ from sgptools.utils.metrics import *
 from sgptools.utils.tsp import run_tsp
 from sgptools.utils.gpflow import get_model_params
 
+from sgptools.kernels import *
 from sgptools.methods import *
 from sgptools.objectives import *
 from sgptools.core.transformations import *
@@ -36,7 +36,8 @@ class IPPBenchmark:
                  methods,
                  distance_budget,
                  tsp_time_limit=30,
-                 verbose=False):
+                 verbose=False,
+                 kernel='RBF'):
         dataset = dataset_path.split('/')[-1][:-4]
         print(f'Dataset: {dataset}')
         print(f'Num MC: {num_mc}')
@@ -44,6 +45,7 @@ class IPPBenchmark:
         print(f'Sampling Rate: {sampling_rate}')
         print(f'Dataset Path: {dataset_path}')
         print(f'Range: {xrange}')
+        print(f'Kernel: {kernel}')
         print(f'Distance Budget: {distance_budget}')
         print('Methods:')
         for method in methods:
@@ -75,7 +77,9 @@ class IPPBenchmark:
         # Get oracle hyperparameters to benchmark rmse
         start_time = time()
         _, self.noise_variance_opt, self.kernel_opt = get_model_params(
-            *self.dataset.get_train(), verbose=True)
+            *self.dataset.get_train(), 
+            kernel=get_kernel(kernel)(),
+            verbose=True)
         end_time = time()
         self.gp_time = end_time - start_time
         print(f'GP Training Time: {self.gp_time:.2f}')
@@ -124,14 +128,21 @@ class IPPBenchmark:
                     X_objective = self.dataset.candidates
                     method_list = method.split('.')
                     method_backend = method_list[0]
-
-                    if len(method_list) == 2:
-                        objective = method_list[1]
+                    if 'cache' in method_list:
+                        cache = True
+                        method_list.remove('cache')
+                    else:
                         cache = False
+                    kwargs = {}
+
+                    if len(method_list) >= 2:
+                        objective = method_list[1]
 
                     if len(method_list) == 3:
-                        objective = method_list[1]
-                        cache = True
+                        kwargs['optimizer'] = method_list[2]
+
+                    if 'SchurMI' == objective: # ensure no overlap with X_objective
+                        kwargs['X_candidates'] = self.dataset.X_train[:len(X_objective)]
 
                     if method_backend == 'ContinuousSGP' or method_backend == 'DiscreteSGP':
                         X_objective = self.dataset.X_train
@@ -150,7 +161,7 @@ class IPPBenchmark:
                         cache=cache)
 
                     start_time = time()
-                    solution = model.optimize()
+                    solution = model.optimize(**kwargs)
                     end_time = time()
                     ipp_time = end_time - start_time
 
@@ -223,6 +234,7 @@ if __name__ == '__main__':
     parser.add_argument("--dataset_path",
                         type=str,
                         default='../datasets/mississippi.tif')
+    parser.add_argument("--kernel", type=str, default='RBF')
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--tsp_time_limit", type=int, default=-1)
     args = parser.parse_args()
@@ -286,5 +298,6 @@ if __name__ == '__main__':
                              methods,
                              args.distance_budget,
                              tsp_time_limit=tsp_time_limit,
-                             verbose=args.verbose)
+                             verbose=args.verbose,
+                             kernel=args.kernel)
     benchmark.run()
