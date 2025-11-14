@@ -20,7 +20,7 @@ def jitter_fn(cov: tf.Tensor, jitter: float = 1e-6) -> tf.Tensor:
     Usage:
         ```python
         # Example covariance matrix
-        cov_matrix = tf.constant([[1.0, 0.5], [0.5, 1.0]], dtype=tf.float64)
+        cov_matrix = tf.constant([[1.0, 0.5], [0.5, 1.0]])
         # Add default jitter
         jittered_cov = jitter_fn(cov_matrix)
         # Add custom jitter
@@ -57,7 +57,7 @@ class Objective:
                             matrix diagonals. Defaults to 1e-6.
             **kwargs: Arbitrary keyword arguments.
         """
-        self.X_objective = tf.constant(X_objective, dtype=tf.float64)
+        self.X_objective = tf.constant(X_objective)
         self.kernel = kernel
         self.noise_variance = noise_variance
         # Total jitter includes the noise variance
@@ -167,7 +167,7 @@ class MI(Objective):
             # noise_variance = 0.1
 
             mi_objective = MI(X_objective=X_objective, kernel=kernel, noise_variance=noise_variance)
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             mi_value = mi_objective(X_sensing)
             ```
         """
@@ -280,7 +280,7 @@ class SLogMI(MI):
             # noise_variance = 0.1
 
             slogmi_objective = SLogMI(X_objective=X_objective, kernel=kernel, noise_variance=noise_variance)
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             mi_value = slogmi_objective(X_sensing)
             ```
         """
@@ -388,7 +388,7 @@ class SchurMI(SLogMI):
                 kernel=kernel,
                 noise_variance=noise_variance
             )
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             mi_value = schur_mi_objective(X_sensing)
             ```
         """
@@ -462,7 +462,7 @@ class  AOptimal(Objective):
                 kernel=kernel,
                 noise_variance=noise_variance
             )
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             a_optimal_value = a_optimal_objective(X_sensing)
             ```
         """
@@ -509,7 +509,7 @@ class  BOptimal(Objective):
                 kernel=kernel,
                 noise_variance=noise_variance
             )
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             b_optimal_value = b_optimal_objective(X_sensing)
             ```
         """
@@ -554,7 +554,7 @@ class  DOptimal(Objective):
                 kernel=kernel,
                 noise_variance=noise_variance
             )
-            X_sensing = tf.constant(np.random.rand(10, 2), dtype=tf.float64)
+            X_sensing = tf.constant(np.random.rand(10, 2))
             d_optimal_value = d_optimal_objective(X_sensing)
             ```
         """
