@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,9 +53,9 @@ class Transform:
         self.aggregation_size = aggregation_size
         self.constraint_weight = constraint_weight
 
-    def expand(
-            self, Xu: Union[np.ndarray,
-                            tf.Tensor]) -> Union[np.ndarray, tf.Tensor]:
+    def expand(self,
+               Xu: Union[np.ndarray, tf.Tensor],
+               **kwargs: Any) -> Union[np.ndarray, tf.Tensor]:
         """
         Applies an expansion transform to the inducing points.
         In this base class, it simply returns the input inducing points unchanged.
@@ -65,10 +65,12 @@ class Transform:
             Xu (Union[np.ndarray, tf.Tensor]): The input inducing points.
                                                 Shape: (m, d) where `m` is the number of inducing points
                                                 and `d` is their dimensionality.
+            **kwargs (Any): Additional keyword arguments that specific subclasses may interpret.
 
         Returns:
             Union[np.ndarray, tf.Tensor]: The expanded inducing points.
         """
+        # Base implementation ignores any kwargs and returns Xu unchanged.
         return Xu
 
     def aggregate(self, k: tf.Tensor) -> tf.Tensor:
@@ -178,7 +180,7 @@ class IPPTransform(Transform):
                                  consecutive inducing points. `sampling_rate=2` implies
                                  only the two endpoints are used (point sensing).
                                  `sampling_rate > 2` implies continuous sensing via interpolation.
-                                 Must be $\ge 2$. Defaults to 2.
+                                 Must be >= 2. Defaults to 2.
             distance_budget (Optional[float]): The maximum allowable total path length for each robot.
                                                If None, no distance constraint is applied. Defaults to None.
             num_robots (int): The number of robots or agents involved in the IPP problem. Defaults to 1.
@@ -199,18 +201,6 @@ class IPPTransform(Transform):
 
         Raises:
             ValueError: If `sampling_rate` is less than 2.
-
-        Usage:
-            ```python
-            # Single robot, point sensing
-            transform_point = IPPTransform(num_robots=1, num_dim=2, sampling_rate=2)
-
-            # Single robot, continuous sensing
-            transform_continuous = IPPTransform(num_robots=1, num_dim=2, sampling_rate=10)
-
-            # Multi-robot, continuous sensing with distance budget
-            transform_multi_budget = IPPTransform(num_robots=2, num_dim=2, sampling_rate=5, distance_budget=50.0, constraint_weight=100.0)
-            ```
         """
         super().__init__(**kwargs)
         if sampling_rate < 2:
@@ -237,7 +227,7 @@ class IPPTransform(Transform):
         # Initialize TensorFlow Variable for fixed waypoints if provided, for online IPP.
         if Xu_fixed is not None:
             # Store number of fixed waypoints per robot
-            self.num_fixed = Xu_fixed.shape[1]  
+            self.num_fixed = Xu_fixed.shape[1]
             self.Xu_fixed = tf.Variable(
                 Xu_fixed,
                 shape=tf.TensorShape(None),
@@ -256,7 +246,7 @@ class IPPTransform(Transform):
                                    representing the new set of fixed waypoints.
         """
         # Store number of fixed waypoints per robot
-        self.num_fixed = Xu_fixed.shape[1]  
+        self.num_fixed = Xu_fixed.shape[1]
         if self.Xu_fixed is not None:
             self.Xu_fixed.assign(tf.constant(Xu_fixed, dtype=default_float()))
         else:
@@ -267,7 +257,8 @@ class IPPTransform(Transform):
 
     def expand(self,
                Xu: tf.Tensor,
-               expand_sensor_model: bool = True) -> tf.Tensor:
+               expand_sensor_model: bool = True,
+               **kwargs: Any) -> tf.Tensor:
         """
         Applies the expansion transform to the inducing points based on the IPP settings.
         This can involve:
@@ -284,6 +275,7 @@ class IPPTransform(Transform):
                                         only the path interpolation and fixed point handling
                                         are performed, useful for internal calculations like distance.
                                         Defaults to True.
+            **kwargs (Any): Additional keyword arguments for future extensibility.
 
         Returns:
             tf.Tensor: The expanded inducing points, ready for kernel computations.
@@ -403,8 +395,6 @@ class IPPTransform(Transform):
             # For point/continuous sensing without a special FoV model:
             # Calculate Euclidean distance between consecutive waypoints.
             # Assuming first two dimensions are (x,y) for distance calculation.
-            # `Xu_reshaped[:, 1:, :2]` are points from the second to last.
-            # `Xu_reshaped[:, :-1, :2]` are points from the first to second to last.
             segment_distances = tf.norm(Xu_reshaped[:, 1:, :2] -
                                         Xu_reshaped[:, :-1, :2],
                                         axis=-1)
@@ -437,12 +427,6 @@ class SquareTransform(Transform):
                                   This averages covariances from the FoV points to reduce computational cost.
                                   Defaults to False.
             **kwargs (Any): Additional keyword arguments passed to the base `Transform` constructor.
-
-        Usage:
-            ```python
-            # Create a square FoV of side length 10.0, approximated by a 5x5 grid of points
-            square_fov_transform = SquareTransform(length=10.0, pts_per_side=5, aggregate_fov=True)
-            ```
         """
         super().__init__(**kwargs)
         self.side_length = side_length
@@ -471,7 +455,10 @@ class SquareTransform(Transform):
         else:
             self.aggregation_size = size
 
-    def expand(self, Xu: tf.Tensor) -> tf.Tensor:
+    def expand(self,
+               Xu: tf.Tensor,
+               expand_sensor_model: bool = True,
+               **kwargs: Any) -> tf.Tensor:
         """
         Applies the expansion transformation to the inducing points, modeling a square FoV.
         Each input inducing point, which includes position (x, y) and orientation (theta),
@@ -481,7 +468,10 @@ class SquareTransform(Transform):
             Xu (tf.Tensor): Inducing points in the position and orientation space.
                             Shape: (m, 3) where `m` is the number of inducing points,
                             and `3` corresponds to (x, y, angle in radians).
-                        
+            expand_sensor_model (bool): Controls whether the square FoV expansion is applied.
+                                        Defaults to True.
+            **kwargs (Any): Additional keyword arguments.
+
         Returns:
             tf.Tensor: The expanded inducing points in 2D input space (x,y).
                        Shape: (m * pts_per_side * pts_per_side, 2).
@@ -489,6 +479,9 @@ class SquareTransform(Transform):
                        `pts_per_side * pts_per_side` is the number of points each inducing
                        point is mapped to in order to form the FoV.
         """
+        if not expand_sensor_model:
+            return Xu
+
         # Split Xu into x, y coordinates and orientation (theta)
         x_coords, y_coords, angles = tf.split(Xu, num_or_size_splits=3, axis=1)
         x = tf.reshape(x_coords, [
@@ -532,12 +525,7 @@ class SquareTransform(Transform):
             points.append(
                 tf.linspace(line_starts, line_ends, self.pts_per_side, axis=1))
 
-        # Concatenate all generated line segments.
-        # `tf.concat` will stack them along a new axis, forming (num_lines, m, pts_per_side, 2)
-        xy = tf.concat(
-            points, axis=1
-        )  # (m, pts_per_side * pts_per_side, 2) after the transpose in the original code.
-
+        xy = tf.concat(points, axis=1)
         xy = tf.reshape(xy, (-1, 2))
         return xy
 
@@ -555,9 +543,8 @@ class SquareTransform(Transform):
         Returns:
             tf.Tensor: A scalar tensor representing the total path length.
         """
-        # Reshape to (number_of_points, 3) and take only the (x,y) coordinates
-        Xu_xy = tf.reshape(
-            Xu, (-1, self.num_dim))[:, :2]  # Assuming num_dim is 3 (x,y,angle)
+        # Assuming dimension 3: (x, y, angle)
+        Xu_xy = tf.reshape(Xu, (-1, 3))[:, :2]
 
         if Xu_xy.shape[0] < 2:
             return tf.constant(0.0, dtype=default_float())
@@ -585,17 +572,11 @@ class SquareHeightTransform(Transform):
 
         Args:
             pts_per_side (int): The number of points to sample along each side of the square FoV.
-                            A `pts_per_side` of 3 will create a 3x3 grid of 9 points to approximate the FoV.
+                                A `pts_per_side` of 3 will create a 3x3 grid of 9 points to approximate the FoV.
             aggregate_fov (bool): If True, aggregation will be enabled for the expanded FoV points.
                                   This averages covariances from the FoV points to reduce computational cost.
                                   Defaults to False.
             **kwargs (Any): Additional keyword arguments passed to the base `Transform` constructor.
-
-        Usage:
-            ```python
-            # Create a height-dependent square FoV approximated by a 7x7 grid
-            square_height_fov_transform = SquareHeightTransform(pts_per_side=7, aggregate_fov=True)
-            ```
         """
         super().__init__(**kwargs)
         self.pts_per_side = pts_per_side
@@ -619,20 +600,29 @@ class SquareHeightTransform(Transform):
         else:
             self.aggregation_size = size
 
-    def expand(self, Xu):
+    def expand(self,
+               Xu: tf.Tensor,
+               expand_sensor_model: bool = True,
+               **kwargs: Any) -> tf.Tensor:
         """
-        Applies the expansion transform to the inducing points
+        Applies the expansion transform to the inducing points.
 
         Args:
-            Xu (ndarray): (m, 3); Inducing points in the 3D position space.
+            Xu (tf.Tensor): (m, 3); Inducing points in the 3D position space.
                         `m` is the number of inducing points,
                         `3` is the dimension of the space (x, y, z)
-                        
+            expand_sensor_model (bool): Controls whether the height-dependent FoV expansion is applied.
+                                        Defaults to True.
+            **kwargs (Any): Additional keyword arguments.
+
         Returns:
-            Xu (ndarray): (mp, 2); Inducing points in input space.
-                        `p` is the number of points each inducing point is mapped 
+            tf.Tensor: (mp, 2); Inducing points in input space.
+                        `p` is the number of points each inducing point is mapped
                         to in order to form the FoV.
         """
+        if not expand_sensor_model:
+            return Xu
+
         x, y, h = tf.split(Xu, num_or_size_splits=3, axis=1)
         x = tf.reshape(x, [
             -1,
