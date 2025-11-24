@@ -29,7 +29,10 @@ def run_tsp(
     resample: Optional[int] = None,
     start_nodes: Optional[np.ndarray] = None,
     end_nodes: Optional[np.ndarray] = None,
-    time_limit: int = 10,
+    time_limit: Optional[int] = 10,
+    solution_limit: Optional[int] = None,
+    initial_route: Optional[np.ndarray] = None,
+    return_indices: Optional[bool] = False,
 ) -> Tuple[Optional[np.ndarray], Optional[List[float]]]:
     """Method to run TSP/VRP with arbitrary start and end nodes,
     and without any distance constraint.
@@ -45,7 +48,9 @@ def run_tsp(
                                              to start each vehicle's solution path.
         end_nodes (Optional[np.ndarray]): (# num_vehicles, ndim); Optional array of end nodes at which
                                            to end each vehicle's solution path.
-        time_limit (int): TSP runtime time limit in seconds.
+        time_limit (Optional[int]): TSP runtime time limit in seconds.
+        initial_route (Optional[np.ndarray]): (# nodes, ndim); Initial path (node indices) to warm start TSP.
+        return_indices (Optional[bool]): If true, returns the solution path indices along with the locations and distances.
 
     Returns:
         Tuple[Optional[np.ndarray], Optional[List[float]]]:
@@ -126,7 +131,24 @@ def run_tsp(
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
     search_parameters.time_limit.seconds = time_limit
-    solution = routing.SolveWithParameters(search_parameters)
+    
+    if solution_limit is not None:
+        search_parameters.solution_limit = solution_limit
+
+    if initial_route is not None:
+        # When an initial solution is given for search, the model will be closed with
+        # the default search parameters unless it is explicitly closed with the custom
+        # search parameters.
+        routing.CloseModelWithParameters(search_parameters)
+
+        # Get initial solution from routes after closing the model.
+        initial_solution = routing.ReadAssignmentFromRoutes(initial_route, True)
+    
+        solution = routing.SolveFromAssignmentWithParameters(
+            initial_solution, search_parameters
+        )
+    else:
+        solution = routing.SolveWithParameters(search_parameters)
 
     paths: Optional[List[np.ndarray]] = None
     distances: Optional[List[float]] = None
@@ -177,7 +199,10 @@ def run_tsp(
     if resample is not None and paths is not None:
         paths = np.array([resample_path(path, resample) for path in paths])
 
-    return paths, distances
+    if return_indices:
+        return paths, distances, paths_indices
+    else:
+        return paths, distances
 
 
 def _get_routes(
