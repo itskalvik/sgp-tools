@@ -17,18 +17,22 @@ from sgptools.core.transformations import Transform  # Import Transform for type
 
 class Method:
     """
-    Method class for optimization methods.
+    Base class for informative sensing / path-planning optimization methods.
+
+    All methods optimize a set of sensing locations or waypoints,
+    typically under a task-specific objective defined over a Gaussian process
+    model (e.g., mutual information, ELBO).
 
     Attributes:
-        num_sensing (int): Number of sensing locations to optimize.
-        num_dim (int): Dimensionality of the data points.
-        num_robots (int): Number of robots/agents.
-        X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-        kernel (gpflow.kernels.Kernel): GPflow kernel function.
-        noise_variance (float): Data noise variance.
-        transform (Optional[Transform]): Transform object to apply to inducing points.
-        X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-        num_dim (int): Dimensionality of the sensing locations.
+        num_sensing: Number of sensing locations (or waypoints) to optimize
+            per robot.
+        num_dim: Dimensionality of each sensing location (e.g., 2 for (x, y),
+            3 for (x, y, θ)).
+        num_robots: Number of robots / agents whose paths or sensing locations
+            are being optimized.
+        X_candidates: Optional discrete set of candidate sensing locations
+            with shape `(c, num_dim)`. If provided, continuous solutions may be
+            snapped to the closest candidates via `cont2disc`.
     """
 
     def __init__(self,
@@ -42,19 +46,41 @@ class Method:
                  num_dim: Optional[int] = None,
                  **kwargs: Any):
         """
-        Initializes the Method class.
+        Base initializer for an optimization method.
 
-        Args:
-            num_sensing (int): Number of sensing locations to optimize.
-            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 Defaults to None.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            **kwargs: Additional keyword arguments.
+        Parameters
+        ----------
+        num_sensing:
+            Number of sensing locations (inducing points / waypoints) to be
+            optimized per robot.
+        X_objective:
+            Array of shape `(n, d)` containing the inputs used to define the
+            objective (e.g., training inputs or a spatial grid). The last
+            dimension `d` is used as the default `num_dim` if `num_dim` is not
+            provided explicitly.
+        kernel:
+            GPflow kernel used by the objective. Stored only indirectly through
+            subclasses (via their objective models).
+        noise_variance:
+            Observation noise variance used in the objective.
+        transform:
+            Optional `Transform` object that maps inducing points to an
+            expanded representation (e.g., IPP path expansion, sensor FoV).
+            Also used for constraint evaluation. Not stored here, but passed
+            through to subclasses as needed.
+        num_robots:
+            Number of robots / agents. The total number of optimized points
+            is `num_sensing * num_robots`. Defaults to 1.
+        X_candidates:
+            Optional array of shape `(c, d)` representing a discrete set of
+            feasible sensing locations. When provided, many methods map their
+            continuous solution to this candidate set using `cont2disc`.
+        num_dim:
+            Dimensionality of each sensing location. If `None`, defaults to
+            `X_objective.shape[-1]`.
+        **kwargs:
+            Additional keyword arguments are accepted for forward compatibility,
+            but ignored by the base class.
         """
         self.num_sensing = num_sensing
         self.num_robots = num_robots
@@ -66,59 +92,90 @@ class Method:
 
     def optimize(self) -> np.ndarray:
         """
-        Optimizes the sensor placements/path(s).
+        Run the optimization procedure and return the optimized sensing
+        locations / waypoints.
 
-        Raises:
-            NotImplementedError: This method must be implemented by subclasses.
+        Returns
+        -------
+        np.ndarray
+            Array with shape `(num_robots, num_sensing, num_dim)` containing
+            the optimized sensing locations.
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
+        Raises
+        ------
+        NotImplementedError
+            Must be implemented in subclasses.
         """
         raise NotImplementedError
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the underlying model/objective.
+        Update the kernel and noise-variance hyperparameters used by the
+        underlying objective or SGP model.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
 
-        Raises:
-            NotImplementedError: This method must be implemented by subclasses.
+        Raises
+        ------
+        NotImplementedError
+            Must be implemented in subclasses.
         """
         raise NotImplementedError
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters.
+        Return the current kernel and noise-variance hyperparameters used by
+        the underlying objective or SGP model.
 
-        Raises:
-            NotImplementedError: This method must be implemented by subclasses.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A tuple `(kernel, noise_variance)` containing copies of the current
+            hyperparameters.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing the kernel and noise variance.
+        Raises
+        ------
+        NotImplementedError
+            Must be implemented in subclasses.
         """
         raise NotImplementedError
 
 
 class BayesianOpt(Method):
     """
-    Implements informative sensor placement/path optimization using Bayesian Optimization.
+    Informative sensor placement / path optimization using Bayesian
+    Optimization over a continuous search space.
 
-    This method optimizes a given objective function (e.g., Mutual Information)
-    by sampling and evaluating points in the search space, building a surrogate
-    model, and using an acquisition function to guide further sampling.
+    A Bayesian optimization loop is run over a flattened vector containing all
+    sensing locations for all robots. At each iteration, the candidate
+    locations are reshaped, optionally transformed (for IPP / FoV modeling),
+    evaluated under a GP-based objective (e.g. mutual information), and
+    penalized by any constraints provided by the `Transform`.
 
-    Refer to the following papers for more details:
-        - UAV route planning for active disease classification [Vivaldini et al., 2019]
-        - Occupancy map building through Bayesian exploration [Francis et al., 2019]
+    References
+    ----------
+    - Vivaldini et al., 2019. *UAV route planning for active disease
+      classification.*
+    - Francis et al., 2019. *Occupancy map building through Bayesian
+      exploration.*
 
-    Attributes:
-        objective (Objective): The objective function to be optimized.
-        transform (Optional[Transform]): Transform object applied to inducing points.
-        pbounds (Dict[str, Tuple[float, float]]): Dictionary defining the search space bounds.
+    Attributes
+    ----------
+    objective:
+        Objective object encapsulating the GP-based information measure to
+        maximize.
+    transform:
+        Optional transform applied to candidate sensing locations before
+        evaluating the objective.
+    pbounds:
+        Dictionary mapping parameter names `'x0', 'x1', ...` to their search
+        bounds `(lower, upper)`, as required by `bayes_opt.BayesianOptimization`.
     """
 
     def __init__(self,
@@ -133,21 +190,39 @@ class BayesianOpt(Method):
                  objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
         """
-        Initializes the BayesianOpt optimizer.
+        Initialize a Bayesian optimization-based method.
 
-        Args:
-            num_sensing (int): Number of sensing locations to optimize.
-            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 Defaults to None.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
-                                         or an instance of an objective class. Defaults to 'SLogMI'.
-            **kwargs: Additional keyword arguments passed to the objective function.
+        Parameters
+        ----------
+        num_sensing:
+            Number of sensing locations per robot to optimize.
+        X_objective:
+            Array of shape `(n, d)` used to define the underlying objective.
+            The bounds of this set are used to define the BO search space.
+        kernel:
+            GPflow kernel used inside the objective.
+        noise_variance:
+            Observation noise variance used inside the objective.
+        transform:
+            Optional transform applied to the candidate solution before
+            evaluating the objective (and constraints). For example, an
+            `IPPTransform`.
+        num_robots:
+            Number of robots / agents. Defaults to 1.
+        X_candidates:
+            Optional discrete candidate set of locations with shape `(c, d)`.
+            If provided, the final continuous solution is snapped to the
+            nearest candidate locations.
+        num_dim:
+            Dimensionality of the sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`.
+        objective:
+            Objective specification. Either a string key understood by
+            `get_objective` (e.g. `'SLogMI'`, `'MI'`) or an already-instantiated
+            `Objective` object.
+        **kwargs:
+            Additional keyword arguments forwarded to the objective constructor
+            when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -159,7 +234,7 @@ class BayesianOpt(Method):
         else:
             self.objective = objective
 
-        # Use the boundaries of the X_objective area as the search space limits
+        # Use the coordinate-wise min/max of X_objective as BO bounds
         pbounds_dims: List[Tuple[float, float]] = []
         for i in range(self.num_dim):
             pbounds_dims.append(
@@ -171,20 +246,25 @@ class BayesianOpt(Method):
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the objective function.
+        Update the kernel and noise variance used by the underlying objective.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the objective.
+        Return the current kernel and noise variance used by the objective.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -196,31 +276,28 @@ class BayesianOpt(Method):
                  seed: Optional[int] = None,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes the sensor placement/path using Bayesian Optimization.
+        Run Bayesian optimization to obtain informative sensing locations.
 
-        Args:
-            max_steps (int): Maximum number of optimization steps (iterations). Defaults to 50.
-            init_points (int): Number of random exploration steps before Bayesian Optimization starts. Defaults to 10.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            seed (Optional[int]): Random seed for reproducibility. Defaults to None.
-            **kwargs: Additional keyword arguments for the optimizer.
+        Parameters
+        ----------
+        max_steps:
+            Number of Bayesian optimization iterations after the initial random
+            exploration. Defaults to 50.
+        init_points:
+            Number of purely random evaluations before BO starts. Defaults to 10.
+        verbose:
+            If `True`, print progress messages from `BayesianOptimization`.
+        seed:
+            Optional random seed to make BO reproducible.
+        **kwargs:
+            Extra keyword arguments forwarded to `BayesianOptimization`
+            (currently unused in this wrapper, but accepted for flexibility).
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
-
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            bo_method = BayesianOpt(
-                num_sensing=10,
-                X_objective=X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                transform=IPPTransform(num_robots=1), # Example transform
-                X_candidates=candidates
-            )
-            optimized_solution = bo_method.optimize(max_steps=50, init_points=10)
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            optimized sensing locations in the original coordinate space.
         """
         verbose = 1 if verbose else 0
         optimizer = BayesianOptimization(f=self._objective,
@@ -234,18 +311,19 @@ class BayesianOpt(Method):
         for i in range(self.num_dim * self.num_sensing * self.num_robots):
             sol.append(optimizer.max['params'][f'x{i}'])
 
+        # Reshape BO solution to (total_points, num_dim)
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
-            try:
-                sol_np = self.transform.expand(sol_np,
-                                               expand_sensor_model=False)
-            except TypeError:
-                pass
+            # Use the transform for constraints and internal path logic,
+            # but disable sensor model expansion (e.g., FoV) when returning
+            # waypoint locations.
+            sol_np = self.transform.expand(sol_np,
+                                           expand_sensor_model=False)
 
             if not isinstance(sol_np, np.ndarray):
                 sol_np = sol_np.numpy()
 
-        # Map solution locations to candidates set locations if X_candidates is provided
+        # Optionally snap to candidate set
         if self.X_candidates is not None:
             sol_np = cont2disc(sol_np, self.X_candidates)
 
@@ -254,18 +332,31 @@ class BayesianOpt(Method):
 
     def _objective(self, **kwargs: float) -> float:
         """
-        Internal objective function to be maximized by the Bayesian Optimization.
+        Objective function passed to `BayesianOptimization`.
 
-        This function reshapes the input parameters from the optimizer, applies
-        any specified transformations, calculates the objective value, and
-        applies a penalty for constraint violations.
+        Parameters are expected as a flattened dictionary `{ 'x0': ..., 'x1': ... }`,
+        which is reshaped into `(num_sensing * num_robots, num_dim)` to form
+        continuous sensing locations. The method:
 
-        Args:
-            **kwargs: Keyword arguments where keys are 'x0', 'x1', ..., representing
-                      the flattened sensor placement coordinates.
+        1. Reshapes the flattened vector into locations.
+        2. Optionally applies the `transform` (including constraints).
+        3. Evaluates the GP-based objective.
+        4. Adds the constraint penalty returned by the transform.
+        5. Returns the scalar objective as a Python float.
 
-        Returns:
-            float: The objective value (reward - constraint penalty) to be maximized.
+        The underlying objective is *maximized*. Transform constraints are
+        expected to return non-positive values, so larger violations produce
+        more negative penalties.
+
+        Parameters
+        ----------
+        **kwargs:
+            Flattened coordinates keyed by `'x0', 'x1', ...`.
+
+        Returns
+        -------
+        float
+            Objective value to be maximized by `BayesianOptimization`.
         """
         X_list: List[float] = []
         for i in range(len(kwargs)):
@@ -280,24 +371,36 @@ class BayesianOpt(Method):
         else:
             reward = self.objective(X)  # maximize
 
-        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
+        # Transform constraints are typically <= 0; adding them penalizes violations.
+        reward += constraint_penality
         return reward.numpy()
 
 
 class CMA(Method):
     """
-    Implements informative sensor placement/path optimization using CMA-ES (Covariance Matrix Adaptation Evolution Strategy).
+    Informative sensor placement / path optimization using CMA-ES
+    (Covariance Matrix Adaptation Evolution Strategy).
 
-    CMA-ES is a powerful black-box optimization algorithm for non-convex problems.
+    CMA-ES is a derivative-free, population-based genetic optimizer well-suited for
+    non-convex, non-smooth objectives. Here, it searches over the flattened
+    vector of sensing locations / waypoints.
 
-    Refer to the following paper for more details:
-        - Adaptive Continuous-Space Informative Path Planning for Online Environmental Monitoring [Hitz et al., 2017]
+    Reference
+    ---------
+    - Hitz et al., 2017. *Adaptive Continuous-Space Informative Path Planning
+      for Online Environmental Monitoring.*
 
-    Attributes:
-        objective (Objective): The objective function to be minimized/maximized.
-        transform (Optional[Transform]): Transform object applied to inducing points.
-        X_init (np.ndarray): Initial solution guess for the optimization.
-        pbounds (geometry.MultiPoint): The convex hull of the objective area, used implicitly for bounds.
+    Attributes
+    ----------
+    objective:
+        Objective object to evaluate information gain.
+    transform:
+        Optional transform applied to candidate solutions (e.g., for IPP / FoV).
+    X_init:
+        Flattened initial guess of the sensing locations.
+    pbounds:
+        Convex hull of the `X_objective` points, used as an implicit geometric
+        bound (not enforced directly by CMA-ES).
     """
 
     def __init__(self,
@@ -313,23 +416,41 @@ class CMA(Method):
                  X_init: Optional[np.ndarray] = None,
                  **kwargs: Any):
         """
-        Initializes the CMA-ES optimizer.
+        Initialize a CMA-ES-based optimization method.
 
-        Args:
-            num_sensing (int): Number of sensing locations to optimize.
-            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 Defaults to None.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
-                                         or an instance of an objective class. Defaults to 'SLogMI'.
-            X_init (Optional[np.ndarray]): (num_sensing * num_robots, num_dim); Initial guess for sensing locations.
-                                            If None, initial points are randomly selected from X_objective.
-            **kwargs: Additional keyword arguments passed to the objective function.
+        Parameters
+        ----------
+        num_sensing:
+            Number of sensing locations per robot.
+        X_objective:
+            Array of shape `(n, d)` used to define the GP objective and
+            to build the convex hull bounds.
+        kernel:
+            GPflow kernel used inside the objective.
+        noise_variance:
+            Observation noise variance used inside the objective.
+        transform:
+            Optional transform applied to candidate solutions before objective
+            evaluation and constraints.
+        num_robots:
+            Number of robots / agents. Defaults to 1.
+        X_candidates:
+            Optional discrete candidate set of locations with shape `(c, d)`.
+            If provided, continuous solutions are snapped to candidates.
+        num_dim:
+            Dimensionality of sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if `X_init`
+            is provided.
+        objective:
+            Objective specification, either a string key for
+            `get_objective` or a pre-instantiated `Objective`.
+        X_init:
+            Initial guess for the sensing locations, with shape
+            `(num_sensing * num_robots, num_dim)`. If `None`, an initial set
+            is selected via `get_inducing_pts`.
+        **kwargs:
+            Extra keyword arguments forwarded to the objective constructor
+            when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -338,7 +459,7 @@ class CMA(Method):
             X_init = get_inducing_pts(X_objective,
                                       num_sensing * self.num_robots)
         else:
-            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            # Override num_dim with the dimensionality of the initial solution
             self.num_dim = X_init.shape[-1]
 
         self.X_init: np.ndarray = X_init.reshape(-1)  # Flattened initial guess
@@ -349,27 +470,32 @@ class CMA(Method):
         else:
             self.objective = objective
 
-        # Use the boundaries of the X_objective area as the search space limits
+        # Use the convex hull of the objective inputs as a geometric bound
         self.pbounds = geometry.MultiPoint([[p[0], p[1]]
                                             for p in X_objective]).convex_hull
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the objective function.
+        Update the kernel and noise variance used by the objective.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the objective.
+        Return the current kernel and noise variance used by the objective.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -382,32 +508,31 @@ class CMA(Method):
                  restarts: int = 5,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes the sensor placement/path using CMA-ES.
+        Run CMA-ES to obtain informative sensing locations.
 
-        Args:
-            max_steps (int): Maximum number of optimization steps (function evaluations). Defaults to 500.
-            tol (float): Tolerance for termination. Defaults to 1e-6.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            seed (Optional[int]): Random seed for reproducibility. Defaults to None.
-            restarts (int): Number of restarts for CMA-ES. Defaults to 5.
-            **kwargs: Additional keyword arguments for CMA-ES.
+        Parameters
+        ----------
+        max_steps:
+            Maximum number of function evaluations (CMA-ES iterations). Defaults
+            to 500.
+        tol:
+            Function-value tolerance for termination (stopping criterion
+            passed to CMA). Defaults to `1e-6`.
+        verbose:
+            If `True`, CMA-ES prints progress messages.
+        seed:
+            Optional random seed for reproducibility.
+        restarts:
+            Number of CMA-ES restarts allowed. Defaults to 5.
+        **kwargs:
+            Additional keyword arguments forwarded to `cma.fmin2` (currently
+            unused in this wrapper but accepted for flexibility).
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
-
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            cma_method = CMA(
-                num_sensing=10,
-                X_objective=X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                transform=IPPTransform(num_robots=1), # Example transform
-                X_candidates=candidates
-            )
-            optimized_solution = cma_method.optimize(max_steps=1000)
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            optimized sensing locations.
         """
         sigma0 = 1.0
         verbose = 1 if verbose else 0
@@ -424,15 +549,12 @@ class CMA(Method):
 
         sol_np = np.array(sol).reshape(-1, self.num_dim)
         if self.transform is not None:
-            try:
-                sol_np = self.transform.expand(sol_np,
-                                               expand_sensor_model=False)
-            except TypeError:
-                pass
+            sol_np = self.transform.expand(sol_np,
+                                           expand_sensor_model=False)
             if not isinstance(sol_np, np.ndarray):
                 sol_np = sol_np.numpy()
 
-        # Map solution locations to candidates set locations if X_candidates is provided
+        # Snap to candidate set if provided
         if self.X_candidates is not None:
             sol_np = cont2disc(sol_np, self.X_candidates)
 
@@ -441,18 +563,32 @@ class CMA(Method):
 
     def _objective(self, X: np.ndarray) -> float:
         """
-        Internal objective function to be minimized by CMA-ES.
+        Objective function passed to CMA-ES (to be *minimized*).
 
-        This function reshapes the input array, applies any specified transformations,
-        calculates the objective value, and applies a penalty for constraint violations.
-        Note: CMA-ES minimizes, so the reward (which is to be maximized) is returned as negative.
+        The internal objective (e.g., mutual information) is naturally
+        maximized. CMA-ES, however, minimizes. To reconcile this, the method
+        returns `-reward` (plus any constraint penalty), where `reward`
+        is the value returned by the underlying objective.
 
-        Args:
-            X (np.ndarray): (num_sensing * num_robots * num_dim); Flattened array of
-                            current solution sensor placement locations.
+        Steps:
+        1. Reshape the flattened input `X` to `(num_points, num_dim)`.
+        2. Optionally apply the transform (including constraints).
+        3. Evaluate the GP-based objective (reward).
+        4. Add the constraint penalty.
+        5. Return the negative of this value as a Python float.
 
-        Returns:
-            float: The negative objective value (-reward + constraint penalty) to be minimized.
+        Parameters
+        ----------
+        X:
+            Flattened array of length `num_sensing * num_robots * num_dim`
+            containing the current candidate solution.
+
+        Returns
+        -------
+        float
+            Negative objective value to be minimized by CMA-ES. Large positive
+            returns correspond to poor solutions; large negative returns
+            correspond to good solutions.
         """
         X_reshaped = np.array(X).reshape(-1, self.num_dim)
         constraint_penality: float = 0.0
@@ -463,41 +599,55 @@ class CMA(Method):
         else:
             reward = self.objective(X_reshaped)  # maximize
         if not np.isfinite(reward):
-            reward = -1e6 # CMA does not like inf values
-        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
-        return -reward.numpy()  # Return negative as CMA-ES minimizes
+            reward = -1e6  # CMA does not handle inf values
+
+        # Transform constraints are typically <= 0; adding them penalizes violations.
+        reward += constraint_penality
+        return -reward.numpy()  # CMA-ES minimizes
 
     def update_transform(self, transform: Transform) -> None:
         """
-        Updates the transform object used by the CMA-ES optimizer.
+        Replace the transform used by the CMA-ES method.
 
-        Args:
-            transform (Transform): The new transform object.
+        Parameters
+        ----------
+        transform:
+            New `Transform` instance to use for expansion and constraints.
         """
         self.transform = transform
 
     def get_transform(self) -> Transform:
         """
-        Retrieves a deep copy of the transform object.
+        Return a deep copy of the transform used by this method.
 
-        Returns:
-            Transform: A deep copy of the transform object.
+        Returns
+        -------
+        Transform
+            Deep copy of the current transform.
         """
         return deepcopy(self.transform)
 
 
 class ContinuousSGP(Method):
     """
-    Implements informative sensor placement/path optimization using a Sparse Gaussian Process (SGP).
+    Informative sensing / path optimization via direct optimization of
+    Sparse Gaussian Process (SGP) inducing points.
 
-    This method optimizes the inducing points of an SGP model to maximize the ELBO or other SGP-related objectives.
+    This method treats the inducing locations of an `AugmentedSGPR` model as
+    the decision variables and optimizes them with respect to the SGP's ELBO
+    (or another internal objective implemented by `AugmentedSGPR`).
 
-    Refer to the following papers for more details:
-        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
-        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [[Jakkala and Akella, 2024](https://www.itskalvik.com/publication/sgp-ipp/)]
+    References
+    ----------
+    - Jakkala & Akella, 2024. *Multi-Robot Informative Path Planning from
+      Regression with Sparse Gaussian Processes.*
+    - Jakkala & Akella, 2025. *Fully differentiable sensor placement and 
+      informative path planning.*
 
-    Attributes:
-        sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.
+    Attributes
+    ----------
+    sgpr:
+        `AugmentedSGPR` model whose inducing points are being optimized.
     """
 
     def __init__(self,
@@ -514,25 +664,45 @@ class ContinuousSGP(Method):
                  orientation: bool = False,
                  **kwargs: Any):
         """
-        Initializes the ContinuousSGP optimizer.
+        Initialize a continuous SGP-based optimization method.
 
-        Args:
-            num_sensing (int): Number of sensing locations (inducing points) to optimize.
-            X_objective (np.ndarray): (n, d); Data points used to approximate the bounds of the environment.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 Defaults to None.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial inducing points.
-                                            If None, initial points are randomly selected from X_objective.
-            X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when
-                                            modeling spatio-temporal IPP. Defaults to None.
-            orientation (bool): If True, adds an additional dimension to model sensor FoV rotation angle
-                                when selecting initial inducing points. Defaults to False.
-            **kwargs: Additional keyword arguments.
+        Parameters
+        ----------
+        num_sensing:
+            Number of inducing points (sensing locations) per robot.
+        X_objective:
+            Array of shape `(n, d)` used to define the spatial domain and
+            training inputs for the SGP.
+        kernel:
+            GPflow kernel for the SGP model.
+        noise_variance:
+            Observation noise variance for the SGP model.
+        transform:
+            Optional `Transform` to apply to inducing points for IPP or FoV
+            modeling. Passed directly into `AugmentedSGPR`.
+        num_robots:
+            Number of robots / agents. The total number of inducing points is
+            `num_sensing * num_robots`. Defaults to 1.
+        X_candidates:
+            Optional candidate set `(c, d)` used to snap the final continuous
+            inducing locations to discrete locations.
+        num_dim:
+            Dimensionality of sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if an initial
+            solution is provided.
+        X_init:
+            Initial inducing points with shape `(num_sensing * num_robots, d)`.
+            If `None`, points are chosen via `get_inducing_pts`. If given,
+            its dimensionality overrides `num_dim`.
+        X_time:
+            Optional temporal coordinates (e.g. for spatio-temporal models),
+            passed as `inducing_variable_time` to `AugmentedSGPR`.
+        orientation:
+            If `True` and `X_init` is not provided, `get_inducing_pts` is
+            allowed to include an orientation dimension for the inducing points.
+        **kwargs:
+            Additional keyword arguments forwarded to `AugmentedSGPR` if needed
+            (currently unused here but accepted for flexibility).
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -541,7 +711,7 @@ class ContinuousSGP(Method):
                                       num_sensing * self.num_robots,
                                       orientation=orientation)
         else:
-            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            # Override num_dim with the dimensionality of the initial inducing points
             self.num_dim = X_init.shape[-1]
 
         # Initialize the SGP
@@ -561,20 +731,25 @@ class ContinuousSGP(Method):
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the SGP model.
+        Update the kernel and noise variance used by the SGP model.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.sgpr.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the SGP model.
+        Return the current kernel and noise variance of the SGP model.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current likelihood variance.
         """
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
@@ -585,31 +760,29 @@ class ContinuousSGP(Method):
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes the inducing points of the SGP model.
+        Optimize the inducing points of the SGP model.
 
-        Args:
-            max_steps (int): Maximum number of optimization steps. Defaults to 500.
-            optimizer (str): Optimizer "<backend>.<method>" to use for training (e.g., 'scipy.L-BFGS-B', 'tf.adam').
-                             Defaults to 'scipy.L-BFGS-B'.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            **kwargs: Additional keyword arguments for the optimizer.
+        The ELBO (or equivalent objective defined within `AugmentedSGPR`) is
+        optimized w.r.t. the inducing locations only; kernel hyperparameters
+        are kept fixed.
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized inducing points (sensing locations).
+        Parameters
+        ----------
+        max_steps:
+            Maximum number of optimization steps. Defaults to 500.
+        optimizer:
+            Optimizer specification in the form `"backend.method"` (e.g.
+            `'scipy.L-BFGS-B'`, `'tf.adam'`), as expected by `optimize_model`.
+        verbose:
+            If `True`, print progress information during optimization.
+        **kwargs:
+            Extra keyword arguments forwarded to `optimize_model`.
 
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            csgp_method = ContinuousSGP(
-                num_sensing=10,
-                X_objective=dataset.X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                transform=IPPTransform(num_robots=1), # Example transform
-                X_candidates=candidates # Only if the solution needs to be mapped to candidates
-            )
-            optimized_solution = csgp_method.optimize(max_steps=500, optimizer='scipy.L-BFGS-B')
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            optimized inducing locations.
         """
         _ = optimize_model(
             self.sgpr,
@@ -621,17 +794,14 @@ class ContinuousSGP(Method):
             **kwargs)
 
         sol: tf.Tensor = self.sgpr.inducing_variable.Z
-        try:
-            sol_expanded = self.transform.expand(sol,
-                                                 expand_sensor_model=False)
-        except TypeError:
-            sol_expanded = sol
+        sol_expanded = self.transform.expand(sol,
+                                             expand_sensor_model=False)
         if not isinstance(sol_expanded, np.ndarray):
             sol_np = sol_expanded.numpy()
         else:
             sol_np = sol_expanded
 
-        # Map solution locations to candidates set locations if X_candidates is provided
+        # Snap to candidate set if provided
         if self.X_candidates is not None:
             sol_np = cont2disc(sol_np, self.X_candidates)
 
@@ -641,28 +811,39 @@ class ContinuousSGP(Method):
     @property
     def transform(self) -> Transform:
         """
-        Gets the transform object associated with the SGP model.
+        Transform associated with the underlying SGP model.
 
-        Returns:
-            Transform: The transform object.
+        Returns
+        -------
+        Transform
+            The `Transform` instance used by `AugmentedSGPR`.
         """
         return self.sgpr.transform
 
 
 class GreedyObjective(Method):
     """
-    Implements informative sensor placement/path optimization using a greedy approach based on a specified objective function.
+    Informative sensor placement / path optimization using a greedy selection
+    based on a generic objective function.
 
-    This method iteratively selects the best sensing location from a set of candidates
-    that maximizes the objective function. It currently supports only single-robot scenarios.
+    The method iteratively adds sensing locations from a discrete candidate
+    set to maximize a user-specified objective (e.g., mutual information),
+    using `apricot.CustomSelection` as the selection engine. Only single-robot
+    scenarios are supported.
 
-    Refer to the following papers for more details:
-        - Near-Optimal Sensor Placements in Gaussian Processes: Theory, Efficient Algorithms and Empirical Studies [Krause et al., 2008]
-        - Data-driven learning and planning for environmental sampling [Ma et al., 2018]
+    References
+    ----------
+    - Krause et al., 2008. *Near-Optimal Sensor Placements in Gaussian
+      Processes: Theory, Efficient Algorithms and Empirical Studies.*
+    - Ma et al., 2018. *Data-driven learning and planning for environmental
+      sampling.*
 
-    Attributes:
-        objective (Objective): The objective function to be maximized (e.g., Mutual Information).
-        transform (Optional[Transform]): Transform object applied to selected locations.
+    Attributes
+    ----------
+    objective:
+        Objective object to maximize over the chosen locations.
+    transform:
+        Optional transform applied to selected locations.
     """
 
     def __init__(self,
@@ -677,21 +858,37 @@ class GreedyObjective(Method):
                  objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
         """
-        Initializes the GreedyObjective optimizer.
+        Initialize a greedy objective-based method.
 
-        Args:
-            num_sensing (int): Number of sensing locations to select.
-            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 If None, X_objective is used as candidates.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
-                                         or an instance of an objective class. Defaults to 'SLogMI'.
-            **kwargs: Additional keyword arguments passed to the objective function.
+        Parameters
+        ----------
+        num_sensing:
+            Number of sensing locations to select.
+        X_objective:
+            Array of shape `(n, d)` used to define the objective (e.g. GP
+            training inputs).
+        kernel:
+            GPflow kernel used inside the objective.
+        noise_variance:
+            Observation noise variance used inside the objective.
+        transform:
+            Optional transform applied to selected locations before evaluating
+            the objective and constraints.
+        num_robots:
+            Number of robots / agents. `GreedyObjective` currently supports
+            only `num_robots = 1` and will assert otherwise.
+        X_candidates:
+            Discrete candidate locations with shape `(c, d)`. If `None`,
+            defaults to `X_objective`.
+        num_dim:
+            Dimensionality of the sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`.
+        objective:
+            Objective specification (string key or `Objective` instance) used
+            by `get_objective` when a string is given.
+        **kwargs:
+            Additional keyword arguments forwarded to the objective constructor
+            when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -721,20 +918,25 @@ class GreedyObjective(Method):
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the objective function.
+        Update the kernel and noise variance used by the objective.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the objective.
+        Return the current kernel and noise variance used by the objective.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -744,28 +946,24 @@ class GreedyObjective(Method):
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes sensor placement using a greedy approach.
+        Run greedy selection over the candidate set.
 
-        Args:
-            optimizer (str): The greedy optimizer strategy (e.g., 'naive', 'lazy'). Defaults to 'naive'.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            **kwargs: Additional keyword arguments.
+        Parameters
+        ----------
+        optimizer:
+            Greedy strategy identifier passed to `apricot.CustomSelection`
+            (e.g., `'naive'`, `'lazy'`).
+        verbose:
+            If `True`, print progress information from apricot.
+        **kwargs:
+            Additional keyword arguments forwarded to `CustomSelection`
+            (currently unused in this wrapper but accepted for flexibility).
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
-
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            greedy_obj_method = GreedyObjective(
-                num_sensing=5,
-                X_objective=X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                X_candidates=candidates
-            )
-            optimized_solution = greedy_obj_method.optimize(optimizer='naive')
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            selected sensing locations.
         """
         model = CustomSelection(self.num_sensing,
                                 self._objective,
@@ -780,11 +978,8 @@ class GreedyObjective(Method):
 
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
         if self.transform is not None:
-            try:
-                sol_locations = self.transform.expand(
-                    sol_locations, expand_sensor_model=False)
-            except TypeError:
-                pass
+            sol_locations = self.transform.expand(
+                sol_locations, expand_sensor_model=False)
             if not isinstance(sol_locations, np.ndarray):
                 sol_locations = sol_locations.numpy()
         sol_locations = sol_locations.reshape(self.num_robots, -1,
@@ -793,17 +988,26 @@ class GreedyObjective(Method):
 
     def _objective(self, X_indices: np.ndarray) -> float:
         """
-        Internal objective function for the greedy selection.
+        Objective callback used by `apricot.CustomSelection`.
 
-        This function maps the input indices to actual locations, applies any
-        transformations, calculates the objective value, and applies a penalty
-        for constraint violations.
+        The input is an array of candidate indices. The method:
+        1. Maps indices to candidate locations.
+        2. Optionally applies the transform (and constraints).
+        3. Evaluates the underlying objective.
+        4. Adds the transform constraint penalty.
+        5. Returns the resulting scalar as a Python float.
 
-        Args:
-            X_indices (np.ndarray): (n, 1); Array of indices corresponding to candidate locations.
+        Parameters
+        ----------
+        X_indices:
+            Array of shape `(n, 1)` containing indices into `self.X_objective`
+            / `self.X_candidates`.
 
-        Returns:
-            float: The objective value (reward - constraint penalty) for the given selection.
+        Returns
+        -------
+        float
+            Objective value to be maximized by apricot's greedy selection
+            routine.
         """
         # Map solution location indices to locations
         X_indices_flat = np.array(X_indices).reshape(-1).astype(int)
@@ -818,22 +1022,27 @@ class GreedyObjective(Method):
         else:
             reward = self.objective(X_locations)  # maximize
 
-        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
+        reward += constraint_penality
         return reward.numpy()
 
 
 class GreedySGP(Method):
     """
-    Implements informative sensor placement/path optimization using a greedy approach combined with a Sparse Gaussian Process (SGP) ELBO objective.
+    Greedy sensing / placement using a Sparse GP (SGP) ELBO objective.
 
-    This method iteratively selects inducing points to maximize the SGP's ELBO.
-    It currently supports only single-robot scenarios.
+    At each greedy step, candidate inducing points are selected and used to
+    update the inducing variables of an `AugmentedSGPR` model, and the ELBO
+    is evaluated. Only single-robot settings are currently supported.
 
-    Refer to the following papers for more details:
-        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [[Jakkala and Akella, 2023](https://www.itskalvik.com/publication/sgp-sp/)]
+    Reference
+    ---------
+    - Jakkala & Akella, 2025. *Fully differentiable sensor placement and 
+      informative path planning.*
 
-    Attributes:
-        sgpr (AugmentedSGPR): The Augmented Sparse Gaussian Process Regression model.
+    Attributes
+    ----------
+    sgpr:
+        `AugmentedSGPR` model whose ELBO is used as greedy objective.
     """
 
     def __init__(self,
@@ -847,19 +1056,33 @@ class GreedySGP(Method):
                  num_dim: Optional[int] = None,
                  **kwargs: Any):
         """
-        Initializes the GreedySGP optimizer.
+        Initialize a greedy SGP-based method.
 
-        Args:
-            num_sensing (int): Number of sensing locations (inducing points) to select.
-            X_objective (np.ndarray): (n, d); Data points used to train the SGP model.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 If None, X_objective is used as candidates.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            **kwargs: Additional keyword arguments.
+        Parameters
+        ----------
+        num_sensing:
+            Number of inducing points to select.
+        X_objective:
+            Array of shape `(n, d)` used as training inputs for the SGP model.
+        kernel:
+            GPflow kernel for the SGP model.
+        noise_variance:
+            Observation noise variance for the SGP model.
+        transform:
+            Optional `Transform` applied to inducing points inside the SGP
+            model (e.g., IPP transforms).
+        num_robots:
+            Number of robots / agents. `GreedySGP` currently supports only
+            `num_robots = 1` and will assert otherwise.
+        X_candidates:
+            Discrete candidate set `(c, d)`. If `None`, defaults to
+            `X_objective`.
+        num_dim:
+            Dimensionality of sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`.
+        **kwargs:
+            Additional keyword arguments accepted for forward compatibility
+            (unused here).
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -896,20 +1119,25 @@ class GreedySGP(Method):
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the SGP model.
+        Update the kernel and noise variance used by the SGP model.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.sgpr.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the SGP model.
+        Return the current kernel and noise variance of the SGP model.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current likelihood variance.
         """
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
@@ -919,28 +1147,24 @@ class GreedySGP(Method):
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes sensor placement using a greedy SGP approach.
+        Run greedy selection using the SGP's ELBO as objective.
 
-        Args:
-            optimizer (str): The greedy optimizer strategy (e.g., 'naive', 'lazy'). Defaults to 'naive'.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            **kwargs: Additional keyword arguments.
+        Parameters
+        ----------
+        optimizer:
+            Greedy strategy identifier passed to `apricot.CustomSelection`
+            (e.g., `'naive'`, `'lazy'`).
+        verbose:
+            If `True`, print progress information from apricot.
+        **kwargs:
+            Additional keyword arguments forwarded to `CustomSelection`
+            (currently unused here but accepted for flexibility).
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
-
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            greedy_sgp_method = GreedySGP(
-                num_sensing=5,
-                X_objective=X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                X_candidates=candidates
-            )
-            optimized_solution = greedy_sgp_method.optimize(optimizer='naive')
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            selected sensing locations.
         """
         model = CustomSelection(self.num_sensing,
                                 self._objective,
@@ -954,11 +1178,8 @@ class GreedySGP(Method):
         sol_locations = self.X_candidates[sol_indices]
 
         sol_locations = np.array(sol_locations).reshape(-1, self.num_dim)
-        try:
-            sol_expanded = self.transform.expand(sol_locations,
-                                                 expand_sensor_model=False)
-        except AttributeError:
-            sol_expanded = sol_locations
+        sol_expanded = self.transform.expand(sol_locations,
+                                             expand_sensor_model=False)
         if not isinstance(sol_expanded, np.ndarray):
             sol_np = sol_expanded.numpy()
         else:
@@ -969,17 +1190,25 @@ class GreedySGP(Method):
 
     def _objective(self, X_indices: np.ndarray) -> float:
         """
-        Internal objective function for the greedy SGP selection.
+        Objective callback used by `apricot.CustomSelection` for greedy SGP.
 
-        This function maps the input indices to actual locations and updates
-        the SGP model's inducing points to calculate the ELBO. The ELBO is
-        then used as the objective for greedy maximization.
+        Given a (possibly partial) set of indices, this method:
+        1. Maps indices to candidate locations.
+        2. Pads the selection to `num_sensing` points (so the SGP remains well-defined).
+        3. Updates the SGP's inducing variables.
+        4. Returns the SGP ELBO for the resulting inducing set.
 
-        Args:
-            X_indices (np.ndarray): (n, 1); Array of indices corresponding to candidate locations.
+        Parameters
+        ----------
+        X_indices:
+            Array of shape `(n, 1)` containing indices into `self.X_objective`
+            / `self.X_candidates`.
 
-        Returns:
-            float: The ELBO of the SGP model for the given inducing points.
+        Returns
+        -------
+        float
+            ELBO value of the SGP model for this inducing set, as a Python
+            float. Larger values correspond to better selections.
         """
         # Map solution location indices to locations
         # Since SGP requires num_sensing points,
@@ -1007,31 +1236,38 @@ class GreedySGP(Method):
     @property
     def transform(self) -> Transform:
         """
-        Gets the transform object associated with the SGP model.
+        Transform associated with the underlying SGP model.
 
-        Returns:
-            Transform: The transform object.
+        Returns
+        -------
+        Transform
+            The `Transform` instance used by `AugmentedSGPR`.
         """
         return self.sgpr.transform
 
 
 class DifferentiableObjective(Method):
     """
-    Implements informative sensor placement/path planning optimization by directly
-    differentiating through the objective function.
+    Informative sensor placement / path planning by directly differentiating
+    through the objective function.
 
-    This method leverages TensorFlow's automatic differentiation capabilities to
-    optimize the sensing locations (or path waypoints) by treating them as
-    trainable variables and minimizing a given objective function (e.g., Mutual
-    Information). This approach can be more efficient than black-box methods like
-    Bayesian Optimization or CMA-ES, especially when the objective function is
-    smooth. However, the method is also more prone to getting stuck in local minima.
+    The sensing locations (or waypoints) are represented as TensorFlow
+    variables, and a first-order optimizer (e.g., L-BFGS, Adam) is used to
+    minimize a scalar loss built from the objective and constraints. This can
+    be more sample-efficient than black-box methods, but is more sensitive to
+    local minima.
 
-    Attributes:
-        transform (Optional[Transform]): Transform object to apply to the solution.
-        X_sol (tf.Variable): The solution (e.g., sensor locations) being optimized.
-        objective (Objective): The objective function to be optimized.
+    Attributes
+    ----------
+    transform:
+        Optional transform applied to the current solution.
+    X_sol:
+        TensorFlow variable representing the current solution locations.
+    objective:
+        Objective object that maps (transformed) sensing locations to a scalar
+        value.
     """
+
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -1047,27 +1283,47 @@ class DifferentiableObjective(Method):
                  orientation: bool = False,
                  **kwargs: Any):
         """
-        Initializes the DifferentiableObjective optimizer.
+        Initialize a differentiable-objective method.
 
-        Args:
-            num_sensing (int): Number of sensing locations to optimize.
-            X_objective (np.ndarray): (n, d); Data points used to define the objective function.
-            kernel (gpflow.kernels.Kernel): GPflow kernel function.
-            noise_variance (float): Data noise variance.
-            transform (Optional[Transform]): Transform object to apply to inducing points. Defaults to None.
-            num_robots (int): Number of robots/agents. Defaults to 1.
-            X_candidates (Optional[np.ndarray]): (c, d); Discrete set of candidate locations for sensor placement.
-                                                 Defaults to None.
-            num_dim (Optional[int]): Dimensionality of the sensing locations. Defaults to dimensonality of X_objective.
-            objective (Union[str, Objective]): The objective function to use. Can be a string (e.g., 'SLogMI', 'MI')
-                                         or an instance of an objective class. Defaults to 'SLogMI'.
-            X_init (Optional[np.ndarray]): (num_sensing * num_robots, d); Initial solution.
-                                            If None, initial points are randomly selected from X_objective.
-            X_time (Optional[np.ndarray]): (m, d); Temporal dimensions of the inducing points, used when
-                                            modeling spatio-temporal IPP. Defaults to None.
-            orientation (bool): If True, adds an additional dimension to model sensor FoV rotation angle
-                                when selecting initial inducing points. Defaults to False.
-            **kwargs: Additional keyword arguments passed to the objective function.
+        Parameters
+        ----------
+        num_sensing:
+            Number of sensing locations per robot.
+        X_objective:
+            Array of shape `(n, d)` used to define the objective (e.g., GP
+            training inputs).
+        kernel:
+            GPflow kernel used inside the objective.
+        noise_variance:
+            Observation noise variance used inside the objective.
+        transform:
+            Optional transform applied to the solution before evaluating the
+            objective and constraints.
+        num_robots:
+            Number of robots / agents. The total number of optimized points is
+            `num_sensing * num_robots`.
+        X_candidates:
+            Optional candidate set `(c, d)` to which the final continuous
+            solution can be snapped.
+        num_dim:
+            Dimensionality of sensing locations. If `None`, defaults to
+            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if given.
+        objective:
+            Objective specification (string key or `Objective` instance) used to
+            construct the reward function.
+        X_init:
+            Initial sensing locations with shape `(num_sensing * num_robots, d)`.
+            If `None`, points are selected via `get_inducing_pts`. If given,
+            its dimensionality overrides `num_dim`.
+        X_time:
+            (Reserved for future use with spatio-temporal models; not used
+            directly here.)
+        orientation:
+            If `True` and `X_init` is not provided, `get_inducing_pts` may add
+            an orientation dimension to the initial points.
+        **kwargs:
+            Additional keyword arguments forwarded to the objective constructor
+            when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -1080,7 +1336,7 @@ class DifferentiableObjective(Method):
                                       num_sensing * self.num_robots,
                                       orientation=orientation)
         else:
-            # override num_dim with initial inducing points dim, in case it differes from X_objective dim
+            # Override num_dim with the dimensionality of the initial solution
             self.num_dim = X_init.shape[-1]
         self.X_sol = tf.Variable(X_init, dtype=X_init.dtype)
 
@@ -1093,58 +1349,60 @@ class DifferentiableObjective(Method):
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
         """
-        Updates the kernel and noise variance parameters of the objective function.
+        Update the kernel and noise variance used by the objective.
 
-        Args:
-            kernel (gpflow.kernels.Kernel): Updated GPflow kernel function.
-            noise_variance (float): Updated data noise variance.
+        Parameters
+        ----------
+        kernel:
+            New GPflow kernel instance.
+        noise_variance:
+            New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
         """
-        Retrieves the current kernel and noise variance hyperparameters from the objective.
+        Return the current kernel and noise variance used by the objective.
 
-        Returns:
-            Tuple[gpflow.kernels.Kernel, float]: A tuple containing a deep copy of the kernel and the noise variance.
+        Returns
+        -------
+        (gpflow.kernels.Kernel, float)
+            A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
-    
+
     def optimize(self,
                  max_steps: int = 500,
                  optimizer: str = 'scipy.L-BFGS-B',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
         """
-        Optimizes the sensor placement/path by differentiating through the objective function.
+        Optimize sensing locations by differentiating through the objective.
 
-        Args:
-            max_steps (int): Maximum number of optimization steps. Defaults to 500.
-            optimizer (str): Optimizer "<backend>.<method>" to use for training (e.g., 'scipy.L-BFGS-B', 'tf.adam').
-                             Defaults to 'scipy.L-BFGS-B'.
-            verbose (bool): Verbosity, if True additional details will by reported. Defaults to False.
-            **kwargs: Additional keyword arguments for the optimizer.
+        `self.X_sol` is treated as a trainable variable and optimized using the
+        specified optimizer and the internal `_objective` as the scalar loss.
 
-        Returns:
-            np.ndarray: (num_robots, num_sensing, num_dim); Optimized sensing locations.
+        Parameters
+        ----------
+        max_steps:
+            Maximum number of optimization steps. Defaults to 500.
+        optimizer:
+            Optimizer specification `"backend.method"` (e.g., `'scipy.L-BFGS-B'`,
+            `'tf.adam'`) passed to `optimize_model`.
+        verbose:
+            If `True`, print progress information during optimization.
+        **kwargs:
+            Extra keyword arguments forwarded to `optimize_model`.
 
-        Usage:
-            ```python
-            # Assuming X_train, candidates, kernel_opt, noise_variance_opt are defined
-            diff_obj_method = DifferentiableObjective(
-                num_sensing=10,
-                X_objective=X_train,
-                kernel=kernel_opt,
-                noise_variance=noise_variance_opt,
-                transform=IPPTransform(num_robots=1), # Example transform
-                X_candidates=candidates
-            )
-            optimized_solution = diff_obj_method.optimize(max_steps=500, optimizer='scipy.L-BFGS-B')
-            ```
+        Returns
+        -------
+        np.ndarray
+            Array of shape `(num_robots, num_sensing, num_dim)` containing the
+            optimized sensing locations.
         """
         _ = optimize_model(
-            training_loss = self._objective,
+            training_loss=self._objective,
             max_steps=max_steps,
             trainable_variables=[self.X_sol],
             optimizer=optimizer,
@@ -1152,43 +1410,51 @@ class DifferentiableObjective(Method):
             **kwargs)
 
         sol: tf.Tensor = self.X_sol
-        try:
-            sol_expanded = self.transform.expand(sol,
-                                                 expand_sensor_model=False)
-        except TypeError:
-            sol_expanded = sol
-        if not isinstance(sol_expanded, np.ndarray):
-            sol_np = sol_expanded.numpy()
+        if self.transform is not None:
+            sol = self.transform.expand(sol,
+                                        expand_sensor_model=False)
+        if not isinstance(sol, np.ndarray):
+            sol_np = sol.numpy()
         else:
-            sol_np = sol_expanded
+            sol_np = sol
 
-        # Map solution locations to candidates set locations if X_candidates is provided
+        # Snap to candidate set if provided
         if self.X_candidates is not None:
             sol_np = cont2disc(sol_np, self.X_candidates)
 
         sol_np = sol_np.reshape(self.num_robots, -1, self.num_dim)
         return sol_np
-    
+
     def _objective(self) -> float:
         """
-        Internal objective function to be minimized by the optimizer.
+        Scalar loss function used by `optimize_model`.
 
-        This function applies any specified transformations to the current solution,
-        calculates the objective value, and applies a penalty for constraint
-        violations.
+        The objective is built as:
 
-        Returns:
-            float: The objective value (reward + constraint penalty).
+        .. code-block:: text
+
+            loss = objective(X_expanded) + constraint_penalty
+
+        where both terms are produced by the `Transform`. Depending on the
+        sign conventions of `objective` and `constraints`, this loss can be
+        interpreted as either a negative reward or a penalized reward. The
+        optimizer *minimizes* this loss.
+
+        Returns
+        -------
+        tf.Tensor
+            Scalar TensorFlow value representing the loss to minimize.
         """
         constraint_penality: float = 0.0
         if self.transform is not None:
             X_expanded = self.transform.expand(self.X_sol)
             constraint_penality = self.transform.constraints(self.X_sol)
-            reward = self.objective(X_expanded)  # maximize
+            reward = self.objective(X_expanded)  # maximize (before sign handling)
         else:
-            reward = self.objective(self.X_sol)  # maximize
+            reward = self.objective(self.X_sol)  # maximize (before sign handling)
 
-        reward += constraint_penality  # minimize (large negative value when constraint is unsatisfied)
+        # Transform constraints are typically <= 0; adding them penalizes violations.
+        reward += constraint_penality
         return reward
 
 
@@ -1204,24 +1470,36 @@ METHODS: Dict[str, Type[Method]] = {
 
 def get_method(method: str) -> Type[Method]:
     """
-    Retrieves an optimization method class by its string name.
+    Retrieve an optimization method class by name.
 
-    Args:
-        method (str): The name of the optimization method (e.g., 'ContinuousSGP', 'CMA').
+    Parameters
+    ----------
+    method:
+        Name of the optimization method. Must be one of the keys in
+        :data:`METHODS`, e.g. `'ContinuousSGP'`, `'CMA'`, `'BayesianOpt'`,
+        `'GreedyObjective'`, etc.
 
-    Returns:
-        Type[Method]: The class of the requested optimization method.
+    Returns
+    -------
+    Type[Method]
+        The corresponding method class.
 
-    Raises:
-        KeyError: If the method name is not found.
+    Raises
+    ------
+    KeyError
+        If `method` is not a valid key in :data:`METHODS`.
 
-    Usage:
-        ```python
-        # To get the ContinuousSGP class
-        ContinuousSGPClass = get_method('ContinuousSGP')
-        # You can then instantiate it:
-        # CSGP_instance = ContinuousSGPClass(...)
-        ```
+    Usage
+    --------
+    ```python
+    ContinuousSGPClass = get_method('ContinuousSGP')
+    csgp = ContinuousSGPClass(
+        num_sensing=10,
+        X_objective=X_train,
+        kernel=kernel_opt,
+        noise_variance=noise_var_opt,
+    )
+    ```
     """
     if method not in METHODS:
         raise KeyError(f"Method '{method}' not found. Available methods: {', '.join(METHODS.keys())}")
