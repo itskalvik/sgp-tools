@@ -139,12 +139,12 @@ High-resolution topography and bathymetry data can be downloaded from [NOAA Digi
 Please consider citing the following papers if you use SGP-Tools in your academic work 😄
 
 ```
-@misc{JakkalaA23SP,
-AUTHOR={Kalvik Jakkala and Srinivas Akella},
-TITLE={Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces},
-NOTE= {Preprint},
-YEAR={2023},
-URL={https://www.itskalvik.com/research/publication/sgp-sp/},
+@article{JakkalaA25,
+author={Kalvik Jakkala and Srinivas Akella},
+title ={Fully differentiable sensor placement and informative path planning},
+journal = {The International Journal of Robotics Research},
+year = {2025},
+URL={https://www.itskalvik.com/publication/sgp-foundation/},
 }
 
 @inproceedings{JakkalaA24IPP,
@@ -153,7 +153,7 @@ TITLE={Multi-Robot Informative Path Planning from Regression with Sparse Gaussia
 booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
 YEAR={2024},
 PUBLISHER = {{IEEE}},
-URL={https://www.itskalvik.com/research/publication/sgp-ipp/}
+URL={https://www.itskalvik.com/publication/sgp-ipp/}
 }
 
 @inproceedings{JakkalaA25AIPP,
@@ -162,7 +162,7 @@ TITLE={Fully Differentiable Adaptive Informative Path Planning},
 booktitle={IEEE International Conference on Robotics and Automation, {ICRA}},
 YEAR={2025},
 PUBLISHER = {{IEEE}},
-URL={https://www.itskalvik.com/research/publication/sgp-aipp/}
+URL={https://www.itskalvik.com/publication/sgp-aipp/}
 }
 ``` 
 
