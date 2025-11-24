@@ -53,7 +53,8 @@ def run_tsp(
             `nodes`). If None, no distance constraint is enforced.
         depth: Recursion depth used internally for retry logic.
         resample: If provided, each solution path is resampled to this many
-            points.
+            points. When not None, the returned `paths` object is a NumPy array
+            of shape `(num_vehicles, resample, ndim)`.
         start_nodes: Array of shape (num_vehicles, ndim). Optional start node
             for each vehicle.
         end_nodes: Array of shape (num_vehicles, ndim). Optional end node for
@@ -75,8 +76,12 @@ def run_tsp(
             (paths, distances, paths_indices)
 
         Where:
-          * paths: list of np.ndarray, one per vehicle, each of shape
-            (num_waypoints, ndim). None if no solution was found.
+          * paths:
+                - If `resample` is None: list of np.ndarray, one per vehicle,
+                  each of shape (num_waypoints, ndim).
+                - If `resample` is not None: a single np.ndarray of shape
+                  (num_vehicles, resample, ndim).
+            None if no solution was found.
           * distances: list of floats, one per vehicle, with total path length
             for each vehicle. None if no solution was found.
           * paths_indices: list of 1D np.ndarrays of node indices (into the
@@ -283,10 +288,15 @@ def run_tsp(
     # Optional resampling of each path
     if resample is not None:
         paths = [resample_path(path, resample) for path in paths]
+        # All resampled paths should have the same length = resample,
+        # so we can safely stack into a single NumPy array:
+        paths_out = np.stack(paths, axis=0)  # (num_vehicles, resample, ndim)
+    else:
+        paths_out = paths  # keep the original list-of-arrays behavior
 
     if return_indices:
-        return paths, distances, paths_indices
-    return paths, distances
+        return paths_out, distances, paths_indices
+    return paths_out, distances
 
 
 def _get_routes(
