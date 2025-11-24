@@ -4,7 +4,7 @@
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,112 +14,181 @@
 
 from typing import List, Optional, Tuple
 
-from ortools.constraint_solver import routing_enums_pb2
-from ortools.constraint_solver import pywrapcp
-from sklearn.metrics import pairwise_distances
-from shapely.geometry import LineString
 import numpy as np
+from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+from shapely.geometry import LineString
+from sklearn.metrics import pairwise_distances
+
+_SCALE = 10_000  # factor to convert floating distances to integer costs
+_MAX_RECURSION_DEPTH = 5
 
 
 def run_tsp(
     nodes: np.ndarray,
     num_vehicles: int = 1,
-    max_dist: float = 25.0,
+    max_dist: Optional[float] = None,
     depth: int = 1,
     resample: Optional[int] = None,
     start_nodes: Optional[np.ndarray] = None,
     end_nodes: Optional[np.ndarray] = None,
-    time_limit: Optional[int] = 10,
+    time_limit: int = 10,
     solution_limit: Optional[int] = None,
-    initial_route: Optional[np.ndarray] = None,
-    return_indices: Optional[bool] = False,
-) -> Tuple[Optional[np.ndarray], Optional[List[float]]]:
-    """Method to run TSP/VRP with arbitrary start and end nodes,
-    and without any distance constraint.
+    initial_route: Optional[List[List[int]]] = None,
+    return_indices: bool = False,
+) -> Tuple:
+    """Solve a TSP/VRP using OR-Tools with optional start/end nodes and max distance.
+
+    Supports:
+      * Single-vehicle TSP.
+      * Multi-vehicle VRP with optional per-vehicle start and end locations.
+      * Optional maximum distance per vehicle.
+      * Optional resampling of each resulting path to a fixed number of points.
+      * Optional warm-start with an initial route.
+      * Optional return of route indices in addition to coordinates.
 
     Args:
-        nodes (np.ndarray): (# nodes, ndim); Nodes to visit.
-        num_vehicles (int): Number of robots/vehicles.
-        max_dist (float): Maximum distance allowed for each path when handling multi-robot case.
-        depth (int): Internal parameter used to track re-try recursion depth.
-        resample (Optional[int]): Each solution path will be resampled to have
-                                   `resample` number of points.
-        start_nodes (Optional[np.ndarray]): (# num_vehicles, ndim); Optional array of start nodes from which
-                                             to start each vehicle's solution path.
-        end_nodes (Optional[np.ndarray]): (# num_vehicles, ndim); Optional array of end nodes at which
-                                           to end each vehicle's solution path.
-        time_limit (Optional[int]): TSP runtime time limit in seconds.
-        initial_route (Optional[np.ndarray]): (# nodes, ndim); Initial path (node indices) to warm start TSP.
-        return_indices (Optional[bool]): If true, returns the solution path indices along with the locations and distances.
+        nodes: Array of shape (n_nodes, ndim). Nodes to visit.
+        num_vehicles: Number of vehicles/robots.
+        max_dist: Maximum allowed travel distance per vehicle (same units as
+            `nodes`). If None, no distance constraint is enforced.
+        depth: Recursion depth used internally for retry logic.
+        resample: If provided, each solution path is resampled to this many
+            points.
+        start_nodes: Array of shape (num_vehicles, ndim). Optional start node
+            for each vehicle.
+        end_nodes: Array of shape (num_vehicles, ndim). Optional end node for
+            each vehicle.
+        time_limit: Solver time limit in seconds.
+        solution_limit: Optional limit on the number of solutions OR-Tools will
+            search.
+        initial_route: Optional initial routes for warm starting, in OR-Tools
+            format: a list of lists, one list per vehicle, each containing node
+            indices in the OR-Tools node space (not coordinates).
+        return_indices: If True, the function returns the path indices along
+            with the coordinates and distances.
 
     Returns:
-        Tuple[Optional[np.ndarray], Optional[List[float]]]:
-            - paths (np.ndarray): Solution paths if found, otherwise None.
-            - distances (List[float]): List of path lengths if paths are found, otherwise None.
+        If `return_indices` is False:
+            (paths, distances)
+
+        If `return_indices` is True:
+            (paths, distances, paths_indices)
+
+        Where:
+          * paths: list of np.ndarray, one per vehicle, each of shape
+            (num_waypoints, ndim). None if no solution was found.
+          * distances: list of floats, one per vehicle, with total path length
+            for each vehicle. None if no solution was found.
+          * paths_indices: list of 1D np.ndarrays of node indices (into the
+            input `nodes` array) for each vehicle, only when
+            `return_indices=True`.
+
+    Usage:
+        Basic single-vehicle TSP without a distance constraint:
+
+        ```python
+        import numpy as np
+        nodes = np.array([[0, 0], [1, 1], [0, 2], [2, 2]], dtype=np.float64)
+        paths, dists = run_tsp(nodes, num_vehicles=1, max_dist=None, time_limit=5)
+        ```
+
+        Single-vehicle TSP **with** a maximum distance constraint:
+
+        ```python
+        paths, dists = run_tsp(nodes, num_vehicles=1, max_dist=10.0, time_limit=5)
+        ```
+
+        Multi-vehicle VRP with start/end nodes, max distance, and resampling:
+
+        ```python
+        nodes_multi = np.array([[1,1], [2,2], [3,3], [4,4]], dtype=np.float64)
+        start_points = np.array([[0,0], [5,5]], dtype=np.float64)
+        end_points = np.array([[0,5], [5,0]], dtype=np.float64)
+        paths_multi, dists_multi = run_tsp(
+            nodes_multi,
+            num_vehicles=2,
+            max_dist=10.0,
+            resample=10,
+            start_nodes=start_points,
+            end_nodes=end_points,
+            time_limit=10,
+        )
+        ```
     """
-    if depth > 5:
-        print('Warning: Max depth reached')
+    if depth > _MAX_RECURSION_DEPTH:
+        print("TSP Warning: Max recursion depth reached; giving up.")
+        if return_indices:
+            return None, None, None
         return None, None
 
-    # Backup original nodes
     original_nodes = np.copy(nodes)
 
-    # Add the start and end nodes to the node list
+    # Append end and start nodes (if provided) to the node list
     if end_nodes is not None:
-        assert end_nodes.shape == (num_vehicles, nodes.shape[-1]), \
+        assert end_nodes.shape == (num_vehicles, nodes.shape[-1]), (
             "Incorrect end_nodes shape, should be (num_vehicles, ndim)!"
-        nodes = np.concatenate([end_nodes, nodes])
+        )
+        nodes = np.concatenate([end_nodes, nodes], axis=0)
+
     if start_nodes is not None:
-        assert start_nodes.shape == (num_vehicles, nodes.shape[-1]), \
+        assert start_nodes.shape == (num_vehicles, nodes.shape[-1]), (
             "Incorrect start_nodes shape, should be (num_vehicles, ndim)!"
-        nodes = np.concatenate([start_nodes, nodes])
+        )
+        nodes = np.concatenate([start_nodes, nodes], axis=0)
 
-    # Add dummy 0 location to get arbitrary start and end node sols
+    # Build distance matrix, possibly with a dummy node at index 0 to allow
+    # arbitrary start/end locations when they are not provided.
     if start_nodes is None or end_nodes is None:
-        distance_mat = np.zeros((len(nodes) + 1, len(nodes) + 1))
-        distance_mat[1:, 1:] = pairwise_distances(nodes, nodes) * 1e4
-        trim_paths = True  #shift to account for dummy node
+        distance_mat = np.zeros((len(nodes) + 1, len(nodes) + 1), dtype=float)
+        distance_mat[1:, 1:] = pairwise_distances(nodes, nodes) * _SCALE
+        trim_paths = True  # need to post-process paths to remove dummy node
     else:
-        distance_mat = pairwise_distances(nodes, nodes) * 1e4
+        distance_mat = pairwise_distances(nodes, nodes) * _SCALE
         trim_paths = False
-    distance_mat = distance_mat.astype(int)
-    max_dist = int(max_dist * 1e4)
 
-    # Get start and end node indices for ortools
+    distance_mat = distance_mat.astype(int)
+
+    # Start indices for each vehicle
     if start_nodes is None:
         start_idx = np.zeros(num_vehicles, dtype=int)
         num_start_nodes = 0
     else:
-        start_idx = np.arange(num_vehicles) + int(trim_paths)
+        start_idx = np.arange(num_vehicles, dtype=int) + int(trim_paths)
         num_start_nodes = len(start_nodes)
 
+    # End indices for each vehicle
     if end_nodes is None:
         end_idx = np.zeros(num_vehicles, dtype=int)
     else:
-        end_idx = np.arange(num_vehicles) + num_start_nodes + int(trim_paths)
+        end_idx = np.arange(num_vehicles, dtype=int) + num_start_nodes + int(trim_paths)
 
-    # used by ortools
-    def distance_callback(from_index, to_index):
+    # Distance callback used by OR-Tools
+    def distance_callback(from_index: int, to_index: int) -> int:
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return distance_mat[from_node][to_node]
+        return distance_mat[from_node, to_node]
 
-    # num_locations, num vehicles, start, end
-    manager = pywrapcp.RoutingIndexManager(len(distance_mat), num_vehicles,
-                                           start_idx.tolist(),
-                                           end_idx.tolist())
+    # num_locations, num_vehicles, start, end
+    manager = pywrapcp.RoutingIndexManager(
+        len(distance_mat),
+        num_vehicles,
+        start_idx.tolist(),
+        end_idx.tolist(),
+    )
     routing = pywrapcp.RoutingModel(manager)
+
     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
 
-    if num_vehicles > 1:
-        # Dummy distaance constraint to ensure all paths have similar length
+    # Optional distance constraint, now used for single-vehicle as well.
+    if max_dist is not None:
+        max_dist_scaled = int(max_dist * _SCALE)
         dimension_name = "Distance"
         routing.AddDimension(
             transit_callback_index,
-            0,  # no slack
-            max_dist,  # vehicle maximum travel distance
-            True,  # start cumul to zero
+            0,               # no slack
+            max_dist_scaled, # max route distance (scaled)
+            True,            # start cumul to zero
             dimension_name,
         )
         distance_dimension = routing.GetDimensionOrDie(dimension_name)
@@ -127,82 +196,97 @@ def run_tsp(
 
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (
-        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
+        routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
+    )
     search_parameters.local_search_metaheuristic = (
-        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
+        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+    )
     search_parameters.time_limit.seconds = time_limit
-    
+
     if solution_limit is not None:
         search_parameters.solution_limit = solution_limit
 
+    # Solve, with optional warm start.
     if initial_route is not None:
-        # When an initial solution is given for search, the model will be closed with
-        # the default search parameters unless it is explicitly closed with the custom
-        # search parameters.
         routing.CloseModelWithParameters(search_parameters)
-
-        # Get initial solution from routes after closing the model.
         initial_solution = routing.ReadAssignmentFromRoutes(initial_route, True)
-    
         solution = routing.SolveFromAssignmentWithParameters(
             initial_solution, search_parameters
         )
     else:
         solution = routing.SolveWithParameters(search_parameters)
 
-    paths: Optional[List[np.ndarray]] = None
-    distances: Optional[List[float]] = None
+    if solution is None:
+        if max_dist is not None:
+            print("TSP Warning: No solution found, retrying with increased max_dist.")
+            new_max_dist = max_dist * 1.5
+            return run_tsp(
+                original_nodes,
+                num_vehicles=num_vehicles,
+                max_dist=new_max_dist,
+                depth=depth + 1,
+                resample=resample,
+                start_nodes=start_nodes,
+                end_nodes=end_nodes,
+                time_limit=time_limit,
+                solution_limit=solution_limit,
+                initial_route=initial_route,
+                return_indices=return_indices,
+            )
+        else:
+            print("TSP Warning: No solution found (no max_dist constraint to relax).")
+            if return_indices:
+                return None, None, None
+            return None, None
 
-    if solution is not None:
-        paths_indices, distances_raw = _get_routes(manager, routing, solution,
-                                                   num_vehicles, start_idx,
-                                                   end_idx, trim_paths)
+    paths_indices, distances_raw = _get_routes(
+        manager=manager,
+        routing=routing,
+        solution=solution,
+        num_vehicles=num_vehicles,
+        start_idx=start_idx,
+        end_idx=end_idx,
+        trim_paths=trim_paths,
+    )
 
-        # Check for empty paths and retry with increased max_dist if necessary
+    # Check for empty paths and retry with a more relaxed max_dist if needed.
+    if max_dist is not None:
         for path in paths_indices:
             if len(path) < 2:
                 print(
                     "TSP Warning: Empty path detected, retrying with increased max_dist."
                 )
-                # Recalculate max_dist based on the current average distance
-                mean_dist = np.mean(
-                    distances_raw) / 1e4 if distances_raw else max_dist
+                if distances_raw:
+                    mean_dist = float(np.mean(distances_raw)) / _SCALE
+                else:
+                    mean_dist = max_dist
+
+                new_max_dist = mean_dist * (1.5 / max(depth, 1))
                 return run_tsp(
                     original_nodes,
-                    num_vehicles,
-                    mean_dist * (1.5 / depth),
-                    depth + 1,
-                    resample,
-                    start_nodes,
-                    end_nodes,
-                    time_limit,
+                    num_vehicles=num_vehicles,
+                    max_dist=new_max_dist,
+                    depth=depth + 1,
+                    resample=resample,
+                    start_nodes=start_nodes,
+                    end_nodes=end_nodes,
+                    time_limit=time_limit,
+                    solution_limit=solution_limit,
+                    initial_route=initial_route,
+                    return_indices=return_indices,
                 )
-        paths = [nodes[path] for path in paths_indices]
-        distances = [d / 1e4 for d in distances_raw]
 
-    else:
-        print(
-            "TSP Warning: No solution found, retrying with increased max_dist."
-        )
-        return run_tsp(
-            original_nodes,
-            num_vehicles,
-            max_dist * 1.5,
-            depth + 1,
-            resample,
-            start_nodes,
-            end_nodes,
-            time_limit,
-        )
+    # Convert indices to coordinates
+    paths = [nodes[path] for path in paths_indices]
+    distances = [d / _SCALE for d in distances_raw]
 
-    # Resample each solution path to have resample number of points
-    if resample is not None and paths is not None:
-        paths = np.array([resample_path(path, resample) for path in paths])
+    # Optional resampling of each path
+    if resample is not None:
+        paths = [resample_path(path, resample) for path in paths]
 
     if return_indices:
         return paths, distances, paths_indices
-    else:
-        return paths, distances
+    return paths, distances
 
 
 def _get_routes(
@@ -213,153 +297,119 @@ def _get_routes(
     start_idx: np.ndarray,
     end_idx: np.ndarray,
     trim_paths: bool,
-) -> Tuple[Optional[List[np.ndarray]], Optional[List[float]]]:
-    """
-    Solves the Traveling Salesperson Problem (TSP) or Vehicle Routing Problem (VRP)
-    using Google OR-Tools. This method supports multiple vehicles/robots, optional
-    start and end nodes for each vehicle, and an optional maximum distance constraint
-    per path. It also includes a retry mechanism with increased maximum distance
-    if no solution is found.
+) -> Tuple[List[np.ndarray], List[int]]:
+    """Extract per-vehicle routes and distances from an OR-Tools solution.
 
     Args:
-        nodes (np.ndarray): (# nodes, ndim); A NumPy array of coordinates for all nodes (locations)
-                            that need to be visited. `ndim` is the dimensionality (e.g., 2 for 2D, 3 for 3D).
-        num_vehicles (int): The number of vehicles (robots) available to visit the nodes. Defaults to 1.
-        max_dist (float): The maximum allowed travel distance for each vehicle's path.
-                          This constraint is particularly relevant for multi-vehicle scenarios. Defaults to 25.0.
-        depth (int): Internal parameter used to track the recursion depth for retries when
-                     no solution is found. Users should typically not modify this. Defaults to 1.
-        resample (Optional[int]): If provided, each solution path will be resampled to have
-                                  exactly `resample` number of points (waypoints). This is useful
-                                  for standardizing path representations. Defaults to None.
-        start_nodes (Optional[np.ndarray]): (# num_vehicles, ndim); Optional NumPy array specifying
-                                            the starting coordinates for each vehicle. If None,
-                                            OR-Tools will find arbitrary start points. Defaults to None.
-        end_nodes (Optional[np.ndarray]): (# num_vehicles, ndim); Optional NumPy array specifying
-                                          the ending coordinates for each vehicle. If None,
-                                          OR-Tools will find arbitrary end points. Defaults to None.
-        time_limit (int): The maximum time (in seconds) that OR-Tools will spend searching for a solution.
-                          Defaults to 10.
+        manager: OR-Tools RoutingIndexManager instance.
+        routing: OR-Tools RoutingModel instance.
+        solution: OR-Tools Assignment representing the solved routes.
+        num_vehicles: Number of vehicles.
+        start_idx: Array of start indices (in OR-Tools node space) for each vehicle.
+        end_idx: Array of end indices (in OR-Tools node space) for each vehicle.
+        trim_paths: If True, remove dummy node(s) and shift indices back to the
+            original `nodes` indexing.
 
     Returns:
-        Tuple[Optional[List[np.ndarray]], Optional[List[float]]]:
-        - If a solution is found:
-            Tuple[List[np.ndarray], List[float]]: A tuple containing:
-                - paths (List[np.ndarray]): A list of NumPy arrays, where each array
-                                            represents a vehicle's path (sequence of visited nodes).
-                                            Shape of each array: (num_waypoints, ndim).
-                - distances (List[float]): A list of floats, where each float is the
-                                           total length of the corresponding vehicle's path.
-        - If no solution is found after retries:
-            Tuple[None, None]: Returns `(None, None)`.
-
-    Usage:
-        ```python
-        import numpy as np
-        from sgptools.utils.tsp import run_tsp
-
-        # Example 1: Single TSP, find best path through 5 points
-        nodes_single = np.array([[0,0], [1,1], [0,2], [2,2], [1,0]], dtype=np.float64)
-        paths_single, dists_single = run_tsp(nodes_single, num_vehicles=1, time_limit=5)
-
-        # Example 2: Multi-robot VRP with start/end nodes and resampling
-        nodes_multi = np.array([[1,1], [2,2], [3,3], [4,4], [5,5], [6,6]], dtype=np.float64)
-        start_points = np.array([[0,0], [7,7]], dtype=np.float64)
-        end_points = np.array([[0,7], [7,0]], dtype=np.float64)
-
-        paths_multi, dists_multi = run_tsp(
-            nodes_multi,
-            num_vehicles=2,
-            max_dist=10.0, # Max distance for each robot
-            resample=10,   # Resample each path to 10 points
-            start_nodes=start_points,
-            end_nodes=end_points,
-            time_limit=15
-        )
-        ```
+        paths_indices: List of 1D np.ndarrays of node indices for each vehicle.
+        distances_raw: List of integer route costs (still in scaled units).
     """
     paths: List[np.ndarray] = []
     distances: List[int] = []
+
     for vehicle_id in range(num_vehicles):
         path: List[int] = []
         route_distance = 0
         index = routing.Start(vehicle_id)
+
         while not routing.IsEnd(index):
             path.append(manager.IndexToNode(index))
             previous_index = index
             index = solution.Value(routing.NextVar(index))
             route_distance += routing.GetArcCostForVehicle(
-                previous_index, index, vehicle_id)
+                previous_index,
+                index,
+                vehicle_id,
+            )
+
         path.append(manager.IndexToNode(index))
         distances.append(route_distance)
 
-        # Remove dummy start/end points if they were added
+        # Remove dummy start/end points and shift indices if required.
+        path_array = np.array(path, dtype=int)
+
         if trim_paths:
-            path_array = np.array(path)
-            # Adjust indices if a dummy node was added at the beginning
-            if (start_idx[vehicle_id] == 0 and path_array[0] == 0
-                    and path_array.shape[0] > 1):
+            # Remove dummy start node at the beginning if present.
+            if (
+                start_idx[vehicle_id] == 0
+                and path_array.shape[0] > 1
+                and path_array[0] == 0
+            ):
                 path_array = path_array[1:]
-            # Adjust indices if a dummy node was added at the end
-            if (end_idx[vehicle_id] == 0 and path_array[-1] == 0
-                    and path_array.shape[0] > 0):
+
+            # Remove dummy end node at the end if present.
+            if (
+                end_idx[vehicle_id] == 0
+                and path_array.shape[0] > 0
+                and path_array[-1] == 0
+            ):
                 path_array = path_array[:-1]
 
-            # Shift all indices down by 1 if a dummy node was prepended to the overall distance matrix
+            # Shift all indices down by 1 if a dummy node was prepended to the
+            # overall distance matrix at index 0.
             if np.any(start_idx == 0) or np.any(end_idx == 0):
                 path_array = path_array - 1
-                path_array = path_array[
-                    path_array
-                    >= 0]  # Ensure no negative indices from the shift
+                path_array = path_array[path_array >= 0]
 
-            paths.append(path_array)
-        else:
-            paths.append(np.array(path))
+        paths.append(path_array)
+
     return paths, distances
 
 
 def resample_path(waypoints: np.ndarray, num_inducing: int = 10) -> np.ndarray:
-    """Resamples a given path (sequence of waypoints) to have a fixed number of
-    `num_inducing` points. This is useful for standardizing path representations
-    or for converting a path with an arbitrary number of waypoints into a
-    fixed-size representation for models. The resampling maintains the path's
-    shape and geometric integrity.
+    """Resample a path (sequence of waypoints) to a fixed number of points.
+
+    Uses shapely's LineString to interpolate along the path, preserving its
+    geometric shape as much as possible.
 
     Args:
-        waypoints (np.ndarray): (num_waypoints, ndim); A NumPy array representing the
-                                waypoints of a path. `num_waypoints` is the original
-                                number of points, `ndim` is the dimensionality.
-        num_inducing (int): The desired number of points in the resampled path. Defaults to 10.
+        waypoints: Array of shape (num_waypoints, ndim) representing the path.
+            ndim must be 2 or 3.
+        num_inducing: Desired number of points in the resampled path.
 
     Returns:
-        np.ndarray: (num_inducing, ndim); The resampled path with `num_inducing` points.
+        Array of shape (num_inducing, ndim) with the resampled path.
 
     Raises:
-        Exception: If the input `ndim` is not 2 or 3 (as `shapely.geometry.LineString`
-                   primarily supports 2D/3D geometries).
+        ValueError: If `ndim` is not 2 or 3.
 
     Usage:
+        Resampling a 2D path:
+
         ```python
         import numpy as np
-        from sgptools.utils.tsp import resample_path
+        original_path = np.array([[0, 0], [1, 5], [3, 0], [5, 5]], dtype=np.float64)
+        resampled = resample_path(original_path, num_inducing=5)
+        ```
 
-        # Example 2D path
-        original_path_2d = np.array([[0,0], [1,5], [3,0], [5,5]], dtype=np.float64)
-        resampled_path_2d = resample_path(original_path_2d, num_inducing=5)
+        Resampling a 3D path:
 
-        # Example 3D path
-        original_path_3d = np.array([[0,0,0], [1,1,1], [2,0,2]], dtype=np.float64)
-        resampled_path_3d = resample_path(original_path_3d, num_inducing=7)
+        ```python
+        original_path_3d = np.array([[0, 0, 0], [1, 1, 1], [2, 0, 2]], dtype=np.float64)
+        resampled_3d = resample_path(original_path_3d, num_inducing=7)
         ```
     """
-    ndim = np.shape(waypoints)[-1]
-    if not (ndim == 2 or ndim == 3):
-        raise Exception(f"ndim={ndim} is not supported for path resampling!")
+    ndim = int(np.shape(waypoints)[-1])
+    if ndim not in (2, 3):
+        raise ValueError(f"ndim={ndim} is not supported for path resampling!")
+
     line = LineString(waypoints)
     distances = np.linspace(0, line.length, num_inducing)
     points = [line.interpolate(distance) for distance in distances]
+
     if ndim == 2:
-        resampled_points = np.array([[p.x, p.y] for p in points])
-    elif ndim == 3:
-        resampled_points = np.array([[p.x, p.y, p.z] for p in points])
+        resampled_points = np.array([[p.x, p.y] for p in points], dtype=float)
+    else:  # ndim == 3
+        resampled_points = np.array([[p.x, p.y, p.z] for p in points], dtype=float)
+
     return resampled_points
