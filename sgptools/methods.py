@@ -1,18 +1,35 @@
-import numpy as np
-import cma
+# Copyright 2024 The SGP-Tools Contributors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
 from copy import deepcopy
+from typing import Optional, List, Tuple, Union, Dict, Any, Type
+
+import numpy as np
+import tensorflow as tf
+import gpflow
+import cma
 from shapely import geometry
 from apricot import CustomSelection
 from bayes_opt import BayesianOptimization
-import gpflow
-import tensorflow as tf
-from typing import Optional, List, Tuple, Union, Dict, Any, Type
+from sklearn.metrics import pairwise_distances
+from numba import njit
 
 from sgptools.utils.misc import cont2disc, get_inducing_pts
 from sgptools.objectives import get_objective, Objective
 from sgptools.utils.gpflow import optimize_model
 from sgptools.core.augmented_sgpr import AugmentedSGPR
-from sgptools.core.transformations import Transform  # Import Transform for type hinting
+from sgptools.core.transformations import Transform  # for type hinting
 
 
 class Method:
@@ -1458,13 +1475,312 @@ class DifferentiableObjective(Method):
         return reward
 
 
+class GreedyCoverage(Method):
+    """
+    Greedy coverage–based informative sensing selection using a non-stationary
+    GP kernel with spatially varying lengthscales.
+
+    This method selects sensing points from a discrete candidate set by
+    maximizing the fraction of the environment that is covered according to:
+
+        A candidate i covers environment point j iff ALL:
+            1) ||candidate[i] − X_objective[j]|| <= lengthscale[i]
+            2) env_lengthscale[j] >  lengthscale[i] - lengthscale_tolerance
+            3) env_lengthscale[j] <  lengthscale[i] + lengthscale_tolerance
+
+    Coverage conditions use the nonstationary lengthscale predictions computed
+    by the associated GPflow kernel via an attentive-representation mechanism.
+
+    The algorithm:
+
+        • Predicts lengthscales over candidate and environment points  
+        • Precomputes binary coverage masks  
+        • Runs a numba-accelerated greedy selection loop  
+        • Returns all selected points 
+          (shape: `(1, k, d)` for k selected points)
+
+    Notes
+    -----
+    • Supports **only single-robot** settings (`num_robots = 1`).  
+    • If `X_candidates` is not provided, the method defaults to using
+      `X_objective`.  
+    • The method may select **fewer than `num_sensing`** points when the
+      desired `target_fraction` of environment coverage is achieved before
+      the selection budget is exhausted.
+    """
+
+    # ----------------------------------------------------------------------
+    def __init__(self,
+                 num_sensing: int,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float = None,
+                 transform: Optional[Transform] = None,
+                 num_robots: int = 1,
+                 X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
+                 lengthscale_tolerance: float = 0.2,
+                 **kwargs):
+        """
+        Initialize a GreedyCoverage method.
+
+        Parameters
+        ----------
+        num_sensing : int
+            Maximum number of sensing locations to be selected. Note that the
+            algorithm may terminate early and return fewer than this number
+            once the target coverage fraction is reached.
+        X_objective : ndarray, shape (n, d)
+            Points used to define the environment domain. These form the
+            environment set over which coverage is evaluated, and also act as
+            the default candidate set if `X_candidates` is not provided.
+        kernel : gpflow.kernels.Kernel
+            Nonstationary kernel providing:
+                • kernel.lengthscales
+                • kernel.get_representations(X)
+        noise_variance : float
+            Unused in this method but accepted for interface consistency.
+        transform : Transform or None
+            Reserved for future compatibility. Not applied here.
+        num_robots : int
+            Must be 1. Multi-robot operation is not supported.
+        X_candidates : ndarray or None
+            Discrete candidate sensing locations (c, d). If None,
+            defaults to `X_objective`.
+        num_dim : int or None
+            Dimensionality of sensing locations. Defaults to X_objective.shape[-1].
+        lengthscale_tolerance : float, optional
+            Symmetric tolerance around each candidate’s lengthscale used for
+            filtering environment points by their predicted lengthscales. An
+            environment point j is considered compatible with candidate i if
+            `env_lengthscale[j]` lies in:
+
+                [lengthscale[i] - lengthscale_tolerance,
+                 lengthscale[i] + lengthscale_tolerance]
+
+            Default is 0.2.
+        kwargs : dict
+            Unused. Accepted for forward compatibility.
+        """
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
+
+        assert num_robots == 1, "GreedyCoverage only supports num_robots = 1."
+
+        self.kernel = kernel
+        self.noise_variance = noise_variance
+        self.lengthscale_tolerance = float(lengthscale_tolerance)
+
+        # Store environment / objective and (possibly) candidates explicitly
+        self.X_objective = X_objective
+        # X_candidates is already stored by the base class as self.X_candidates
+
+    # ----------------------------------------------------------------------
+    @staticmethod
+    def predict_lengthscales(X, kernel):
+        """
+        Predict spatially varying lengthscales using the kernel's
+        attentive representation mechanism.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n, d)
+            Input locations at which lengthscales are predicted.
+        kernel : gpflow kernel
+            Must implement:
+                - kernel.lengthscales
+                - kernel.get_representations(X)
+
+        Returns
+        -------
+        ndarray, shape (n,)
+            Predicted nonstationary lengthscales.
+        """
+        lengthscales = kernel.lengthscales.numpy()
+        preds = np.zeros(len(X))
+
+        repre = kernel.get_representations(X)
+        for i in range(len(lengthscales)):
+            attention = tf.tensordot(repre[:, i],
+                                     tf.transpose(repre[:, i]),
+                                     axes=0)
+            preds += np.diag(attention) * lengthscales[i]
+        return preds
+
+    # ----------------------------------------------------------------------
+    @staticmethod
+    @njit
+    def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
+        """
+        Compute marginal gains for remaining candidates (Numba-accelerated).
+
+        Parameters
+        ----------
+        remaining_idxs : 1D ndarray[int]
+            Indices of still-available candidates.
+        coverages : 2D ndarray[bool], shape (n_candidates, v)
+            Binary coverage mask for each candidate.
+        current_coverage : 1D ndarray[bool], shape (v,)
+            Binary mask of currently covered environment points.
+
+        Returns
+        -------
+        ndarray[int]
+            Marginal gain (number of newly covered points) for each candidate.
+        """
+        m = remaining_idxs.shape[0]
+        v = current_coverage.shape[0]
+        gains = np.empty(m, dtype=np.int64)
+
+        for k in range(m):
+            idx = remaining_idxs[k]
+            cov_i = coverages[idx]
+            gain = 0
+            for j in range(v):
+                if cov_i[j] and (not current_coverage[j]):
+                    gain += 1
+            gains[k] = gain
+
+        return gains
+
+    # ----------------------------------------------------------------------
+    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float):
+        """
+        Update the kernel and noise variance.
+
+        Parameters
+        ----------
+        kernel : gpflow kernel
+            New kernel instance with updated hyperparameters.
+        noise_variance : float
+            New noise variance (stored for API consistency).
+        """
+        self.kernel = kernel
+        self.noise_variance = noise_variance
+
+    # ----------------------------------------------------------------------
+    def get_hyperparameters(self):
+        """
+        Return current kernel and noise variance.
+
+        Returns
+        -------
+        (kernel, noise_variance)
+            A deep copy of kernel and the stored noise variance.
+        """
+        return deepcopy(self.kernel), float(self.noise_variance)
+
+    # ----------------------------------------------------------------------
+    def optimize(self,
+                 target_fraction: float = 1.0,
+                 **kwargs) -> np.ndarray:
+        """
+        Run greedy coverage selection over a discrete candidate set.
+
+        If `X_candidates` is not provided, the method defaults to using
+        `X_objective` as both the environment set and the candidate set.
+
+        Selection stops when either:
+
+            • the desired coverage fraction `target_fraction` is reached, or
+            • the budget of `num_sensing` points is exhausted,
+
+        whichever occurs first. Thus, the method may select **fewer than
+        `num_sensing`** points.
+
+        Parameters
+        ----------
+        target_fraction : float, optional
+            Target fraction of the environment to cover (0–1). Default: 1.0.
+        kwargs : dict
+            Unused. Accepted for interface compatibility.
+
+        Returns
+        -------
+        ndarray, shape (1, k, d)
+            The selected sensing locations, where `k <= num_sensing`.
+        """
+        # ---------------- Candidate & environment sets ----------------
+        X_objective = self.X_objective
+
+        if self.X_candidates is None:
+            X_candidates = X_objective
+        else:
+            X_candidates = self.X_candidates
+
+        X_objective = np.asarray(X_objective)
+        X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
+
+        # ---------------- Predict lengthscales ----------------
+        env_ls = self.predict_lengthscales(X_objective, self.kernel) / 2.0
+        candidate_ls = self.predict_lengthscales(X_candidates,
+                                                 self.kernel) / 2.0
+
+        # ---------------- Compute coverage masks ----------------
+        dist_mat = pairwise_distances(X_candidates, X_objective)
+        within_circle = dist_mat <= candidate_ls[:, None]
+
+        tol = self.lengthscale_tolerance
+        cond_lower = env_ls[None, :] > (candidate_ls[:, None] - tol)
+        cond_upper = env_ls[None, :] < (candidate_ls[:, None] + tol)
+
+        coverages = (within_circle & cond_lower & cond_upper).astype(np.bool_)
+        del dist_mat, within_circle, cond_lower, cond_upper
+
+        v = X_objective.shape[0]
+        target_sum = v * float(target_fraction)
+
+        # ---------------- Greedy loop ----------------
+        n = len(X_candidates)
+        selected_mask = np.zeros(n, dtype=bool)
+        selected = []
+
+        current_coverage = np.zeros(v, dtype=np.bool_)
+        current_sum = 0
+
+        while current_sum < target_sum and len(selected) < self.num_sensing:
+            remaining = np.where(~selected_mask)[0]
+            if remaining.size == 0:
+                break
+
+            gains = GreedyCoverage._compute_gains_numba(
+                remaining.astype(np.int64),
+                coverages,
+                current_coverage
+            )
+
+            best_pos = int(np.argmax(gains))
+            best_gain = int(gains[best_pos])
+            best_idx = int(remaining[best_pos])
+
+            if best_gain <= 0:
+                break
+
+            current_coverage |= coverages[best_idx]
+            current_sum = int(current_coverage.sum())
+
+            selected_mask[best_idx] = True
+            selected.append(best_idx)
+
+            if current_sum >= target_sum:
+                break
+
+        # ---------------- Prepare output ----------------
+        if len(selected) == 0:
+            return np.zeros((1, 0, self.num_dim), dtype=X_objective.dtype)
+
+        X_sol = X_candidates[selected]
+        return X_sol.reshape(1, len(selected), self.num_dim)
+
+
 METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
     'CMA': CMA,
     'ContinuousSGP': ContinuousSGP,
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,
-    'DifferentiableObjective': DifferentiableObjective
+    'DifferentiableObjective': DifferentiableObjective,
+    'GreedyCoverage': GreedyCoverage
 }
 
 
