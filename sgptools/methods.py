@@ -25,6 +25,7 @@ from bayes_opt import BayesianOptimization
 from sklearn.metrics import pairwise_distances
 from numba import njit
 
+from sgptools.utils.tsp import run_tsp
 from sgptools.utils.misc import cont2disc, get_inducing_pts
 from sgptools.objectives import get_objective, Objective
 from sgptools.utils.gpflow import optimize_model
@@ -1577,38 +1578,6 @@ class GreedyCoverage(Method):
 
     # ----------------------------------------------------------------------
     @staticmethod
-    def predict_lengthscales(X, kernel):
-        """
-        Predict spatially varying lengthscales using the kernel's
-        attentive representation mechanism.
-
-        Parameters
-        ----------
-        X : ndarray, shape (n, d)
-            Input locations at which lengthscales are predicted.
-        kernel : gpflow kernel
-            Must implement:
-                - kernel.lengthscales
-                - kernel.get_representations(X)
-
-        Returns
-        -------
-        ndarray, shape (n,)
-            Predicted nonstationary lengthscales.
-        """
-        lengthscales = kernel.lengthscales.numpy()
-        preds = np.zeros(len(X))
-
-        repre = kernel.get_representations(X)
-        for i in range(len(lengthscales)):
-            attention = tf.tensordot(repre[:, i],
-                                     tf.transpose(repre[:, i]),
-                                     axes=0)
-            preds += np.diag(attention) * lengthscales[i]
-        return preds
-
-    # ----------------------------------------------------------------------
-    @staticmethod
     @njit
     def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
         """
@@ -1712,9 +1681,8 @@ class GreedyCoverage(Method):
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
 
         # ---------------- Predict lengthscales ----------------
-        env_ls = self.predict_lengthscales(X_objective, self.kernel) / 2.0
-        candidate_ls = self.predict_lengthscales(X_candidates,
-                                                 self.kernel) / 2.0
+        env_ls = self.kernel.get_lengthscales(X_objective) / 2.0
+        candidate_ls = self.kernel.get_lengthscales(X_candidates) / 2.0
 
         # ---------------- Compute coverage masks ----------------
         dist_mat = pairwise_distances(X_candidates, X_objective)
@@ -1772,6 +1740,501 @@ class GreedyCoverage(Method):
         X_sol = X_candidates[selected]
         return X_sol.reshape(1, len(selected), self.num_dim)
 
+# -----------------------------------------------------------------------------
+
+@njit
+def _path_length_numba(points):
+    """
+    Total Euclidean length of a polyline. Numba version.
+    """
+    n = points.shape[0]
+    if n < 2:
+        return 0.0
+
+    d = points.shape[1]
+    total = 0.0
+    for i in range(n - 1):
+        s = 0.0
+        for j in range(d):
+            diff = points[i + 1, j] - points[i, j]
+            s += diff * diff
+        total += s ** 0.5
+    return total
+
+
+@njit
+def _approx_dist_numba(p_nodes, x):
+    """
+    Approximate tour length after inserting point x into an existing route.
+    Numba version of approx_dist.
+    """
+    n = p_nodes.shape[0]
+    d = p_nodes.shape[1]
+
+    if n == 0:
+        return 0.0
+
+    if n == 1:
+        seq = np.empty((2, d), dtype=p_nodes.dtype)
+        for j in range(d):
+            seq[0, j] = p_nodes[0, j]
+            seq[1, j] = x[j]
+        return _path_length_numba(seq)
+
+    # Distances from x to each existing node
+    best_idx = 0
+    best_dist = 1e30
+    for i in range(n):
+        s = 0.0
+        for j in range(d):
+            diff = p_nodes[i, j] - x[j]
+            s += diff * diff
+        dist = s ** 0.5
+        if dist < best_dist:
+            best_dist = dist
+            best_idx = i
+
+    idx = best_idx
+
+    # Build two candidate sequences, as in the Python version
+    if idx == n - 1:  # nearest is last
+        # seq1: insert after last
+        seq1 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        for i in range(n):
+            for j in range(d):
+                seq1[i, j] = p_nodes[i, j]
+        for j in range(d):
+            seq1[n, j] = x[j]
+
+        # seq2: insert before last
+        seq2 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        for i in range(n - 1):
+            for j in range(d):
+                seq2[i, j] = p_nodes[i, j]
+        for j in range(d):
+            seq2[n - 1, j] = x[j]
+        for j in range(d):
+            seq2[n, j] = p_nodes[n - 1, j]
+
+    elif idx == 0:  # nearest is first
+        # seq1: insert after first
+        seq1 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        for j in range(d):
+            seq1[0, j] = p_nodes[0, j]
+            seq1[1, j] = x[j]
+        for i in range(1, n):
+            for j in range(d):
+                seq1[i + 1, j] = p_nodes[i, j]
+
+        # seq2: insert before first
+        seq2 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        for j in range(d):
+            seq2[0, j] = x[j]
+        for i in range(n):
+            for j in range(d):
+                seq2[i + 1, j] = p_nodes[i, j]
+
+    else:  # nearest is in the middle
+        # seq1: insert after idx
+        seq1 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        # up to idx
+        for i in range(idx + 1):
+            for j in range(d):
+                seq1[i, j] = p_nodes[i, j]
+        # x
+        for j in range(d):
+            seq1[idx + 1, j] = x[j]
+        # remaining
+        for i in range(idx + 1, n):
+            for j in range(d):
+                seq1[i + 1, j] = p_nodes[i, j]
+
+        # seq2: insert before idx
+        seq2 = np.empty((n + 1, d), dtype=p_nodes.dtype)
+        # up to idx-1
+        for i in range(idx):
+            for j in range(d):
+                seq2[i, j] = p_nodes[i, j]
+        # x
+        for j in range(d):
+            seq2[idx, j] = x[j]
+        # from idx
+        for i in range(idx, n):
+            for j in range(d):
+                seq2[i + 1, j] = p_nodes[i, j]
+
+    dist1 = _path_length_numba(seq1)
+    dist2 = _path_length_numba(seq2)
+
+    if dist1 < dist2:
+        return dist1
+    else:
+        return dist2
+
+
+@njit
+def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
+                              coverage_arr, current_cover, distance):
+    """
+    Numba-accelerated computation of distance_deltas and area_deltas
+    for all remaining candidates.
+
+    Parameters
+    ----------
+    remaining_idxs : 1D ndarray[int]
+    selected_idxs : 1D ndarray[int]
+    X : 2D ndarray[float], shape (m, d)
+    coverage_arr : 2D ndarray[bool], shape (m, v)
+    current_cover : 1D ndarray[bool], shape (v,)
+    distance : float
+
+    Returns
+    -------
+    distance_deltas : 1D ndarray[float]
+    area_deltas : 1D ndarray[int]
+    """
+    m_rem = remaining_idxs.shape[0]
+    v = current_cover.shape[0]
+    d = X.shape[1]
+
+    distance_deltas = np.empty(m_rem, dtype=np.float64)
+    area_deltas = np.empty(m_rem, dtype=np.int64)
+
+    # Build current route locations from selected_idxs
+    n_sel = selected_idxs.shape[0]
+    locs_current = np.empty((n_sel, d), dtype=X.dtype)
+    for i in range(n_sel):
+        idx_sel = selected_idxs[i]
+        for j in range(d):
+            locs_current[i, j] = X[idx_sel, j]
+
+    for k in range(m_rem):
+        idx = remaining_idxs[k]
+
+        # Distance delta
+        x = X[idx]
+        new_distance = _approx_dist_numba(locs_current, x)
+        distance_deltas[k] = new_distance - distance
+
+        # Area delta = number of newly covered env points
+        cov_i = coverage_arr[idx]
+        gain = 0
+        for j in range(v):
+            if cov_i[j] and (not current_cover[j]):
+                gain += 1
+        area_deltas[k] = gain
+
+    return distance_deltas, area_deltas
+
+
+class GCBCoverage(Method):
+    """
+    Greedy coverage-with-budget (GCB) selection using non-stationary GP
+    lengthscales and an approximate tour-length constraint.
+
+    This method selects candidate sensing locations to:
+
+        1) Cover as many environment points as possible, and
+        2) Respect a total path-length (tour) budget.
+
+    Coverage rule
+    -------------
+    An environment point j (from X_objective) is covered by candidate i
+    (from X_candidates) iff:
+
+        1) ||X_candidates[i] − X_objective[j]|| <= candidate_lengthscale[i]
+        2) env_lengthscale[j] >  candidate_lengthscale[i] - lengthscale_tolerance
+        3) env_lengthscale[j] <  candidate_lengthscale[i] + lengthscale_tolerance
+
+    The nonstationary lengthscales are predicted for both X_objective and
+    X_candidates using an attentive kernel representation.
+
+    The algorithm:
+        • Precomputes binary coverage maps for each candidate.
+        • Starts from the single best coverage candidate.
+        • Iteratively adds candidates based on area gain per additional
+          distance (approximate delta via a numba kernel).
+        • For a proposed candidate, recomputes a short TSP tour (via `run_tsp`)
+          over the selected points and accepts it only if the new tour length
+          is within `distance_budget`.
+        • Stops when:
+            - the target coverage fraction is reached, OR
+            - the distance budget prevents any further useful additions, OR
+            - the maximum number of sensing points (`num_sensing`) is reached.
+
+    Notes
+    -----
+    • Only single-robot operation is supported (`num_robots = 1`).
+    • If `X_candidates` is not provided, `X_objective` is used as both the
+      environment set and the candidate set.
+    • The method may select **fewer than `num_sensing`** points when the
+      desired `target_fraction` of coverage is achieved earlier or when the
+      distance budget prevents adding more points.
+
+    Attributes (set after optimize)
+    --------------------------------
+    selected_indices_ : list[int]
+        Ordered indices into `X_candidates` corresponding to the route.
+    coverage_maps_ : list[np.ndarray(bool)]
+        Coverage masks for each selected candidate.
+    path_length_ : float
+        Final tour length of the selected route.
+    """
+
+    # ------------------------------------------------------------------
+    def __init__(self,
+                 num_sensing: int,
+                 X_objective: np.ndarray,
+                 kernel: gpflow.kernels.Kernel,
+                 noise_variance: float = None,
+                 transform: Optional[Transform] = None,
+                 num_robots: int = 1,
+                 X_candidates: Optional[np.ndarray] = None,
+                 num_dim: Optional[int] = None,
+                 lengthscale_tolerance: float = 0.2,
+                 **kwargs):
+        """
+        Initialize a GCBCoverage method.
+
+        Parameters
+        ----------
+        num_sensing : int
+            Maximum number of sensing locations (route points) to be selected.
+            The algorithm may terminate early and return fewer than this number
+            if coverage or budget constraints are satisfied.
+        X_objective : ndarray, shape (n, d)
+            Environment / test locations over which coverage is defined. If
+            `X_candidates` is None, these are also used as the candidate set.
+        kernel : gpflow.kernels.Kernel
+            Nonstationary kernel providing:
+                • kernel.lengthscales
+                • kernel.get_representations(X)
+        noise_variance : float
+            Stored for API consistency; not directly used here.
+        transform : Transform or None
+            Reserved for compatibility with the Method API; not applied here.
+        num_robots : int
+            Must be 1. Multi-robot operation is not supported.
+        X_candidates : ndarray or None
+            Discrete candidate sensing locations `(m, d)`. If None, defaults
+            to `X_objective`.
+        num_dim : int or None
+            Dimensionality of sensing locations. Defaults to X_objective.shape[-1].
+        lengthscale_tolerance : float, optional
+            Symmetric tolerance around each candidate’s lengthscale used when
+            matching environment lengthscales, i.e., env_lengthscale[j] must lie
+            in:
+
+                [candidate_lengthscale[i] - lengthscale_tolerance,
+                 candidate_lengthscale[i] + lengthscale_tolerance]
+
+            Default is 0.2.
+        kwargs : dict
+            Unused, accepted for forward compatibility.
+        """
+        super().__init__(num_sensing, X_objective, kernel, noise_variance,
+                         transform, num_robots, X_candidates, num_dim)
+
+        assert num_robots == 1, "GCBCoverage only supports num_robots = 1."
+
+        self.kernel = kernel
+        self.noise_variance = noise_variance
+        self.lengthscale_tolerance = float(lengthscale_tolerance)
+
+        # Store environment set and (possibly) candidates explicitly
+        self.X_objective = X_objective
+        # self.X_candidates is already set by the base Method
+
+        # Outputs to be populated after optimize
+        self.selected_indices_: List[int] = []
+        self.coverage_maps_: List[np.ndarray] = []
+        self.path_length_: float = 0.0
+
+    # ------------------------------------------------------------------
+    def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float):
+        """
+        Update the kernel and noise variance.
+
+        Parameters
+        ----------
+        kernel : gpflow kernel
+            New kernel instance with updated hyperparameters.
+        noise_variance : float
+            New noise variance (stored for API consistency).
+        """
+        self.kernel = kernel
+        self.noise_variance = noise_variance
+
+    # ------------------------------------------------------------------
+    def get_hyperparameters(self):
+        """
+        Return current kernel and noise variance.
+
+        Returns
+        -------
+        (kernel, noise_variance)
+            A deep copy of kernel and the stored noise variance.
+        """
+        return deepcopy(self.kernel), float(self.noise_variance)
+
+    # ------------------------------------------------------------------
+    def optimize(self,
+                 distance_budget: float,
+                 target_fraction: float = 1.0,
+                 **kwargs) -> np.ndarray:
+        """
+        Run the GCB (greedy coverage + budget) selection algorithm.
+
+        Environment points are given by `X_objective`; candidates are taken
+        from `X_candidates` if provided, otherwise from `X_objective` as well.
+
+        Selection stops when any of the following holds:
+
+            • The fraction of covered environment points reaches
+              `target_fraction`.
+            • Adding any remaining candidate that increases coverage would
+              violate the `distance_budget`.
+            • The number of selected points reaches `num_sensing`.
+
+        Thus, in general the method may return fewer than `num_sensing`
+        points.
+
+        Parameters
+        ----------
+        distance_budget : float
+            Maximum allowed tour length (sum of Euclidean distances along the
+            route).
+        target_fraction : float, optional
+            Target coverage fraction over X_objective (0–1). Default: 1.0.
+        kwargs : dict
+            Unused, accepted for API compatibility.
+
+        Returns
+        -------
+        ndarray, shape (1, k, d)
+            Selected route locations in visit order, where
+            `k <= num_sensing`.
+        """
+        X_objective = np.asarray(self.X_objective)
+
+        if self.X_candidates is None:
+            X_candidates = X_objective
+        else:
+            X_candidates = self.X_candidates
+        X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
+
+        m, d = X_candidates.shape
+        if m == 0:
+            self.selected_indices_ = []
+            self.coverage_maps_ = []
+            self.path_length_ = 0.0
+            return np.zeros((1, 0, d), dtype=X_objective.dtype)
+
+        # ----- Predict lengthscales -----
+        env_ls = self.kernel.get_lengthscales(X_objective) / 2.0
+        candidate_ls = self.kernel.get_lengthscales(X_candidates) / 2.0
+
+        if env_ls.shape[0] != X_objective.shape[0]:
+            raise ValueError(
+                "env_lengthscales must have shape (n,) matching X_objective.shape[0]."
+            )
+
+        # ----- Precompute coverage maps -----
+        dist_mat = pairwise_distances(X_candidates, X_objective)  # (m, n)
+        tol = self.lengthscale_tolerance
+
+        within_circle = dist_mat <= candidate_ls[:, None]
+        cond_lower = env_ls[None, :] > (candidate_ls[:, None] - tol)
+        cond_upper = env_ls[None, :] < (candidate_ls[:, None] + tol)
+
+        coverage_arr = (within_circle & cond_lower & cond_upper).astype(np.bool_)
+        del dist_mat, within_circle, cond_lower, cond_upper
+
+        v = X_objective.shape[0]
+        target_area = int(v * float(target_fraction))
+
+        # ----- Initial location: best single coverage -----
+        single_areas = coverage_arr.sum(axis=1)
+        first_idx = int(np.argmax(single_areas))
+
+        selected_idxs = [first_idx]
+        distance = 0.0
+        current_cover = coverage_arr[first_idx].copy()
+        current_area = int(current_cover.sum())
+
+        remaining = np.array([i for i in range(m) if i != first_idx],
+                             dtype=np.int64)
+
+        # ----- GCB loop -----
+        while (remaining.size > 0 and
+               current_area <= target_area and
+               len(selected_idxs) < self.num_sensing):
+            remaining_arr = remaining.astype(np.int64)
+            selected_arr = np.array(selected_idxs, dtype=np.int64)
+
+            distance_deltas, area_deltas = _compute_deltas_all_numba(
+                remaining_arr, selected_arr, X_candidates, coverage_arr,
+                current_cover, distance
+            )
+
+            # area gain per extra distance
+            safe_dist = np.where(distance_deltas <= 0.0, 1e-9, distance_deltas)
+            ratios = area_deltas / safe_dist
+
+            # inner loop: find a feasible candidate under distance_budget
+            while remaining.size > 0:
+                pos = int(np.argmax(ratios))
+                best_idx = int(remaining[pos])
+                best_ratio = ratios[pos]
+
+                # Remove from remaining pools
+                remaining = np.delete(remaining, pos)
+                ratios = np.delete(ratios, pos)
+                distance_deltas = np.delete(distance_deltas, pos)
+                area_deltas = np.delete(area_deltas, pos)
+
+                if best_ratio <= 0:
+                    # No positive area/distance candidates left
+                    remaining = np.array([], dtype=np.int64)
+                    break
+
+                # Recompute TSP tour including this candidate
+                idx_list = selected_idxs + [best_idx]
+                locs = X_candidates[idx_list]
+
+                # run_tsp must be available in the module scope
+                _, dist_list, indices_list = run_tsp(
+                    locs,
+                    initial_route=[list(range(1, len(locs) + 1))],
+                    return_indices=True,
+                    solution_limit=15,
+                )
+
+                new_distance = dist_list[0]
+                order = indices_list[0]
+                new_selected_idxs = [idx_list[i] for i in order]
+
+                if new_distance <= distance_budget:
+                    selected_idxs = new_selected_idxs
+                    distance = new_distance
+
+                    # Recompute coverage and area with new selection
+                    current_cover = np.zeros_like(current_cover, dtype=np.bool_)
+                    for si in selected_idxs:
+                        current_cover |= coverage_arr[si]
+                    current_area = int(current_cover.sum())
+                    break  # back to outer while
+
+        # ----- Prepare outputs -----
+        X_route = X_candidates[selected_idxs]
+        selected_coverage_maps = [coverage_arr[i] for i in selected_idxs]
+
+        self.selected_indices_ = selected_idxs
+        self.coverage_maps_ = selected_coverage_maps
+        self.path_length_ = float(distance)
+
+        return X_route.reshape(1, len(selected_idxs), d)
+
 
 METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
@@ -1780,7 +2243,8 @@ METHODS: Dict[str, Type[Method]] = {
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,
     'DifferentiableObjective': DifferentiableObjective,
-    'GreedyCoverage': GreedyCoverage
+    'GreedyCoverage': GreedyCoverage,
+    'GCBCoverage': GCBCoverage
 }
 
 
