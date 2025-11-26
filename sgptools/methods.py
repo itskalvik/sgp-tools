@@ -2079,8 +2079,9 @@ class GCBCoverage(Method):
 
     # ------------------------------------------------------------------
     def optimize(self,
-                 distance_budget: float,
+                 distance_budget: float = 1.0e10,
                  target_fraction: float = 1.0,
+                 solution_limit: int = 15,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB (greedy coverage + budget) selection algorithm.
@@ -2103,9 +2104,11 @@ class GCBCoverage(Method):
         ----------
         distance_budget : float
             Maximum allowed tour length (sum of Euclidean distances along the
-            route).
+            route). Default: 1.0e10.
         target_fraction : float, optional
             Target coverage fraction over X_objective (0–1). Default: 1.0.
+        solution_limit : int
+            Limit on the number of solutions OR-Tools will search. Default: 15.
         kwargs : dict
             Unused, accepted for API compatibility.
 
@@ -2207,7 +2210,7 @@ class GCBCoverage(Method):
                     locs,
                     initial_route=[list(range(1, len(locs) + 1))],
                     return_indices=True,
-                    solution_limit=15,
+                    solution_limit=solution_limit,
                 )
 
                 new_distance = dist_list[0]
