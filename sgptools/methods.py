@@ -1478,39 +1478,46 @@ class DifferentiableObjective(Method):
 
 class GreedyCoverage(Method):
     """
-    Greedy coverage–based informative sensing selection using a non-stationary
-    GP kernel with spatially varying lengthscales.
+    Greedy coverage–based informative sensing selection using a GP kernel.
 
     This method selects sensing points from a discrete candidate set by
-    maximizing the fraction of the environment that is covered according to:
+    maximizing the fraction of environment points whose **kernel covariance**
+    with each candidate exceeds a user-defined threshold.
 
-        A candidate i covers environment point j iff ALL:
-            1) ||candidate[i] − X_objective[j]|| <= lengthscale[i]
-            2) env_lengthscale[j] >  lengthscale[i] - lengthscale_tolerance
-            3) env_lengthscale[j] <  lengthscale[i] + lengthscale_tolerance
+    --------------------------------------------------------------------------
+    Coverage definition
+    --------------------------------------------------------------------------
+    Let K_ij denote the GP kernel covariance:
 
-    Coverage conditions use the nonstationary lengthscale predictions computed
-    by the associated GPflow kernel via an attentive-representation mechanism.
+        K_ij = kernel(X_candidates[i], X_objective[j])
 
-    The algorithm:
+    Candidate i is said to *cover* environment point j whenever:
 
-        • Predicts lengthscales over candidate and environment points  
-        • Precomputes binary coverage masks  
-        • Runs a numba-accelerated greedy selection loop  
-        • Returns all selected points 
-          (shape: `(1, k, d)` for k selected points)
+        K_ij > kernel_threshold
+
+    where `kernel_threshold` is a scalar threshold.
+    Coverage is therefore defined exclusively through the kernel covariance.
+
+    --------------------------------------------------------------------------
+    Algorithm summary
+    --------------------------------------------------------------------------
+    • Compute the covariance matrix:
+          K = kernel(X_candidates, X_objective)
+    • Convert to binary coverage masks:
+          coverages = (K > kernel_threshold)
+    • Run a numba-accelerated greedy loop that repeatedly selects the
+      candidate providing the largest number of newly covered environment
+      points.
+    • Stop when the target coverage fraction or sensing budget is reached.
+    • Return the selected subset of candidate points.
 
     Notes
     -----
-    • Supports **only single-robot** settings (`num_robots = 1`).  
-    • If `X_candidates` is not provided, the method defaults to using
-      `X_objective`.  
-    • The method may select **fewer than `num_sensing`** points when the
-      desired `target_fraction` of environment coverage is achieved before
-      the selection budget is exhausted.
+    • Supports **only single-robot** settings (`num_robots = 1`).
+    • If `X_candidates` is not provided, the method defaults to `X_objective`.
+    • May return **fewer than `num_sensing`** points when sufficient coverage
+      is achieved early.
     """
-
-    # ----------------------------------------------------------------------
     def __init__(self,
                  num_sensing: int,
                  X_objective: np.ndarray,
@@ -1520,7 +1527,6 @@ class GreedyCoverage(Method):
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
-                 lengthscale_tolerance: float = 0.2,
                  **kwargs):
         """
         Initialize a GreedyCoverage method.
@@ -1528,38 +1534,24 @@ class GreedyCoverage(Method):
         Parameters
         ----------
         num_sensing : int
-            Maximum number of sensing locations to be selected. Note that the
-            algorithm may terminate early and return fewer than this number
-            once the target coverage fraction is reached.
+            Maximum number of sensing locations to be selected. May terminate
+            early if the target coverage fraction is achieved.
         X_objective : ndarray, shape (n, d)
-            Points used to define the environment domain. These form the
-            environment set over which coverage is evaluated, and also act as
-            the default candidate set if `X_candidates` is not provided.
+            Environment points over which coverage is evaluated. Also used as
+            the default candidate set if `X_candidates` is None.
         kernel : gpflow.kernels.Kernel
-            Nonstationary kernel providing:
-                • kernel.lengthscales
-                • kernel.get_representations(X)
+            GP kernel used to compute pairwise covariance between candidate and
+            environment points.
         noise_variance : float
-            Unused in this method but accepted for interface consistency.
+            Unused in this method but kept for interface consistency.
         transform : Transform or None
-            Reserved for future compatibility. Not applied here.
+            Reserved for forward compatibility.
         num_robots : int
-            Must be 1. Multi-robot operation is not supported.
+            Must be 1. Multi-robot selection is not supported.
         X_candidates : ndarray or None
-            Discrete candidate sensing locations (c, d). If None,
-            defaults to `X_objective`.
+            Optional discrete candidate set (c, d). Defaults to X_objective.
         num_dim : int or None
-            Dimensionality of sensing locations. Defaults to X_objective.shape[-1].
-        lengthscale_tolerance : float, optional
-            Symmetric tolerance around each candidate’s lengthscale used for
-            filtering environment points by their predicted lengthscales. An
-            environment point j is considered compatible with candidate i if
-            `env_lengthscale[j]` lies in:
-
-                [lengthscale[i] - lengthscale_tolerance,
-                 lengthscale[i] + lengthscale_tolerance]
-
-            Default is 0.2.
+            Dimensionality of points. Defaults to X_objective.shape[-1].
         kwargs : dict
             Unused. Accepted for forward compatibility.
         """
@@ -1570,13 +1562,11 @@ class GreedyCoverage(Method):
 
         self.kernel = kernel
         self.noise_variance = noise_variance
-        self.lengthscale_tolerance = float(lengthscale_tolerance)
 
         # Store environment / objective and (possibly) candidates explicitly
         self.X_objective = X_objective
         # X_candidates is already stored by the base class as self.X_candidates
 
-    # ----------------------------------------------------------------------
     @staticmethod
     @njit
     def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
@@ -1612,14 +1602,13 @@ class GreedyCoverage(Method):
 
         return gains
 
-    # ----------------------------------------------------------------------
     def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float):
         """
         Update the kernel and noise variance.
 
         Parameters
         ----------
-        kernel : gpflow kernel
+        kernel : gpflow.kernels.Kernel
             New kernel instance with updated hyperparameters.
         noise_variance : float
             New noise variance (stored for API consistency).
@@ -1627,7 +1616,7 @@ class GreedyCoverage(Method):
         self.kernel = kernel
         self.noise_variance = noise_variance
 
-    # ----------------------------------------------------------------------
+    # 
     def get_hyperparameters(self):
         """
         Return current kernel and noise variance.
@@ -1639,30 +1628,44 @@ class GreedyCoverage(Method):
         """
         return deepcopy(self.kernel), float(self.noise_variance)
 
-    # ----------------------------------------------------------------------
+    # 
     def optimize(self,
+                 kernel_threshold: float = 0.7,
                  target_fraction: float = 1.0,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
 
-        If `X_candidates` is not provided, the method defaults to using
-        `X_objective` as both the environment set and the candidate set.
+        Coverage is computed by evaluating the GP kernel covariance between each
+        candidate and each environment point:
 
+            K = kernel(X_candidates, X_objective)
+            coverages[i, j] = (K[i, j] > kernel_threshold)
+
+        Thus, an environment point is marked as covered whenever its covariance
+        with the candidate exceeds the threshold.
+
+        The greedy procedure repeatedly selects the candidate yielding the
+        largest number of *new* environment points that become covered.
         Selection stops when either:
 
-            • the desired coverage fraction `target_fraction` is reached, or
-            • the budget of `num_sensing` points is exhausted,
-
-        whichever occurs first. Thus, the method may select **fewer than
-        `num_sensing`** points.
+            • the target coverage fraction `target_fraction` is achieved, or
+            • the sensing budget `num_sensing` is exhausted.
 
         Parameters
         ----------
-        target_fraction : float, optional
-            Target fraction of the environment to cover (0–1). Default: 1.0.
+        kernel_threshold : float, optional
+            Scalar threshold used to convert kernel covariances into binary
+            coverage indicators. Environment point j is considered covered by
+            candidate i if:
+
+                kernel(X_candidates[i], X_objective[j]) > kernel_threshold
+
+            Default is 0.7.
+        target_fraction : float
+            Desired fraction of the environment to cover (0–1). Default: 1.0.
         kwargs : dict
-            Unused. Accepted for interface compatibility.
+            Unused. For API compatibility.
 
         Returns
         -------
@@ -1680,20 +1683,9 @@ class GreedyCoverage(Method):
         X_objective = np.asarray(X_objective)
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
 
-        # ---------------- Predict lengthscales ----------------
-        env_ls = self.kernel.get_lengthscales(X_objective) / 2.0
-        candidate_ls = self.kernel.get_lengthscales(X_candidates) / 2.0
-
-        # ---------------- Compute coverage masks ----------------
-        dist_mat = pairwise_distances(X_candidates, X_objective)
-        within_circle = dist_mat <= candidate_ls[:, None]
-
-        tol = self.lengthscale_tolerance
-        cond_lower = env_ls[None, :] > (candidate_ls[:, None] - tol)
-        cond_upper = env_ls[None, :] < (candidate_ls[:, None] + tol)
-
-        coverages = (within_circle & cond_lower & cond_upper).astype(np.bool_)
-        del dist_mat, within_circle, cond_lower, cond_upper
+        # ---------------- Compute coverage maps ----------------
+        cov = self.kernel(X_candidates, X_objective).numpy()
+        coverages = (cov > kernel_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
         target_sum = v * float(target_fraction)
@@ -1882,16 +1874,25 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
     Parameters
     ----------
     remaining_idxs : 1D ndarray[int]
+        Indices of candidates that have not yet been selected.
     selected_idxs : 1D ndarray[int]
+        Indices of currently selected candidates.
     X : 2D ndarray[float], shape (m, d)
+        Candidate locations.
     coverage_arr : 2D ndarray[bool], shape (m, v)
+        Binary coverage mask for each candidate, where coverage_arr[i, j]
+        indicates whether candidate i covers environment point j.
     current_cover : 1D ndarray[bool], shape (v,)
+        Binary mask of currently covered environment points.
     distance : float
+        Current tour length.
 
     Returns
     -------
     distance_deltas : 1D ndarray[float]
+        Increase in tour length if each remaining candidate were added.
     area_deltas : 1D ndarray[int]
+        Number of newly covered environment points for each candidate.
     """
     m_rem = remaining_idxs.shape[0]
     v = current_cover.shape[0]
@@ -1929,38 +1930,42 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
 
 class GCBCoverage(Method):
     """
-    Greedy coverage-with-budget (GCB) selection using non-stationary GP
-    lengthscales and an approximate tour-length constraint.
+    Greedy coverage-with-budget (GCB) selection using a GP kernel covariance
+    and an approximate tour-length constraint.
 
     This method selects candidate sensing locations to:
 
         1) Cover as many environment points as possible, and
         2) Respect a total path-length (tour) budget.
 
-    Coverage rule
-    -------------
-    An environment point j (from X_objective) is covered by candidate i
-    (from X_candidates) iff:
+    Coverage definition
+    -------------------
+    Let K_ij denote the GP kernel covariance
 
-        1) ||X_candidates[i] − X_objective[j]|| <= candidate_lengthscale[i]
-        2) env_lengthscale[j] >  candidate_lengthscale[i] - lengthscale_tolerance
-        3) env_lengthscale[j] <  candidate_lengthscale[i] + lengthscale_tolerance
+        K_ij = kernel(X_candidates[i], X_objective[j])
 
-    The nonstationary lengthscales are predicted for both X_objective and
-    X_candidates using an attentive kernel representation.
+    Candidate i is said to *cover* environment point j whenever:
 
-    The algorithm:
-        • Precomputes binary coverage maps for each candidate.
-        • Starts from the single best coverage candidate.
-        • Iteratively adds candidates based on area gain per additional
-          distance (approximate delta via a numba kernel).
-        • For a proposed candidate, recomputes a short TSP tour (via `run_tsp`)
-          over the selected points and accepts it only if the new tour length
-          is within `distance_budget`.
-        • Stops when:
-            - the target coverage fraction is reached, OR
-            - the distance budget prevents any further useful additions, OR
-            - the maximum number of sensing points (`num_sensing`) is reached.
+        K_ij > kernel_threshold
+
+    where `kernel_threshold` is a scalar threshold. Coverage is defined purely
+    by thresholding the kernel covariance matrix between candidates and
+    environment points.
+
+    Algorithm sketch
+    ----------------
+    • Precompute a binary coverage map for each candidate based on
+      kernel covariance thresholding.
+    • Start from the single candidate that covers the most environment points.
+    • Iteratively add candidates based on area gain per additional distance
+      (distance and area deltas computed via Numba).
+    • For each proposed addition, solve a short TSP (via `run_tsp`) over the
+      selected points and accept it only if the resulting tour length is
+      within `distance_budget`.
+    • Stop when:
+        - the target coverage fraction is reached, OR
+        - the distance budget prevents any further useful additions, OR
+        - the maximum number of sensing points (`num_sensing`) is reached.
 
     Notes
     -----
@@ -1976,7 +1981,8 @@ class GCBCoverage(Method):
     selected_indices_ : list[int]
         Ordered indices into `X_candidates` corresponding to the route.
     coverage_maps_ : list[np.ndarray(bool)]
-        Coverage masks for each selected candidate.
+        Coverage masks for each selected candidate, obtained by thresholding
+        kernel covariance values.
     path_length_ : float
         Final tour length of the selected route.
     """
@@ -1991,7 +1997,6 @@ class GCBCoverage(Method):
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
-                 lengthscale_tolerance: float = 0.2,
                  **kwargs):
         """
         Initialize a GCBCoverage method.
@@ -2006,9 +2011,8 @@ class GCBCoverage(Method):
             Environment / test locations over which coverage is defined. If
             `X_candidates` is None, these are also used as the candidate set.
         kernel : gpflow.kernels.Kernel
-            Nonstationary kernel providing:
-                • kernel.lengthscales
-                • kernel.get_representations(X)
+            GP kernel used to compute pairwise covariance between candidate and
+            environment points.
         noise_variance : float
             Stored for API consistency; not directly used here.
         transform : Transform or None
@@ -2019,16 +2023,8 @@ class GCBCoverage(Method):
             Discrete candidate sensing locations `(m, d)`. If None, defaults
             to `X_objective`.
         num_dim : int or None
-            Dimensionality of sensing locations. Defaults to X_objective.shape[-1].
-        lengthscale_tolerance : float, optional
-            Symmetric tolerance around each candidate’s lengthscale used when
-            matching environment lengthscales, i.e., env_lengthscale[j] must lie
-            in:
-
-                [candidate_lengthscale[i] - lengthscale_tolerance,
-                 candidate_lengthscale[i] + lengthscale_tolerance]
-
-            Default is 0.2.
+            Dimensionality of sensing locations. Defaults to
+            `X_objective.shape[-1]`.
         kwargs : dict
             Unused, accepted for forward compatibility.
         """
@@ -2039,7 +2035,6 @@ class GCBCoverage(Method):
 
         self.kernel = kernel
         self.noise_variance = noise_variance
-        self.lengthscale_tolerance = float(lengthscale_tolerance)
 
         # Store environment set and (possibly) candidates explicitly
         self.X_objective = X_objective
@@ -2057,7 +2052,7 @@ class GCBCoverage(Method):
 
         Parameters
         ----------
-        kernel : gpflow kernel
+        kernel : gpflow.kernels.Kernel
             New kernel instance with updated hyperparameters.
         noise_variance : float
             New noise variance (stored for API consistency).
@@ -2079,8 +2074,9 @@ class GCBCoverage(Method):
 
     # ------------------------------------------------------------------
     def optimize(self,
-                 distance_budget: float = 1.0e10,
+                 kernel_threshold: float = 0.7,
                  target_fraction: float = 1.0,
+                 distance_budget: float = 1.0e10,
                  solution_limit: int = 15,
                  **kwargs) -> np.ndarray:
         """
@@ -2088,6 +2084,15 @@ class GCBCoverage(Method):
 
         Environment points are given by `X_objective`; candidates are taken
         from `X_candidates` if provided, otherwise from `X_objective` as well.
+
+        Coverage is computed by evaluating the GP kernel covariance between
+        each candidate and each environment point:
+
+            K = kernel(X_candidates, X_objective)
+            coverage_arr[i, j] = (K[i, j] > kernel_threshold)
+
+        That is, an environment point is marked as covered whenever its
+        covariance with the candidate exceeds `kernel_threshold`.
 
         Selection stops when any of the following holds:
 
@@ -2097,16 +2102,23 @@ class GCBCoverage(Method):
               violate the `distance_budget`.
             • The number of selected points reaches `num_sensing`.
 
-        Thus, in general the method may return fewer than `num_sensing`
-        points.
+        Thus, in general the method may return fewer than `num_sensing` points.
 
         Parameters
         ----------
+        kernel_threshold : float, optional
+            Scalar threshold used to convert kernel covariances into binary
+            coverage indicators. Environment point j is considered covered by
+            candidate i if:
+
+                kernel(X_candidates[i], X_objective[j]) > kernel_threshold
+
+            Default is 0.7.
+        target_fraction : float, optional
+            Target coverage fraction over X_objective (0–1). Default: 1.0.
         distance_budget : float
             Maximum allowed tour length (sum of Euclidean distances along the
             route). Default: 1.0e10.
-        target_fraction : float, optional
-            Target coverage fraction over X_objective (0–1). Default: 1.0.
         solution_limit : int
             Limit on the number of solutions OR-Tools will search. Default: 15.
         kwargs : dict
@@ -2133,25 +2145,9 @@ class GCBCoverage(Method):
             self.path_length_ = 0.0
             return np.zeros((1, 0, d), dtype=X_objective.dtype)
 
-        # ----- Predict lengthscales -----
-        env_ls = self.kernel.get_lengthscales(X_objective) / 2.0
-        candidate_ls = self.kernel.get_lengthscales(X_candidates) / 2.0
-
-        if env_ls.shape[0] != X_objective.shape[0]:
-            raise ValueError(
-                "env_lengthscales must have shape (n,) matching X_objective.shape[0]."
-            )
-
-        # ----- Precompute coverage maps -----
-        dist_mat = pairwise_distances(X_candidates, X_objective)  # (m, n)
-        tol = self.lengthscale_tolerance
-
-        within_circle = dist_mat <= candidate_ls[:, None]
-        cond_lower = env_ls[None, :] > (candidate_ls[:, None] - tol)
-        cond_upper = env_ls[None, :] < (candidate_ls[:, None] + tol)
-
-        coverage_arr = (within_circle & cond_lower & cond_upper).astype(np.bool_)
-        del dist_mat, within_circle, cond_lower, cond_upper
+        # ----- Precompute coverage maps via kernel covariance thresholding -----
+        cov = self.kernel(X_candidates, X_objective).numpy()
+        coverage_arr = (cov > kernel_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
         target_area = int(v * float(target_fraction))
