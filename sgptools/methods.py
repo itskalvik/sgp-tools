@@ -1522,7 +1522,7 @@ class GreedyCoverage(Method):
                  num_sensing: int,
                  X_objective: np.ndarray,
                  kernel: gpflow.kernels.Kernel,
-                 noise_variance: float = None,
+                 noise_variance: float,
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
@@ -1543,7 +1543,7 @@ class GreedyCoverage(Method):
             GP kernel used to compute pairwise covariance between candidate and
             environment points.
         noise_variance : float
-            Unused in this method but kept for interface consistency.
+            Observation noise variance used in the objective.
         transform : Transform or None
             Reserved for forward compatibility.
         num_robots : int
@@ -1631,7 +1631,7 @@ class GreedyCoverage(Method):
     # 
     def optimize(self,
                  kernel_threshold: float = 0.7,
-                 target_fraction: float = 1.0,
+                 target_fraction: float = 100.0,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
@@ -1663,9 +1663,9 @@ class GreedyCoverage(Method):
 
             Default is 0.7.
         target_fraction : float
-            Desired fraction of the environment to cover (0–1). Default: 1.0.
+            Desired fraction of the environment to cover (0–100). Default: 100.0.
         kwargs : dict
-            Unused. For API compatibility.
+            TSP solver arguments.
 
         Returns
         -------
@@ -1674,6 +1674,8 @@ class GreedyCoverage(Method):
         """
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
+        # Compute posterior kernel threshold from the prior kernel threshold
+        kernel_threshold = np.sqrt((1.0 - kernel_threshold)*(1+self.noise_variance))
 
         if self.X_candidates is None:
             X_candidates = X_objective
@@ -1684,11 +1686,20 @@ class GreedyCoverage(Method):
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
 
         # ---------------- Compute coverage maps ----------------
-        cov = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (cov > kernel_threshold).astype(np.bool_)
+        coverages = self.kernel(X_candidates, X_objective).numpy()
+        coverages = (coverages > kernel_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
-        target_sum = v * float(target_fraction)
+        target_sum = v * float(target_fraction*0.01)
+
+        # Sanity check to ensure target fraction coverage can be achieved from candidate locations
+        test_mask = np.clip(np.sum(coverages, axis=0), 0, 1)
+        max_fraction = 100.0 * float(test_mask.sum()) / float(v)
+        if max_fraction < float(target_fraction):
+            raise ValueError(
+                f"Target coverage {target_fraction:.1f}% is not achievable; "
+                f"maximum possible is {max_fraction:.1f}%."
+            )
 
         # ---------------- Greedy loop ----------------
         n = len(X_candidates)
@@ -1730,7 +1741,8 @@ class GreedyCoverage(Method):
             return np.zeros((1, 0, self.num_dim), dtype=X_objective.dtype)
 
         X_sol = X_candidates[selected]
-        return X_sol.reshape(1, len(selected), self.num_dim)
+        X_sol, _ = run_tsp(X_sol, **kwargs)
+        return np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
 
 # -----------------------------------------------------------------------------
 
@@ -1930,7 +1942,7 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
 
 class GCBCoverage(Method):
     """
-    Greedy coverage-with-budget (GCB) selection using a GP kernel covariance
+    Generalized cost benifit algorithm (GCB) selection using a GP kernel covariance
     and an approximate tour-length constraint.
 
     This method selects candidate sensing locations to:
