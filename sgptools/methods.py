@@ -1640,10 +1640,13 @@ class GreedyCoverage(Method):
         candidate and each environment point:
 
             K = kernel(X_candidates, X_objective)
-            coverages[i, j] = (K[i, j] > kernel_threshold)
+            coverages[i, j] = (K[i, j] > tau_post)
 
-        Thus, an environment point is marked as covered whenever its covariance
-        with the candidate exceeds the threshold.
+        where `tau_post` is a posterior covariance threshold derived from the
+        user-specified `kernel_threshold` and the observation noise variance.
+
+        Thus, an environment point is marked as covered whenever its posterior
+        covariance with the candidate exceeds `tau_post`.
 
         The greedy procedure repeatedly selects the candidate yielding the
         largest number of *new* environment points that become covered.
@@ -1655,11 +1658,11 @@ class GreedyCoverage(Method):
         Parameters
         ----------
         kernel_threshold : float, optional
-            Scalar threshold used to convert kernel covariances into binary
-            coverage indicators. Environment point j is considered covered by
-            candidate i if:
+            Prior kernel correlation threshold in [0, 1]. Internally converted
+            to an equivalent posterior covariance threshold (which depends on
+            `noise_variance`) used to binarize coverage:
 
-                kernel(X_candidates[i], X_objective[j]) > kernel_threshold
+                tau_post = sqrt((1 - kernel_threshold) * (1 + noise_variance))
 
             Default is 0.7.
         target_fraction : float
@@ -2004,7 +2007,7 @@ class GCBCoverage(Method):
                  num_sensing: int,
                  X_objective: np.ndarray,
                  kernel: gpflow.kernels.Kernel,
-                 noise_variance: float = None,
+                 noise_variance: float,
                  transform: Optional[Transform] = None,
                  num_robots: int = 1,
                  X_candidates: Optional[np.ndarray] = None,
@@ -2026,7 +2029,7 @@ class GCBCoverage(Method):
             GP kernel used to compute pairwise covariance between candidate and
             environment points.
         noise_variance : float
-            Stored for API consistency; not directly used here.
+            Observation noise variance used in the objective.
         transform : Transform or None
             Reserved for compatibility with the Method API; not applied here.
         num_robots : int
@@ -2051,11 +2054,6 @@ class GCBCoverage(Method):
         # Store environment set and (possibly) candidates explicitly
         self.X_objective = X_objective
         # self.X_candidates is already set by the base Method
-
-        # Outputs to be populated after optimize
-        self.selected_indices_: List[int] = []
-        self.coverage_maps_: List[np.ndarray] = []
-        self.path_length_: float = 0.0
 
     # ------------------------------------------------------------------
     def update(self, kernel: gpflow.kernels.Kernel, noise_variance: float):
@@ -2087,7 +2085,7 @@ class GCBCoverage(Method):
     # ------------------------------------------------------------------
     def optimize(self,
                  kernel_threshold: float = 0.7,
-                 target_fraction: float = 1.0,
+                 target_fraction: float = 100.0,
                  distance_budget: float = 1.0e10,
                  solution_limit: int = 15,
                  **kwargs) -> np.ndarray:
@@ -2097,14 +2095,17 @@ class GCBCoverage(Method):
         Environment points are given by `X_objective`; candidates are taken
         from `X_candidates` if provided, otherwise from `X_objective` as well.
 
-        Coverage is computed by evaluating the GP kernel covariance between
-        each candidate and each environment point:
+        Coverage is computed by evaluating the GP kernel covariance between each
+        candidate and each environment point:
 
             K = kernel(X_candidates, X_objective)
-            coverage_arr[i, j] = (K[i, j] > kernel_threshold)
+            coverages[i, j] = (K[i, j] > tau_post)
 
-        That is, an environment point is marked as covered whenever its
-        covariance with the candidate exceeds `kernel_threshold`.
+        where `tau_post` is a posterior covariance threshold derived from the
+        user-specified `kernel_threshold` and the observation noise variance.
+
+        Thus, an environment point is marked as covered whenever its posterior
+        covariance with the candidate exceeds `tau_post`.
 
         Selection stops when any of the following holds:
 
@@ -2119,15 +2120,15 @@ class GCBCoverage(Method):
         Parameters
         ----------
         kernel_threshold : float, optional
-            Scalar threshold used to convert kernel covariances into binary
-            coverage indicators. Environment point j is considered covered by
-            candidate i if:
+            Prior kernel correlation threshold in [0, 1]. Internally converted
+            to an equivalent posterior covariance threshold (which depends on
+            `noise_variance`) used to binarize coverage:
 
-                kernel(X_candidates[i], X_objective[j]) > kernel_threshold
+                tau_post = sqrt((1 - kernel_threshold) * (1 + noise_variance))
 
             Default is 0.7.
         target_fraction : float, optional
-            Target coverage fraction over X_objective (0–1). Default: 1.0.
+            Desired fraction of the environment to cover (0–100). Default: 100.0.
         distance_budget : float
             Maximum allowed tour length (sum of Euclidean distances along the
             route). Default: 1.0e10.
@@ -2142,38 +2143,45 @@ class GCBCoverage(Method):
             Selected route locations in visit order, where
             `k <= num_sensing`.
         """
-        X_objective = np.asarray(self.X_objective)
+        # ---------------- Candidate & environment sets ----------------
+        X_objective = self.X_objective
+        # Compute posterior kernel threshold from the prior kernel threshold
+        kernel_threshold = np.sqrt((1.0 - kernel_threshold)*(1+self.noise_variance))
 
         if self.X_candidates is None:
             X_candidates = X_objective
         else:
             X_candidates = self.X_candidates
+
+        X_objective = np.asarray(X_objective)
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
 
-        m, d = X_candidates.shape
-        if m == 0:
-            self.selected_indices_ = []
-            self.coverage_maps_ = []
-            self.path_length_ = 0.0
-            return np.zeros((1, 0, d), dtype=X_objective.dtype)
-
-        # ----- Precompute coverage maps via kernel covariance thresholding -----
-        cov = self.kernel(X_candidates, X_objective).numpy()
-        coverage_arr = (cov > kernel_threshold).astype(np.bool_)
+        # ---------------- Compute coverage maps ----------------
+        coverages = self.kernel(X_candidates, X_objective).numpy()
+        coverages = (coverages > kernel_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
-        target_area = int(v * float(target_fraction))
+        target_area = v * float(target_fraction*0.01)
+
+        # Sanity check to ensure target fraction coverage can be achieved from candidate locations
+        test_mask = np.clip(np.sum(coverages, axis=0), 0, 1)
+        max_fraction = 100.0 * float(test_mask.sum()) / float(v)
+        if max_fraction < float(target_fraction):
+            raise ValueError(
+                f"Target coverage {target_fraction:.1f}% is not achievable; "
+                f"maximum possible is {max_fraction:.1f}%."
+            )
 
         # ----- Initial location: best single coverage -----
-        single_areas = coverage_arr.sum(axis=1)
+        single_areas = coverages.sum(axis=1)
         first_idx = int(np.argmax(single_areas))
 
         selected_idxs = [first_idx]
         distance = 0.0
-        current_cover = coverage_arr[first_idx].copy()
-        current_area = int(current_cover.sum())
+        current_cover = coverages[first_idx].copy()
+        current_area = current_cover.sum()
 
-        remaining = np.array([i for i in range(m) if i != first_idx],
+        remaining = np.array([i for i in range(len(X_candidates)) if i != first_idx],
                              dtype=np.int64)
 
         # ----- GCB loop -----
@@ -2184,7 +2192,7 @@ class GCBCoverage(Method):
             selected_arr = np.array(selected_idxs, dtype=np.int64)
 
             distance_deltas, area_deltas = _compute_deltas_all_numba(
-                remaining_arr, selected_arr, X_candidates, coverage_arr,
+                remaining_arr, selected_arr, X_candidates, coverages,
                 current_cover, distance
             )
 
@@ -2232,20 +2240,14 @@ class GCBCoverage(Method):
                     # Recompute coverage and area with new selection
                     current_cover = np.zeros_like(current_cover, dtype=np.bool_)
                     for si in selected_idxs:
-                        current_cover |= coverage_arr[si]
-                    current_area = int(current_cover.sum())
+                        current_cover |= coverages[si]
+                    current_area = current_cover.sum()
                     break  # back to outer while
 
         # ----- Prepare outputs -----
-        X_route = X_candidates[selected_idxs]
-        selected_coverage_maps = [coverage_arr[i] for i in selected_idxs]
-
-        self.selected_indices_ = selected_idxs
-        self.coverage_maps_ = selected_coverage_maps
-        self.path_length_ = float(distance)
-
-        return X_route.reshape(1, len(selected_idxs), d)
-
+        X_sol = X_candidates[selected_idxs]
+        return np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
+    
 
 METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
