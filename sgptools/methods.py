@@ -2135,7 +2135,7 @@ class GCBCoverage(Method):
         solution_limit : int
             Limit on the number of solutions OR-Tools will search. Default: 15.
         kwargs : dict
-            Unused, accepted for API compatibility.
+            TSP solver arguments.
 
         Returns
         -------
@@ -2227,6 +2227,7 @@ class GCBCoverage(Method):
                     initial_route=[list(range(1, len(locs) + 1))],
                     return_indices=True,
                     solution_limit=solution_limit,
+                    **kwargs
                 )
 
                 new_distance = dist_list[0]
