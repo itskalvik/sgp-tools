@@ -31,7 +31,7 @@ def run_tsp(
     resample: Optional[int] = None,
     start_nodes: Optional[np.ndarray] = None,
     end_nodes: Optional[np.ndarray] = None,
-    time_limit: int = 10,
+    time_limit: Optional[int] = None,
     solution_limit: Optional[int] = None,
     initial_route: Optional[List[List[int]]] = None,
     return_indices: bool = False,
@@ -59,7 +59,8 @@ def run_tsp(
             for each vehicle.
         end_nodes: Array of shape (num_vehicles, ndim). Optional end node for
             each vehicle.
-        time_limit: Solver time limit in seconds.
+        time_limit: Optional TSp solver time limit in seconds. Enables GUIDED_LOCAL_SEARCH
+            as the secondary TSP solver for improved results.
         solution_limit: Optional limit on the number of solutions OR-Tools will
             search.
         initial_route: Optional initial routes for warm starting, in OR-Tools
@@ -203,10 +204,11 @@ def run_tsp(
     search_parameters.first_solution_strategy = (
         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
     )
-    search_parameters.local_search_metaheuristic = (
-        routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
-    )
-    search_parameters.time_limit.seconds = time_limit
+    if time_limit is not None:
+        search_parameters.local_search_metaheuristic = (
+            routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+        )
+        search_parameters.time_limit.seconds = time_limit
 
     if solution_limit is not None:
         search_parameters.solution_limit = solution_limit
