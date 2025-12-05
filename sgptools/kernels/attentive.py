@@ -170,14 +170,14 @@ class Attentive(gpflow.kernels.Kernel):
                 Tensor of shape (N1, N2) containing the covariance matrix
                 K(X, X2).
         """
+        repre1 = self.get_representations(X)
         if X2 is None:
+            repre2 = repre1
             X2_internal = X
         else:
             X2_internal = X2
-
+            repre2 = self.get_representations(X2_internal)
         dist = cdist(X, X2_internal)
-        repre1 = self.get_representations(X)
-        repre2 = self.get_representations(X2_internal)
 
         def get_mixture_component(i: tf.Tensor) -> tf.Tensor:
             """Compute a single mixture RBF component.
