@@ -1481,42 +1481,62 @@ class GreedyCoverage(Method):
     Greedy coverage–based informative sensing selection using a GP kernel.
 
     This method selects sensing points from a discrete candidate set by
-    maximizing the fraction of environment points whose **kernel covariance**
-    with each candidate exceeds a user-defined threshold.
+    maximizing the number of environment points whose **posterior covariance**
+    with at least one selected candidate exceeds a threshold derived from a
+    user-specified prior kernel correlation level.
 
     --------------------------------------------------------------------------
     Coverage definition
     --------------------------------------------------------------------------
-    Let K_ij denote the GP kernel covariance:
+    Let K_ij denote the prior GP kernel covariance:
 
         K_ij = kernel(X_candidates[i], X_objective[j])
 
+    For each environment point j and candidate i, we define an implied
+    posterior covariance threshold `tau_post[i, j]` as:
+
+        tau_post[i, j] = sqrt(
+            (objective_prior_variance[j] - var_threshold) *
+            (candidate_prior_variance[i] + noise_variance)
+        )
+
+    where:
+      - `objective_prior_variance[j] = kernel(X_objective[j], X_objective[j])`
+      - `candidate_prior_variance[i] = kernel(X_candidates[i], X_candidates[i])`
+      - `var_threshold` is a user-specified scalar (interpreted as a prior
+        correlation level in [0, 1])
+      - `noise_variance` is the observation noise variance.
+
     Candidate i is said to *cover* environment point j whenever:
 
-        K_ij > var_threshold
+        K_ij > tau_post[i, j]
 
-    where `var_threshold` is a scalar threshold.
-    Coverage is therefore defined exclusively through the kernel covariance.
+    Coverage is therefore defined via a **data-dependent binary mask** derived
+    from the GP kernel and the noise variance, rather than a fixed covariance
+    threshold.
 
     --------------------------------------------------------------------------
     Algorithm summary
     --------------------------------------------------------------------------
-    • Compute the covariance matrix:
-          K = kernel(X_candidates, X_objective)
-    • Convert to binary coverage masks:
-          coverages = (K > var_threshold)
-    • Run a numba-accelerated greedy loop that repeatedly selects the
-      candidate providing the largest number of newly covered environment
-      points.
-    • Stop when the target coverage fraction or sensing budget is reached.
-    • Return the selected subset of candidate points.
+    • Compute kernel variances on both sets and derive the posterior covariance
+      thresholds tau_post[i, j].
+    • Compute the binary coverage mask:
+          coverages[i, j] = (kernel(X_candidates[i], X_objective[j]) > tau_post[i, j])
+    • Run a numba-accelerated greedy loop that repeatedly selects the candidate
+      providing the largest number of newly covered environment points.
+    • Terminate when either the target coverage fraction or the sensing budget
+      is reached.
+    • Return the selected subset of candidate points, ordered by a
+      TSP solver and optionally with their associated fields of view (FoVs).
 
     Notes
     -----
     • Supports **only single-robot** settings (`num_robots = 1`).
     • If `X_candidates` is not provided, the method defaults to `X_objective`.
-    • May return **fewer than `num_sensing`** points when sufficient coverage
-      is achieved early.
+    • May return **fewer than `num_sensing`** points when the desired coverage
+      fraction is achieved early.
+    • Raises `ValueError` if the requested coverage fraction is not achievable
+      from the candidate set.
     """
     def __init__(self,
                  num_sensing: int,
@@ -1524,7 +1544,7 @@ class GreedyCoverage(Method):
                  kernel: gpflow.kernels.Kernel,
                  noise_variance: float,
                  transform: Optional[Transform] = None,
-                 num_robots: int = 1,
+                 num_robots: Optional[int] = 1,
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
                  **kwargs):
@@ -1631,54 +1651,73 @@ class GreedyCoverage(Method):
     # 
     def optimize(self,
                  var_threshold: float = 0.7,
-                 target_fraction: float = 100.0,
+                 target_fraction: int = 100,
+                 return_fovs: bool = False,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
 
         Coverage is computed by evaluating the GP kernel covariance between each
-        candidate and each environment point:
+        candidate and each environment point and comparing it to an implied
+        posterior covariance threshold `tau_post`:
 
             K = kernel(X_candidates, X_objective)
-            coverages[i, j] = (K[i, j] > tau_post)
+            tau_post[i, j] = sqrt(
+                (objective_prior_variance[j] - var_threshold) *
+                (candidate_prior_variance[i] + noise_variance)
+            )
+            coverages[i, j] = (K[i, j] > tau_post[i, j])
 
-        where `tau_post` is a posterior covariance threshold derived from the
-        user-specified `var_threshold` and the observation noise variance.
+        where `var_threshold` is interpreted as a prior kernel correlation
+        level (typically in [0, 1]) and `noise_variance` is the observation
+        noise variance.
 
-        Thus, an environment point is marked as covered whenever its posterior
-        covariance with the candidate exceeds `tau_post`.
+        The greedy procedure repeatedly selects the candidate that yields the
+        largest number of **newly covered** environment points. Selection stops
+        when either:
 
-        The greedy procedure repeatedly selects the candidate yielding the
-        largest number of *new* environment points that become covered.
-        Selection stops when either:
+        • the target coverage fraction `target_fraction` is achieved, or
+        • the sensing budget `num_sensing` is exhausted.
 
-            • the target coverage fraction `target_fraction` is achieved, or
-            • the sensing budget `num_sensing` is exhausted.
+        If the requested target fraction is not achievable from the candidate
+        set, a `ValueError` is raised.
 
         Parameters
         ----------
         var_threshold : float, optional
-            Prior kernel correlation threshold in [0, 1]. Internally converted
-            to an equivalent posterior covariance threshold (which depends on
-            `noise_variance`) used to binarize coverage:
-
-                tau_post = sqrt((1 - var_threshold) * (1 + noise_variance))
-
-            Default is 0.7.
-        target_fraction : float
-            Desired fraction of the environment to cover (0–100). Default: 100.0.
-        kwargs : dict
-            TSP solver arguments.
+            Prior kernel correlation threshold in [0, 1]. Internally
+            converted into a posterior covariance threshold
+            `tau_post` (which depends on `noise_variance` and the kernel
+            variances) used to binarize coverage. Default is 0.7.
+        target_fraction : int, optional
+            Desired fraction of the environment to cover, expressed as a
+            percentage in [0, 100]. Default is 100 (i.e., full coverage, if
+            achievable).
+        return_fovs : bool, optional
+            If True, also returns a list of polygonal fields of view (FoVs)
+            corresponding to the convex hull of the covered objective points
+            for each selected candidate. Default is False.
+        kwargs : dict, optional
+            Additional keyword arguments passed directly to the TSP solver
+            :func:`run_tsp`, which is used to order the selected locations
+            along a path. These do not affect which points are selected.
 
         Returns
         -------
-        ndarray, shape (1, k, d)
-            The selected sensing locations, where `k <= num_sensing`.
+        X_sol : ndarray of shape (1, k, d) or (1, 0, d)
+            The selected sensing locations, ordered according to the TSP
+            solution, where `k <= num_sensing`.
+
+        If `return_fovs` is True, the return value is:
+
+        -------
+        X_sol, fovs : (ndarray, list of shapely.geometry.Polygon)
+            `X_sol` as above, together with a list of buffered convex-hull FoVs
+            computed from the covered environment points for each selected
+            candidate.
         """
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
-        # Compute posterior kernel threshold from the prior kernel threshold
-        var_threshold = np.sqrt((1.0 - var_threshold)*(1+self.noise_variance))
 
         if self.X_candidates is None:
             X_candidates = X_objective
@@ -1689,19 +1728,29 @@ class GreedyCoverage(Method):
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
 
         # ---------------- Compute coverage maps ----------------
-        coverages = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (coverages > var_threshold).astype(np.bool_)
+        candidate_vars = self.kernel.K_diag(X_candidates).numpy()
+        objective_vars = self.kernel.K_diag(X_objective).numpy()
+        fact_1 = objective_vars - var_threshold
+        if np.any(fact_1 < 0.):
+            raise ValueError(
+                f"var_threshold must be smaller than the largest kernel variance: {objective_vars.max():.2f}."
+            )        
+        fact_2 = candidate_vars + self.noise_variance
+        var_condition = np.sqrt(np.outer(fact_2, fact_1))
+        prior_covs = self.kernel(X_candidates, X_objective).numpy()
+        coverages = (prior_covs > var_condition).astype(np.bool_)
+        del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
 
         v = X_objective.shape[0]
-        target_sum = v * float(target_fraction*0.01)
+        target_sum = v * float(target_fraction * 0.01)
 
         # Sanity check to ensure target fraction coverage can be achieved from candidate locations
         test_mask = np.clip(np.sum(coverages, axis=0), 0, 1)
-        max_fraction = 100.0 * float(test_mask.sum()) / float(v)
-        if max_fraction < float(target_fraction):
+        max_fraction = int(np.round(100.0 * float(test_mask.sum()) / float(v)))
+        if max_fraction < target_fraction:
             raise ValueError(
-                f"Target coverage {target_fraction:.1f}% is not achievable; "
-                f"maximum possible is {max_fraction:.1f}%."
+                f"Target coverage {target_fraction}% is not achievable; "
+                f"maximum possible is {max_fraction}%."
             )
 
         # ---------------- Greedy loop ----------------
@@ -1745,7 +1794,48 @@ class GreedyCoverage(Method):
 
         X_sol = X_candidates[selected]
         X_sol, _ = run_tsp(X_sol, **kwargs)
-        return np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
+        X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
+
+        if return_fovs:
+            return X_sol, self._get_fovs(coverages[selected])
+        else:
+            return X_sol
+
+    def _get_fovs(self, coverages, buffer: float = 0.5):
+        """
+        Compute polygonal fields of view (FoVs) from coverage masks.
+
+        For each selected candidate, this method takes the subset of objective
+        points it covers, forms their convex hull, and then applies a
+        morphological buffer. The result is a list of polygons that roughly
+        characterize the spatial footprint of each sensing location.
+
+        Parameters
+        ----------
+        coverages : 2D ndarray of bool, shape (k, n)
+            Coverage masks for the selected candidates, where `k` is the number
+            of selected locations and `n` is the number of environment points.
+            Each row corresponds to one candidate and indicates which objective
+            points are covered.
+        buffer : float, optional
+            Buffer radius passed to :meth:`Polygon.buffer`. Controls how much
+            the convex hull is expanded. Default is 0.5.
+
+        Returns
+        -------
+        fovs : list of shapely.geometry.Polygon
+            List of buffered convex-hull polygons, one per candidate for which
+            at least four objective points are covered. Candidates covering
+            fewer than four points are skipped.
+        """
+        fovs = []
+        for cover in coverages:
+            mask = self.X_objective[np.where(cover)]
+            if len(mask) > 3:
+                fov = geometry.Polygon(mask).convex_hull
+                fov = fov.buffer(buffer)
+                fovs.append(fov)
+        return fovs
 
 # -----------------------------------------------------------------------------
 
