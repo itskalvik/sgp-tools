@@ -1493,9 +1493,9 @@ class GreedyCoverage(Method):
 
     Candidate i is said to *cover* environment point j whenever:
 
-        K_ij > kernel_threshold
+        K_ij > var_threshold
 
-    where `kernel_threshold` is a scalar threshold.
+    where `var_threshold` is a scalar threshold.
     Coverage is therefore defined exclusively through the kernel covariance.
 
     --------------------------------------------------------------------------
@@ -1504,7 +1504,7 @@ class GreedyCoverage(Method):
     • Compute the covariance matrix:
           K = kernel(X_candidates, X_objective)
     • Convert to binary coverage masks:
-          coverages = (K > kernel_threshold)
+          coverages = (K > var_threshold)
     • Run a numba-accelerated greedy loop that repeatedly selects the
       candidate providing the largest number of newly covered environment
       points.
@@ -1630,7 +1630,7 @@ class GreedyCoverage(Method):
 
     # 
     def optimize(self,
-                 kernel_threshold: float = 0.7,
+                 var_threshold: float = 0.7,
                  target_fraction: float = 100.0,
                  **kwargs) -> np.ndarray:
         """
@@ -1643,7 +1643,7 @@ class GreedyCoverage(Method):
             coverages[i, j] = (K[i, j] > tau_post)
 
         where `tau_post` is a posterior covariance threshold derived from the
-        user-specified `kernel_threshold` and the observation noise variance.
+        user-specified `var_threshold` and the observation noise variance.
 
         Thus, an environment point is marked as covered whenever its posterior
         covariance with the candidate exceeds `tau_post`.
@@ -1657,12 +1657,12 @@ class GreedyCoverage(Method):
 
         Parameters
         ----------
-        kernel_threshold : float, optional
+        var_threshold : float, optional
             Prior kernel correlation threshold in [0, 1]. Internally converted
             to an equivalent posterior covariance threshold (which depends on
             `noise_variance`) used to binarize coverage:
 
-                tau_post = sqrt((1 - kernel_threshold) * (1 + noise_variance))
+                tau_post = sqrt((1 - var_threshold) * (1 + noise_variance))
 
             Default is 0.7.
         target_fraction : float
@@ -1678,7 +1678,7 @@ class GreedyCoverage(Method):
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
         # Compute posterior kernel threshold from the prior kernel threshold
-        kernel_threshold = np.sqrt((1.0 - kernel_threshold)*(1+self.noise_variance))
+        var_threshold = np.sqrt((1.0 - var_threshold)*(1+self.noise_variance))
 
         if self.X_candidates is None:
             X_candidates = X_objective
@@ -1690,7 +1690,7 @@ class GreedyCoverage(Method):
 
         # ---------------- Compute coverage maps ----------------
         coverages = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (coverages > kernel_threshold).astype(np.bool_)
+        coverages = (coverages > var_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
         target_sum = v * float(target_fraction*0.01)
@@ -1961,9 +1961,9 @@ class GCBCoverage(Method):
 
     Candidate i is said to *cover* environment point j whenever:
 
-        K_ij > kernel_threshold
+        K_ij > var_threshold
 
-    where `kernel_threshold` is a scalar threshold. Coverage is defined purely
+    where `var_threshold` is a scalar threshold. Coverage is defined purely
     by thresholding the kernel covariance matrix between candidates and
     environment points.
 
@@ -2084,7 +2084,7 @@ class GCBCoverage(Method):
 
     # ------------------------------------------------------------------
     def optimize(self,
-                 kernel_threshold: float = 0.7,
+                 var_threshold: float = 0.7,
                  target_fraction: float = 100.0,
                  distance_budget: float = 1.0e10,
                  solution_limit: int = 15,
@@ -2102,7 +2102,7 @@ class GCBCoverage(Method):
             coverages[i, j] = (K[i, j] > tau_post)
 
         where `tau_post` is a posterior covariance threshold derived from the
-        user-specified `kernel_threshold` and the observation noise variance.
+        user-specified `var_threshold` and the observation noise variance.
 
         Thus, an environment point is marked as covered whenever its posterior
         covariance with the candidate exceeds `tau_post`.
@@ -2119,12 +2119,12 @@ class GCBCoverage(Method):
 
         Parameters
         ----------
-        kernel_threshold : float, optional
+        var_threshold : float, optional
             Prior kernel correlation threshold in [0, 1]. Internally converted
             to an equivalent posterior covariance threshold (which depends on
             `noise_variance`) used to binarize coverage:
 
-                tau_post = sqrt((1 - kernel_threshold) * (1 + noise_variance))
+                tau_post = sqrt((1 - var_threshold) * (1 + noise_variance))
 
             Default is 0.7.
         target_fraction : float, optional
@@ -2146,7 +2146,7 @@ class GCBCoverage(Method):
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
         # Compute posterior kernel threshold from the prior kernel threshold
-        kernel_threshold = np.sqrt((1.0 - kernel_threshold)*(1+self.noise_variance))
+        var_threshold = np.sqrt((1.0 - var_threshold)*(1+self.noise_variance))
 
         if self.X_candidates is None:
             X_candidates = X_objective
@@ -2158,7 +2158,7 @@ class GCBCoverage(Method):
 
         # ---------------- Compute coverage maps ----------------
         coverages = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (coverages > kernel_threshold).astype(np.bool_)
+        coverages = (coverages > var_threshold).astype(np.bool_)
 
         v = X_objective.shape[0]
         target_area = v * float(target_fraction*0.01)
@@ -2248,7 +2248,7 @@ class GCBCoverage(Method):
         # ----- Prepare outputs -----
         X_sol = X_candidates[selected_idxs]
         return np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
-    
+
 
 METHODS: Dict[str, Type[Method]] = {
     'BayesianOpt': BayesianOpt,
@@ -2258,7 +2258,7 @@ METHODS: Dict[str, Type[Method]] = {
     'GreedySGP': GreedySGP,
     'DifferentiableObjective': DifferentiableObjective,
     'GreedyCoverage': GreedyCoverage,
-    'GCBCoverage': GCBCoverage
+    'GCBCoverage': GCBCoverage,
 }
 
 
