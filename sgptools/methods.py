@@ -2111,7 +2111,6 @@ class GCBCoverage(GreedyCoverage):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
-                 solution_limit: int = 15,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB (greedy coverage + budget) selection algorithm.
@@ -2162,8 +2161,6 @@ class GCBCoverage(GreedyCoverage):
             If True, also returns a list of polygonal fields of view (FoVs)
             corresponding to the convex hull of the covered objective points
             for each selected candidate. Default is False.
-        solution_limit : int
-            Limit on the number of solutions OR-Tools will search. Default: 15.
         kwargs : dict, optional
             Additional keyword arguments passed directly to the TSP solver
             `run_tsp`, which is used to order the selected locations
@@ -2193,6 +2190,11 @@ class GCBCoverage(GreedyCoverage):
 
         X_objective = np.asarray(X_objective)
         X_candidates = np.asarray(X_candidates, dtype=X_objective.dtype)
+        
+        if kwargs.get('start_nodes', None) is not None:
+            offset = 1
+        else:
+            offset = 0
 
         # ---------------- Compute coverage maps ----------------
         candidate_vars = self.kernel.K_diag(X_candidates).numpy()
@@ -2274,12 +2276,11 @@ class GCBCoverage(GreedyCoverage):
                     locs,
                     initial_route=[list(range(1, len(locs) + 1))],
                     return_indices=True,
-                    solution_limit=solution_limit,
                     **kwargs
                 )
 
                 new_distance = dist_list[0]
-                order = indices_list[0]
+                order = indices_list[0][offset:] - offset
                 new_selected_idxs = [idx_list[i] for i in order]
 
                 if new_distance <= distance_budget:
@@ -2295,6 +2296,9 @@ class GCBCoverage(GreedyCoverage):
 
         # ----- Prepare outputs -----
         X_sol = X_candidates[selected_idxs]
+        start_nodes = kwargs.get('start_nodes', None)
+        if start_nodes is not None:
+            X_sol = np.vstack([start_nodes, X_sol])
         X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
     
         if return_fovs:
