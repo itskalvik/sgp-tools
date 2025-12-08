@@ -22,7 +22,6 @@ import cma
 from shapely import geometry
 from apricot import CustomSelection
 from bayes_opt import BayesianOptimization
-from sklearn.metrics import pairwise_distances
 from numba import njit
 
 from sgptools.utils.tsp import run_tsp

@@ -257,6 +257,33 @@ def get_rmse(y_pred: np.ndarray, y_test: np.ndarray) -> float:
     return float(np.sqrt(np.mean(np.square(error))))
 
 
+def get_mse(y_pred: np.ndarray, y_test: np.ndarray) -> float:
+    """
+    Computes the Mean Square Error (MSE) between predicted and ground truth values.
+
+    Args:
+        y_pred (np.ndarray): (n, 1); NumPy array of predicted values.
+        y_test (np.ndarray): (n, 1); NumPy array of ground truth values.
+
+    Returns:
+        float: The computed RMSE.
+
+    Usage:
+        ```python
+        import numpy as np
+        from sgptools.utils.metrics import get_mse
+
+        # Dummy data
+        predictions = np.array([[1.1], [2.2], [3.3]])
+        ground_truth = np.array([[1.0], [2.0], [3.0]])
+
+        rmse_value = get_mse(predictions, ground_truth)
+        ```
+    """
+    error = y_pred - y_test
+    return float(np.mean(np.square(error)))
+
+
 def get_reconstruction(
         sensor_data: Tuple[np.ndarray, np.ndarray], X_test: np.ndarray,
         noise_variance: float,
