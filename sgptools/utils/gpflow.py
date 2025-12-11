@@ -35,6 +35,7 @@ def get_model_params(
     return_model: bool = False,
     train_inducing_pts: bool = False,
     num_inducing_pts: int = 500,
+    force_gp: bool = False,
     **kwargs: Any
 ) -> Union[Tuple[np.ndarray, float, gpflow.kernels.Kernel], Tuple[
         np.ndarray, float, gpflow.kernels.Kernel, Union[gpflow.models.GPR,
@@ -64,6 +65,7 @@ def get_model_params(
                                    inducing points remain fixed (default for SGP). Defaults to False.
         num_inducing_pts (int): Number of inducing points to use when training a Sparse GP model.
                                 Ignored if `len(X_train)` is less than or equal to 1500. Defaults to 500.
+        force_gp (bool): If True, use a GP even if the number of training points is large. Defaults to False.
         **kwargs: Additional keyword arguments passed to the `optimize_model` function.
 
     Returns:
@@ -101,7 +103,7 @@ def get_model_params(
     model: Union[gpflow.models.GPR, gpflow.models.SGPR]
     trainable_variables_list: List[tf.Variable]
 
-    if len(X_train) <= 1500:
+    if len(X_train) <= 1500 or force_gp:
         model = gpflow.models.GPR(data=(X_train, y_train),
                                   kernel=kernel,
                                   noise_variance=noise_variance)
