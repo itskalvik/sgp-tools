@@ -1966,6 +1966,7 @@ class GreedyCoverage(HexCoverage):
                  var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
+                 slack_var: float = 0.1,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
@@ -2010,6 +2011,9 @@ class GreedyCoverage(HexCoverage):
             If True, also returns a list of polygonal fields of view (FoVs)
             corresponding to the convex hull of the covered objective points
             for each selected candidate. Default is False.
+        slack_var: float, optional
+            Additional slack variance added to var_threshold for candidate 
+            set generation to ensure full coverage.
         kwargs : dict, optional
             Additional keyword arguments passed directly to the TSP solver
             `run_tsp`, which is used to order the selected locations
@@ -2033,7 +2037,7 @@ class GreedyCoverage(HexCoverage):
         X_objective = self.X_objective
 
         # Get candidates using HexCoverage
-        self.X_candidates = super().optimize(var_threshold=var_threshold,
+        self.X_candidates = super().optimize(var_threshold=var_threshold - slack_var,
                                              tsp=False,
                                              **kwargs)[0]
 
@@ -2050,9 +2054,9 @@ class GreedyCoverage(HexCoverage):
                 f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
             )        
         fact_2 = candidate_vars + self.noise_variance
-        var_condition = np.sqrt(np.outer(fact_2, fact_1))
+        var_condition = np.outer(fact_2, fact_1)
         prior_covs = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (prior_covs > var_condition).astype(np.bool_)
+        coverages = (np.square(prior_covs) > var_condition).astype(np.bool_)
         del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
 
         v = X_objective.shape[0]
@@ -2425,6 +2429,7 @@ class GCBCoverage(GreedyCoverage):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
+                 slack_var: float = 0.1,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB (greedy coverage + budget) selection algorithm.
@@ -2475,6 +2480,9 @@ class GCBCoverage(GreedyCoverage):
             If True, also returns a list of polygonal fields of view (FoVs)
             corresponding to the convex hull of the covered objective points
             for each selected candidate. Default is False.
+        slack_var: float, optional
+            Additional slack variance added to var_threshold for candidate 
+            set generation to ensure full coverage.
         kwargs : dict, optional
             Additional keyword arguments passed directly to the TSP solver
             `run_tsp`, which is used to order the selected locations
@@ -2499,7 +2507,7 @@ class GCBCoverage(GreedyCoverage):
 
         # Get candidates using HexCoverage
         self.X_candidates = super(GreedyCoverage, self).optimize(
-                                            var_threshold=var_threshold,
+                                            var_threshold=var_threshold - slack_var,
                                             tsp=False,
                                             **kwargs)[0]
 
@@ -2521,9 +2529,9 @@ class GCBCoverage(GreedyCoverage):
                 f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
             )        
         fact_2 = candidate_vars + self.noise_variance
-        var_condition = np.sqrt(np.outer(fact_2, fact_1))
+        var_condition = np.outer(fact_2, fact_1)
         prior_covs = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (prior_covs > var_condition).astype(np.bool_)
+        coverages = (np.square(prior_covs) > var_condition).astype(np.bool_)
         del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
 
         v = X_objective.shape[0]
