@@ -2047,7 +2047,7 @@ class GreedyCoverage(HexCoverage):
         fact_1 = objective_vars - var_threshold
         if np.any(fact_1 < 0.):
             raise ValueError(
-                f"var_threshold must be smaller than the largest kernel variance: {objective_vars.max():.2f}."
+                f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
             )        
         fact_2 = candidate_vars + self.noise_variance
         var_condition = np.sqrt(np.outer(fact_2, fact_1))
@@ -2518,7 +2518,7 @@ class GCBCoverage(GreedyCoverage):
         fact_1 = objective_vars - var_threshold
         if np.any(fact_1 < 0.):
             raise ValueError(
-                f"var_threshold must be smaller than the largest kernel variance: {objective_vars.max():.2f}."
+                f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
             )        
         fact_2 = candidate_vars + self.noise_variance
         var_condition = np.sqrt(np.outer(fact_2, fact_1))
