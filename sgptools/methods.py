@@ -1966,7 +1966,7 @@ class GreedyCoverage(HexCoverage):
                  var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
-                 slack_var: float = 0.15,
+                 slack_var: float = 0.25,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
@@ -2429,7 +2429,7 @@ class GCBCoverage(GreedyCoverage):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
-                 slack_var: float = 0.15,
+                 slack_var: float = 0.25,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB (greedy coverage + budget) selection algorithm.
