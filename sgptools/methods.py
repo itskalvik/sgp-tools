@@ -19,6 +19,7 @@ import numpy as np
 import tensorflow as tf
 import gpflow
 import cma
+import shapely
 from shapely import geometry
 from apricot import CustomSelection
 from bayes_opt import BayesianOptimization
@@ -1511,6 +1512,7 @@ class HexCoverage(Method):
                  num_dim: Optional[int] = None,
                  height: Optional[float] = None,
                  width: Optional[float] = None,
+                 pbounds: Optional[np.ndarray] = None,
                  **kwargs: Any):
         """
         Initialize a HexCoverage method.
@@ -1543,6 +1545,9 @@ class HexCoverage(Method):
         width : float or None
             Environment width in the x-direction. If None, inferred from
             `X_objective` as `x_max - x_min`.
+        pbounds:
+            Coordinates of the environment boundry polygon, used to ensure all 
+            sensing locations are inside the environment.
         kwargs : dict
             Ignored. Accepted for forward compatibility.
         """
@@ -1570,6 +1575,11 @@ class HexCoverage(Method):
         self.origin = mins  # shift from [0, W] x [0, H] to actual coords
         self.width = float(width) if width is not None else float(default_extent[0])
         self.height = float(height) if height is not None else float(default_extent[1])
+
+        if pbounds is not None:
+            self.pbounds = geometry.Polygon(pbounds)
+        else:
+            self.pbounds = None
 
         # Extract scalar lengthscale and prior variance
         self._extract_kernel_scalars()
@@ -1790,13 +1800,13 @@ class HexCoverage(Method):
         centers_2d = self._hexagonal_tiling(self.height, self.width, rmin)
 
         # Shift to actual environment coordinates using the inferred origin
-        centers_2d = centers_2d + self.origin[None, :]
+        X_sol = centers_2d + self.origin[None, :]
 
-        # Embed in full d-dimensional space
-        dtype = self.X_objective.dtype
-        k = centers_2d.shape[0]
-        X_sol = np.zeros((k, self.num_dim), dtype=dtype)
-        X_sol[:, :2] = centers_2d
+        # Remove sensing locations outside the boundaries
+        if self.pbounds is not None:
+            points = shapely.points(X_sol)
+            inside_idx = shapely.contains(self.pbounds, points)
+            X_sol = X_sol[inside_idx]
 
         if tsp:
             X_sol, _ = run_tsp(X_sol, **kwargs)
