@@ -1476,41 +1476,6 @@ class DifferentiableObjective(Method):
 
 # -----------------------------------------------------------------------------
 
-@njit
-def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
-    """
-    Compute marginal gains for remaining candidates (Numba-accelerated).
-
-    Parameters
-    ----------
-    remaining_idxs : 1D ndarray[int]
-        Indices of still-available candidates.
-    coverages : 2D ndarray[bool], shape (n_candidates, v)
-        Binary coverage mask for each candidate.
-    current_coverage : 1D ndarray[bool], shape (v,)
-        Binary mask of currently covered environment points.
-
-    Returns
-    -------
-    ndarray[int]
-        Marginal gain (number of newly covered points) for each candidate.
-    """
-    m = remaining_idxs.shape[0]
-    v = current_coverage.shape[0]
-    gains = np.empty(m, dtype=np.int64)
-
-    for k in range(m):
-        idx = remaining_idxs[k]
-        cov_i = coverages[idx]
-        gain = 0
-        for j in range(v):
-            if cov_i[j] and (not current_coverage[j]):
-                gain += 1
-        gains[k] = gain
-
-    return gains
-
-
 class HexCoverage(Method):
     """
     Hexagonal lattice coverage based on GP kernel hyperparameters.
@@ -1899,6 +1864,41 @@ class HexCoverage(Method):
             coords.append((x, y))
         return geometry.Polygon(coords)
 
+#-----------------------------------------------------------------------------
+
+@njit
+def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
+    """
+    Compute marginal gains for remaining candidates (Numba-accelerated).
+
+    Parameters
+    ----------
+    remaining_idxs : 1D ndarray[int]
+        Indices of still-available candidates.
+    coverages : 2D ndarray[bool], shape (n_candidates, v)
+        Binary coverage mask for each candidate.
+    current_coverage : 1D ndarray[bool], shape (v,)
+        Binary mask of currently covered environment points.
+
+    Returns
+    -------
+    ndarray[int]
+        Marginal gain (number of newly covered points) for each candidate.
+    """
+    m = remaining_idxs.shape[0]
+    v = current_coverage.shape[0]
+    gains = np.empty(m, dtype=np.int64)
+
+    for k in range(m):
+        idx = remaining_idxs[k]
+        cov_i = coverages[idx]
+        gain = 0
+        for j in range(v):
+            if cov_i[j] and (not current_coverage[j]):
+                gain += 1
+        gains[k] = gain
+
+    return gains
 
 class GreedyCoverage(HexCoverage):
     """
@@ -1966,7 +1966,7 @@ class GreedyCoverage(HexCoverage):
                  var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
-                 slack_var: float = 0.1,
+                 slack_var: float = 0.15,
                  **kwargs) -> np.ndarray:
         """
         Run greedy coverage selection over a discrete candidate set.
@@ -2013,7 +2013,7 @@ class GreedyCoverage(HexCoverage):
             for each selected candidate. Default is False.
         slack_var: float, optional
             Additional slack variance added to var_threshold for candidate 
-            set generation to ensure full coverage.
+            set generation with HexCover to ensure full coverage is possible.
         kwargs : dict, optional
             Additional keyword arguments passed directly to the TSP solver
             `run_tsp`, which is used to order the selected locations
@@ -2063,12 +2063,12 @@ class GreedyCoverage(HexCoverage):
         target_sum = v * float(target_fraction * 0.01)
 
         # Sanity check to ensure target fraction coverage can be achieved from candidate locations
-        test_mask = np.clip(np.sum(coverages, axis=0), 0, 1)
-        max_fraction = int(np.round(100.0 * float(test_mask.sum()) / float(v)))
+        num_covered = len(np.where(np.sum(coverages, axis=0) > 0)[0])
+        max_fraction = (100.0 * num_covered) / float(v)
         if max_fraction < target_fraction:
             raise ValueError(
-                f"Target coverage {target_fraction}% is not achievable; "
-                f"maximum possible is {max_fraction}%."
+                f"Target coverage {target_fraction:.2f}% is not achievable; "
+                f"maximum possible is {max_fraction:.2f}%."
             )
 
         # ---------------- Greedy loop ----------------
@@ -2429,7 +2429,7 @@ class GCBCoverage(GreedyCoverage):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
-                 slack_var: float = 0.1,
+                 slack_var: float = 0.15,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB (greedy coverage + budget) selection algorithm.
@@ -2482,7 +2482,7 @@ class GCBCoverage(GreedyCoverage):
             for each selected candidate. Default is False.
         slack_var: float, optional
             Additional slack variance added to var_threshold for candidate 
-            set generation to ensure full coverage.
+            set generation with HexCover to ensure full coverage is possible.
         kwargs : dict, optional
             Additional keyword arguments passed directly to the TSP solver
             `run_tsp`, which is used to order the selected locations
@@ -2538,12 +2538,12 @@ class GCBCoverage(GreedyCoverage):
         target_sum = v * float(target_fraction * 0.01)
 
         # Sanity check to ensure target fraction coverage can be achieved from candidate locations
-        test_mask = np.clip(np.sum(coverages, axis=0), 0, 1)
-        max_fraction = int(np.round(100.0 * float(test_mask.sum()) / float(v)))
+        num_covered = len(np.where(np.sum(coverages, axis=0) > 0)[0])
+        max_fraction = (100.0 * num_covered) / float(v)
         if max_fraction < target_fraction:
             raise ValueError(
-                f"Target coverage {target_fraction}% is not achievable; "
-                f"maximum possible is {max_fraction}%."
+                f"Target coverage {target_fraction:.2f}% is not achievable; "
+                f"maximum possible is {max_fraction:.2f}%."
             )
 
         # ----- Initial location: best single coverage -----
