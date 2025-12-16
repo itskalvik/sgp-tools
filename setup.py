@@ -23,6 +23,7 @@ setup(
                       'scikit-learn',
                       'scipy',
                       'numpy<2.0.0',
+                      'numba',
                       'ortools',
                       'scikit-image',
                       'shapely',
