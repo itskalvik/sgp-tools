@@ -2605,21 +2605,19 @@ class GCBCoverage(GreedyCoverage):
                 idx_list = selected_idxs + [best_idx]
                 locs = X_candidates[idx_list]
 
-                # run_tsp must be available in the module scope
-                _, dist_list, indices_list = run_tsp(
-                    locs,
-                    initial_route=[list(range(1, len(locs) + 1))],
-                    return_indices=True,
-                    **kwargs
-                )
+                if distance+distance_deltas[pos] <= distance_budget:
 
-                new_distance = dist_list[0]
-                order = indices_list[0][offset:] - offset
-                new_selected_idxs = [idx_list[i] for i in order]
+                    # run_tsp must be available in the module scope
+                    _, dist_list, indices_list = run_tsp(
+                        locs,
+                        initial_route=[list(range(1, len(locs) + 1))],
+                        return_indices=True,
+                        **kwargs
+                    )
 
-                if new_distance <= distance_budget:
-                    selected_idxs = new_selected_idxs
-                    distance = new_distance
+                    distance = dist_list[0]
+                    order = indices_list[0][offset:] - offset
+                    selected_idxs = [idx_list[i] for i in order]
 
                     # Recompute coverage and area with new selection
                     current_cover = np.zeros_like(current_cover, dtype=np.bool_)
