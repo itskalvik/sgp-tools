@@ -205,12 +205,12 @@ def run_tsp(
         routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
     )
     if time_limit is not None:
-        search_parameters.local_search_metaheuristic = (
-            routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
-        )
         search_parameters.time_limit.seconds = time_limit
 
     if solution_limit is not None:
+        search_parameters.local_search_metaheuristic = (
+            routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
+        )
         search_parameters.solution_limit = solution_limit
 
     # Solve, with optional warm start.
