@@ -1477,7 +1477,7 @@ class DifferentiableObjective(Method):
 
 # -----------------------------------------------------------------------------
 
-class HexCoverage(Method):
+class HexCover(Method):
     """
     Hexagonal lattice coverage based on GP kernel hyperparameters.
 
@@ -1497,7 +1497,7 @@ class HexCoverage(Method):
     - Only supports 2D spatial domains (first two coordinates).
     - Multi-robot settings are not supported (`num_robots` must be 1).
     - The total number of points is determined by the tiling; it may be
-      different from `num_sensing`. As with `GreedyCoverage`, returning fewer
+      different from `num_sensing`. As with `GreedyCover`, returning fewer
       than `num_sensing` points is allowed.
     """
 
@@ -1515,7 +1515,7 @@ class HexCoverage(Method):
                  pbounds: Optional[np.ndarray] = None,
                  **kwargs: Any):
         """
-        Initialize a HexCoverage method.
+        Initialize a HexCover method.
 
         Parameters
         ----------
@@ -1554,7 +1554,7 @@ class HexCoverage(Method):
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
 
-        assert num_robots == 1, "HexCoverage only supports num_robots = 1."
+        assert num_robots == 1, "HexCover only supports num_robots = 1."
 
         self.kernel = kernel
         self.noise_variance = float(noise_variance)
@@ -1564,7 +1564,7 @@ class HexCoverage(Method):
 
         if self.X_objective.ndim != 2 or self.X_objective.shape[1] < 2:
             raise ValueError(
-                "HexCoverage requires X_objective with at least 2 spatial dimensions."
+                "HexCover requires X_objective with at least 2 spatial dimensions."
             )
 
         # Bounding box of the environment in (x, y) from X_objective
@@ -1606,10 +1606,13 @@ class HexCoverage(Method):
             lengthscale = np.min(lengthscale)
             prior_variance = self.kernel(self.X_objective,
                                          self.X_objective).numpy().max()
-        else:  # Stationary kernel
+        elif hasattr(self.kernel, 'lengthscales'):  # Stationary kernel
             lengthscale = float(self.kernel.lengthscales.numpy())
             prior_variance = float(self.kernel.variance.numpy())
-
+        else:  # Neural Spectral kernel
+            lengthscale = 0.5
+            prior_variance = self.kernel(self.X_objective,
+                                         self.X_objective).numpy().max()
         self.lengthscale = lengthscale
         self.prior_variance = prior_variance
 
@@ -1841,7 +1844,7 @@ class HexCoverage(Method):
         """
         fovs = []
         for pt in X_sol[0]:
-            fov = HexCoverage._create_regular_hexagon(pt[0], pt[1], radius)
+            fov = HexCover._create_regular_hexagon(pt[0], pt[1], radius)
             fovs.append(fov)
         return fovs
     
@@ -1910,7 +1913,7 @@ def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
 
     return gains
 
-class GreedyCoverage(HexCoverage):
+class GreedyCover(HexCover):
     """
     Greedy coverage–based informative sensing selection using a GP kernel.
 
@@ -1920,7 +1923,7 @@ class GreedyCoverage(HexCoverage):
     user-specified prior kernel correlation level.
 
     --------------------------------------------------------------------------
-    Coverage definition
+    Cover definition
     --------------------------------------------------------------------------
     Let K_ij denote the prior GP kernel covariance:
 
@@ -1945,7 +1948,7 @@ class GreedyCoverage(HexCoverage):
 
         K_ij > tau_post[i, j]
 
-    Coverage is therefore defined via a **data-dependent binary mask** derived
+    Cover is therefore defined via a **data-dependent binary mask** derived
     from the GP kernel and the noise variance, rather than a fixed covariance
     threshold.
 
@@ -1981,7 +1984,7 @@ class GreedyCoverage(HexCoverage):
         """
         Run greedy coverage selection over a discrete candidate set.
 
-        Coverage is computed by evaluating the GP kernel covariance between each
+        Cover is computed by evaluating the GP kernel covariance between each
         candidate and each environment point and comparing it to an implied
         posterior covariance threshold `tau_post`:
 
@@ -2046,7 +2049,7 @@ class GreedyCoverage(HexCoverage):
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
 
-        # Get candidates using HexCoverage
+        # Get candidates using HexCover
         self.X_candidates = super().optimize(var_threshold=var_threshold - slack_var,
                                              tsp=False,
                                              **kwargs)[0]
@@ -2058,11 +2061,7 @@ class GreedyCoverage(HexCoverage):
         # ---------------- Compute coverage maps ----------------
         candidate_vars = self.kernel.K_diag(X_candidates).numpy()
         objective_vars = self.kernel.K_diag(X_objective).numpy()
-        fact_1 = objective_vars - var_threshold
-        if np.any(fact_1 < 0.):
-            raise ValueError(
-                f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
-            )        
+        fact_1 = np.abs(objective_vars - var_threshold)  
         fact_2 = candidate_vars + self.noise_variance
         var_condition = np.outer(fact_2, fact_1)
         prior_covs = self.kernel(X_candidates, X_objective).numpy()
@@ -2141,7 +2140,7 @@ class GreedyCoverage(HexCoverage):
         Parameters
         ----------
         coverages : 2D ndarray of bool, shape (k, n)
-            Coverage masks for the selected candidates, where `k` is the number
+            Cover masks for the selected candidates, where `k` is the number
             of selected locations and `n` is the number of environment points.
             Each row corresponds to one candidate and indicates which objective
             points are covered.
@@ -2359,7 +2358,7 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
     return distance_deltas, area_deltas
 
 
-class GCBCoverage(GreedyCoverage):
+class GCBCover(GreedyCover):
     """
     Generalized cost benifit algorithm (GCB) selection using a GP kernel covariance
     and an approximate tour-length constraint.
@@ -2370,7 +2369,7 @@ class GCBCoverage(GreedyCoverage):
         2) Respect a total path-length (tour) budget.
 
     --------------------------------------------------------------------------
-    Coverage definition
+    Cover definition
     --------------------------------------------------------------------------
     Let K_ij denote the prior GP kernel covariance:
 
@@ -2395,7 +2394,7 @@ class GCBCoverage(GreedyCoverage):
 
         K_ij > tau_post[i, j]
 
-    Coverage is therefore defined via a **data-dependent binary mask** derived
+    Cover is therefore defined via a **data-dependent binary mask** derived
     from the GP kernel and the noise variance, rather than a fixed covariance
     threshold.
 
@@ -2429,7 +2428,7 @@ class GCBCoverage(GreedyCoverage):
     selected_indices_ : list[int]
         Ordered indices into `X_candidates` corresponding to the route.
     coverage_maps_ : list[np.ndarray(bool)]
-        Coverage masks for each selected candidate, obtained by thresholding
+        Cover masks for each selected candidate, obtained by thresholding
         kernel covariance values.
     path_length_ : float
         Final tour length of the selected route.
@@ -2447,7 +2446,7 @@ class GCBCoverage(GreedyCoverage):
         Environment points are given by `X_objective`; candidates are taken
         from `X_candidates` if provided, otherwise from `X_objective` as well.
 
-        Coverage is computed by evaluating the GP kernel covariance between each
+        Cover is computed by evaluating the GP kernel covariance between each
         candidate and each environment point and comparing it to an implied
         posterior covariance threshold `tau_post`:
 
@@ -2515,8 +2514,8 @@ class GCBCoverage(GreedyCoverage):
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
 
-        # Get candidates using HexCoverage
-        self.X_candidates = super(GreedyCoverage, self).optimize(
+        # Get candidates using HexCover
+        self.X_candidates = super(GreedyCover, self).optimize(
                                             var_threshold=var_threshold - slack_var,
                                             tsp=False,
                                             **kwargs)[0]
@@ -2533,11 +2532,7 @@ class GCBCoverage(GreedyCoverage):
         # ---------------- Compute coverage maps ----------------
         candidate_vars = self.kernel.K_diag(X_candidates).numpy()
         objective_vars = self.kernel.K_diag(X_objective).numpy()
-        fact_1 = objective_vars - var_threshold
-        if np.any(fact_1 < 0.):
-            raise ValueError(
-                f"var_threshold must be smaller than the smallest kernel variance: {objective_vars.max():.2f}."
-            )        
+        fact_1 = np.abs(objective_vars - var_threshold)
         fact_2 = candidate_vars + self.noise_variance
         var_condition = np.outer(fact_2, fact_1)
         prior_covs = self.kernel(X_candidates, X_objective).numpy()
@@ -2648,9 +2643,9 @@ METHODS: Dict[str, Type[Method]] = {
     'GreedyObjective': GreedyObjective,
     'GreedySGP': GreedySGP,
     'DifferentiableObjective': DifferentiableObjective,
-    'HexCoverage': HexCoverage,
-    'GreedyCoverage': GreedyCoverage,
-    'GCBCoverage': GCBCoverage,
+    'HexCover': HexCover,
+    'GreedyCover': GreedyCover,
+    'GCBCover': GCBCover,
 }
 
 
