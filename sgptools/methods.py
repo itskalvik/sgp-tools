@@ -26,6 +26,7 @@ from bayes_opt import BayesianOptimization
 from numba import njit
 
 from sgptools.utils.tsp import run_tsp
+from sgptools.utils.metrics import get_distance
 from sgptools.utils.misc import cont2disc, get_inducing_pts
 from sgptools.objectives import get_objective, Objective
 from sgptools.utils.gpflow import optimize_model
@@ -1616,7 +1617,7 @@ class HexCover(Method):
         self.lengthscale = lengthscale
         self.prior_variance = prior_variance
 
-    def _compute_rmin(self, var_threshold: Optional[float] = None) -> float:
+    def _compute_rmin(self, post_var_threshold: Optional[float] = None) -> float:
         """
         Compute the sufficient radius $r_{\\min}$ for the hexagonal tiling.
 
@@ -1636,9 +1637,9 @@ class HexCover(Method):
 
         Parameters
         ----------
-        var_threshold : float or None
+        post_var_threshold : float or None
             Posterior variance threshold :math:`\\Delta`. If None, uses the
-            current value stored in `self.var_threshold`.
+            current value stored in `self.post_var_threshold`.
 
         Returns
         -------
@@ -1651,18 +1652,18 @@ class HexCover(Method):
             If the computed term inside the logarithm is not in (0, 1),
             which indicates incompatible hyperparameters and/or threshold.
         """
-        if var_threshold is None:
-            var_threshold = self.var_threshold
+        if post_var_threshold is None:
+            post_var_threshold = self.post_var_threshold
 
         sigma0_sq = self.prior_variance
         sigma_sq = float(self.noise_variance)
-        delta = float(var_threshold)
+        delta = float(post_var_threshold)
         term = (sigma0_sq - delta) * (sigma0_sq + sigma_sq) / (sigma0_sq ** 2)
 
         if term <= 0.0 or term >= 1.0:
             raise ValueError(
                 f"Invalid term inside log when computing r_min: {term}. "
-                "Check kernel hyperparameters and var_threshold."
+                "Check kernel hyperparameters and post_var_threshold."
             )
 
         return self.lengthscale * np.sqrt(-np.log(term))
@@ -1748,7 +1749,7 @@ class HexCover(Method):
         return deepcopy(self.kernel), float(self.noise_variance)
 
     def optimize(self,
-                 var_threshold: Optional[float] = None,
+                 post_var_threshold: Optional[float] = None,
                  return_fovs: bool = False,
                  tsp: bool = True,
                  **kwargs: Any) -> np.ndarray:
@@ -1757,7 +1758,7 @@ class HexCover(Method):
 
         Parameters
         ----------
-        var_threshold : float or None, optional
+        post_var_threshold : float or None, optional
             Target posterior variance threshold :math:`\\Delta`. If None,
             defaults to `0.2 * prior_variance` (following the minimal
             implementation where `delta = 0.2 * sigma0**2`).
@@ -1786,18 +1787,18 @@ class HexCover(Method):
             centered at each selected sensing location.
         """
         # Posterior variance threshold Δ
-        if var_threshold is None:
-            self.var_threshold = 0.2 * self.prior_variance
+        if post_var_threshold is None:
+            self.post_var_threshold = 0.2 * self.prior_variance
         else:
-            self.var_threshold = float(var_threshold)
+            self.post_var_threshold = float(post_var_threshold)
 
-        if self.var_threshold >= self.prior_variance:
+        if self.post_var_threshold >= self.prior_variance:
             raise ValueError(
-                f"var_threshold must be smaller than the kernel variance: {self.prior_variance:.2f}."
+                f"post_var_threshold must be smaller than the kernel variance: {self.prior_variance:.2f}."
             )
 
         # Compute r_min for the current kernel / noise / threshold
-        rmin = self._compute_rmin(var_threshold)
+        rmin = self._compute_rmin(post_var_threshold)
 
         # Tiling in local [0, width] x [0, height] coordinates
         centers_2d = self._hexagonal_tiling(self.height, self.width, rmin)
@@ -1915,187 +1916,118 @@ def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
 
 class GreedyCover(HexCover):
     """
-    Greedy coverage–based informative sensing selection using a GP kernel.
+    Greedy sensing-location selection via GP posterior-variance “coverage”.
 
-    This method selects sensing points from a discrete candidate set by
-    maximizing the number of environment points whose **posterior covariance**
-    with at least one selected candidate exceeds a threshold derived from a
-    user-specified prior kernel correlation level.
+    The method selects points from a discrete candidate set to cover as many
+    objective/environment points as possible under a *single-measurement*
+    Gaussian Process (GP) variance reduction criterion.
 
-    --------------------------------------------------------------------------
-    Cover definition
-    --------------------------------------------------------------------------
-    Let K_ij denote the prior GP kernel covariance:
+    Coverage criterion
+    ------------------
+    Let:
+      - x_i be a candidate sensing location
+      - x_j be an objective/environment point
+      - k(·,·) be the prior GP kernel covariance
+      - σ_n^2 be the observation noise variance (self.noise_variance)
 
-        K_ij = kernel(X_candidates[i], X_objective[j])
+    The prior variances are:
+        v_cand[i] = k(x_i, x_i)
+        v_obj[j]  = k(x_j, x_j)
 
-    For each environment point j and candidate i, we define an implied
-    posterior covariance threshold `tau_post[i, j]` as:
+    After observing y at x_i (single observation), the GP posterior variance at
+    x_j is:
+        v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
 
-        tau_post[i, j] = sqrt(
-            (objective_prior_variance[j] - var_threshold) *
-            (candidate_prior_variance[i] + noise_variance)
-        )
+    Candidate i is said to *cover* objective point j if:
+        v_post(j | i) <= post_var_threshold
 
-    where:
-      - `objective_prior_variance[j] = kernel(X_objective[j], X_objective[j])`
-      - `candidate_prior_variance[i] = kernel(X_candidates[i], X_candidates[i])`
-      - `var_threshold` is a user-specified scalar (interpreted as a prior
-        correlation level in [0, 1])
-      - `noise_variance` is the observation noise variance.
+    This is equivalent to the implemented inequality:
+        k(x_i, x_j)^2 >= (v_obj[j] - post_var_threshold) * (v_cand[i] + σ_n^2)
 
-    Candidate i is said to *cover* environment point j whenever:
-
-        K_ij > tau_post[i, j]
-
-    Cover is therefore defined via a **data-dependent binary mask** derived
-    from the GP kernel and the noise variance, rather than a fixed covariance
-    threshold.
-
-    --------------------------------------------------------------------------
-    Algorithm summary
-    --------------------------------------------------------------------------
-    • Compute kernel variances on both sets and derive the posterior covariance
-      thresholds tau_post[i, j].
-    • Compute the binary coverage mask:
-          coverages[i, j] = (kernel(X_candidates[i], X_objective[j]) > tau_post[i, j])
-    • Run a numba-accelerated greedy loop that repeatedly selects the candidate
-      providing the largest number of newly covered environment points.
-    • Terminate when either the target coverage fraction or the sensing budget
-      is reached.
-    • Return the selected subset of candidate points, ordered by a
-      TSP solver and optionally with their associated fields of view (FoVs).
+    Algorithm
+    ---------
+    1) Build a boolean coverage matrix coverages[i, j].
+    2) Greedily select the candidate with the largest number of newly covered
+       objective points.
+    3) Stop when the target coverage fraction is reached or the sensing budget
+       is exhausted.
+    4) Optionally order the selected points via a TSP solver.
 
     Notes
     -----
-    • Supports **only single-robot** settings (`num_robots = 1`).
-    • If `X_candidates` is not provided, the method defaults to `X_objective`.
-    • May return **fewer than `num_sensing`** points when the desired coverage
-      fraction is achieved early.
-    • Raises `ValueError` if the requested coverage fraction is not achievable
-      from the candidate set.
+    - Current implementation assumes a single robot (num_robots == 1).
+    - May return fewer than num_sensing points if the target is reached early.
+    - Raises ValueError if the target coverage is not achievable from the
+      candidate set.
     """
+
     def optimize(self,
-                 var_threshold: float = 0.7,
+                 post_var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
                  slack_var: float = 0.25,
                  **kwargs) -> np.ndarray:
         """
-        Run greedy coverage selection over a discrete candidate set.
+        Run greedy GP-coverage selection.
 
-        Cover is computed by evaluating the GP kernel covariance between each
-        candidate and each environment point and comparing it to an implied
-        posterior covariance threshold `tau_post`:
+        This method constructs a coverage mask using the GP posterior variance test:
 
-            K = kernel(X_candidates, X_objective)
-            tau_post[i, j] = sqrt(
-                (objective_prior_variance[j] - var_threshold) *
-                (candidate_prior_variance[i] + noise_variance)
-            )
-            coverages[i, j] = (K[i, j] > tau_post[i, j])
+            v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
+            covered(i, j) := v_post(j | i) <= post_var_threshold
 
-        where `var_threshold` is interpreted as a prior kernel correlation
-        level (typically in [0, 1]) and `noise_variance` is the observation
-        noise variance.
-
-        The greedy procedure repeatedly selects the candidate that yields the
-        largest number of **newly covered** environment points. Selection stops
-        when either:
-
-        • the target coverage fraction `target_fraction` is achieved, or
-        • the sensing budget `num_sensing` is exhausted.
-
-        If the requested target fraction is not achievable from the candidate
-        set, a `ValueError` is raised.
+        and then greedily selects candidates that maximize the number of *newly*
+        covered objective points until either:
+        - target_fraction percent of objective points are covered, or
+        - num_sensing points have been selected.
 
         Parameters
         ----------
-        var_threshold : float, optional
-            Prior kernel correlation threshold in [0, 1]. Internally
-            converted into a posterior covariance threshold
-            `tau_post` (which depends on `noise_variance` and the kernel
-            variances) used to binarize coverage. Default is 0.7.
-        target_fraction : int, optional
-            Desired fraction of the environment to cover, expressed as a
-            percentage in [0, 100]. Default is 100 (i.e., full coverage, if
-            achievable).
-        return_fovs : bool, optional
-            If True, also returns a list of polygonal fields of view (FoVs)
-            corresponding to the convex hull of the covered objective points
-            for each selected candidate. Default is False.
-        slack_var: float, optional
-            Additional slack variance added to var_threshold for candidate 
-            set generation with HexCover to ensure full coverage is possible.
-        kwargs : dict, optional
-            Additional keyword arguments passed directly to the TSP solver
-            `run_tsp`, which is used to order the selected locations
-            along a path. These do not affect which points are selected.
+        post_var_threshold:
+            Posterior variance upper bound at objective points (same units as the
+            kernel variance). Lower values demand stronger information gain.
+        target_fraction:
+            Desired percent coverage in [0, 100]. (Using float allows e.g., 95.0.)
+        return_fovs:
+            If True, also return polygons summarizing each selected candidate’s
+            covered region (convex hull of covered objective points, buffered).
+        slack_var:
+            Slack applied when generating the candidate set via HexCover:
+            internally calls HexCover.optimize(post_var_threshold - slack_var, ...).
+            This can over-generate candidates to make full coverage more likely.
+        **kwargs:
+            Extra arguments forwarded to the TSP ordering routine (and currently
+            also forwarded to HexCover.optimize — see code improvement notes).
 
         Returns
         -------
-        X_sol : ndarray of shape (1, k, d)
-            The selected sensing locations, ordered according to the TSP
-            solution, where `k <= num_sensing`.
-
-        If `return_fovs` is True, the return value is:
-
-        -------
-        X_sol, fovs : (ndarray, list of shapely.geometry.Polygon)
-            `X_sol` as above, together with a list of buffered convex-hull FoVs
-            computed from the covered environment points for each selected
-            candidate.
+        X_sol:
+            Array shaped (num_robots, k, d) with k <= num_sensing selected points.
+        (X_sol, fovs):
+            If return_fovs is True, also returns a list of shapely Polygons.
         """
-        # ---------------- Candidate & environment sets ----------------
-        X_objective = self.X_objective
-
-        # Get candidates using HexCover
-        self.X_candidates = super().optimize(var_threshold=var_threshold - slack_var,
-                                             tsp=False,
-                                             **kwargs)[0]
-
-        X_objective = np.asarray(X_objective)
-        X_candidates = np.asarray(self.X_candidates, 
-                                  dtype=X_objective.dtype)
-
-        # ---------------- Compute coverage maps ----------------
-        candidate_vars = self.kernel.K_diag(X_candidates).numpy()
-        objective_vars = self.kernel.K_diag(X_objective).numpy()
-        fact_1 = np.abs(objective_vars - var_threshold)  
-        fact_2 = candidate_vars + self.noise_variance
-        var_condition = np.outer(fact_2, fact_1)
-        prior_covs = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (np.square(prior_covs) > var_condition).astype(np.bool_)
-        del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
-
-        v = X_objective.shape[0]
-        target_sum = v * float(target_fraction * 0.01)
-
-        # Sanity check to ensure target fraction coverage can be achieved from candidate locations
-        num_covered = len(np.where(np.sum(coverages, axis=0) > 0)[0])
-        max_fraction = (100.0 * num_covered) / float(v)
-        if max_fraction < target_fraction:
-            raise ValueError(
-                f"Target coverage {target_fraction:.2f}% is not achievable; "
-                f"maximum possible is {max_fraction:.2f}%."
-            )
+        if not hasattr(self, 'coverages'):
+            self._compute_coverage_maps(post_var_threshold, 
+                                        target_fraction, 
+                                        slack_var,
+                                        **kwargs)
 
         # ---------------- Greedy loop ----------------
-        n = len(X_candidates)
+        n = len(self.X_candidates)
         selected_mask = np.zeros(n, dtype=bool)
         selected = []
 
-        current_coverage = np.zeros(v, dtype=np.bool_)
+        current_coverage = np.zeros(self.X_objective.shape[0], 
+                                    dtype=bool)
         current_sum = 0
 
-        while current_sum < target_sum and len(selected) < self.num_sensing:
+        while current_sum < self.target_sum and len(selected) < self.num_sensing:
             remaining = np.where(~selected_mask)[0]
             if remaining.size == 0:
                 break
 
             gains = _compute_gains_numba(
                 remaining.astype(np.int64),
-                coverages,
+                self.coverages,
                 current_coverage
             )
 
@@ -2106,60 +2038,112 @@ class GreedyCover(HexCover):
             if best_gain <= 0:
                 break
 
-            current_coverage |= coverages[best_idx]
+            current_coverage |= self.coverages[best_idx]
             current_sum = int(current_coverage.sum())
 
             selected_mask[best_idx] = True
             selected.append(best_idx)
 
-            if current_sum >= target_sum:
+            if current_sum >= self.target_sum:
                 break
 
         # ---------------- Prepare output ----------------
         if len(selected) == 0:
-            return np.zeros((1, 0, self.num_dim), dtype=X_objective.dtype)
+            return np.zeros((1, 0, self.num_dim), dtype=self.X_objective.dtype)
 
-        X_sol = X_candidates[selected]
+        X_sol = self.X_candidates[selected]
         X_sol, _ = run_tsp(X_sol, **kwargs)
         X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
 
         if return_fovs:
-            return X_sol, self._get_fovs(coverages[selected])
+            return X_sol, self._get_fovs(self.coverages[selected])
         else:
             return X_sol
 
+    def _compute_coverage_maps(self, post_var_threshold, 
+                               target_fraction, 
+                               slack_var, 
+                               **kwargs):
+        """
+        Build the candidate set and the boolean coverage matrix.
+
+        Steps
+        -----
+        1) Generate candidate points using HexCover with a tighter threshold
+        (var_threshold - slack_var).
+        2) Compute:
+            v_cand[i] = k(x_i, x_i)
+            v_obj[j]  = k(x_j, x_j)
+            K[i, j]   = k(x_i, x_j)
+        3) Mark covered(i, j) true when:
+            K[i, j]^2 >= (v_obj[j] - var_threshold) * (v_cand[i] + σ_n^2)
+        4) Compute the integer number of objective points required to meet
+        target_fraction, and verify achievability.
+
+        Raises
+        ------
+        ValueError:
+            If the candidate set cannot achieve the requested target_fraction.
+        """
+        # ---------------- Candidate & environment sets ----------------
+        X_objective = self.X_objective
+
+        # Get candidates using HexCover
+        self.X_candidates = super().optimize(post_var_threshold=post_var_threshold - slack_var,
+                                             tsp=False,
+                                             **kwargs)[0]
+
+        X_objective = np.asarray(X_objective)
+        X_candidates = np.asarray(self.X_candidates, 
+                                  dtype=X_objective.dtype)
+
+        # ---------------- Compute coverage maps ----------------
+        candidate_vars = self.kernel.K_diag(X_candidates).numpy()
+        objective_vars = self.kernel.K_diag(X_objective).numpy()
+        fact_1 = np.maximum(objective_vars - post_var_threshold, 0.0)
+        fact_2 = candidate_vars + self.noise_variance
+        var_condition = np.outer(fact_2, fact_1)
+        prior_covs = self.kernel(X_candidates, X_objective).numpy()
+        self.coverages = (np.square(prior_covs) > var_condition).astype(bool)
+        del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
+
+        self.target_sum = int(np.ceil(X_objective.shape[0] * target_fraction / 100.0))
+
+        # Sanity check to ensure target fraction coverage can be achieved from candidate locations
+        num_covered = len(np.where(np.sum(self.coverages, axis=0) > 0)[0])
+        max_fraction = (100.0 * num_covered) / float(X_objective.shape[0])
+        if max_fraction < target_fraction:
+            raise ValueError(
+                f"Target coverage {target_fraction:.2f}% is not achievable; "
+                f"maximum possible is {max_fraction:.2f}%."
+            )
+
     def _get_fovs(self, coverages, buffer: float = 0.5):
         """
-        Compute polygonal fields of view (FoVs) from coverage masks.
+        Convert coverage masks into polygonal “fields of view” (FoVs).
 
-        For each selected candidate, this method takes the subset of objective
-        points it covers, forms their convex hull, and then applies a
-        morphological buffer. The result is a list of polygons that roughly
-        characterize the spatial footprint of each sensing location.
+        For each selected candidate row in `coverages`, collect the objective points
+        that are covered, compute their convex hull, and apply a geometric buffer
+        (dilation). Candidates covering fewer than 3 points are skipped.
 
         Parameters
         ----------
-        coverages : 2D ndarray of bool, shape (k, n)
-            Cover masks for the selected candidates, where `k` is the number
-            of selected locations and `n` is the number of environment points.
-            Each row corresponds to one candidate and indicates which objective
-            points are covered.
-        buffer : float, optional
-            Buffer radius passed to `Polygon.buffer`. Controls how much
-            the convex hull is expanded. Default is 0.5.
+        coverages:
+            Boolean array of shape (k, n_obj) where each row indicates which
+            objective points are covered by one selected candidate.
+        buffer:
+            Buffer radius passed to Shapely's .buffer(...).
 
         Returns
         -------
-        fovs : list of shapely.geometry.Polygon
-            List of buffered convex-hull polygons, one per candidate for which
-            at least four objective points are covered. Candidates covering
-            fewer than four points are skipped.
+        list[shapely.geometry.Polygon]
+            Buffered convex hull polygon per candidate (when enough points exist).
         """
         fovs = []
         for cover in coverages:
-            mask = self.X_objective[np.where(cover)]
-            if len(mask) > 3:
-                fov = geometry.Polygon(mask).convex_hull
+            mask = self.X_objective[cover]
+            if len(mask) > 2:
+                fov = geometry.MultiPoint(mask).convex_hull
                 fov = fov.buffer(buffer)
                 fovs.append(fov)
         return fovs
@@ -2188,7 +2172,7 @@ def _path_length_numba(points):
 @njit
 def _approx_dist_numba(p_nodes, x):
     """
-    Approximate tour length after inserting point x into an existing route.
+    Approximate path length after inserting point x into an existing route.
     Numba version of approx_dist.
     """
     n = p_nodes.shape[0]
@@ -2315,12 +2299,12 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
     current_cover : 1D ndarray[bool], shape (v,)
         Binary mask of currently covered environment points.
     distance : float
-        Current tour length.
+        Current path length.
 
     Returns
     -------
     distance_deltas : 1D ndarray[float]
-        Increase in tour length if each remaining candidate were added.
+        Increase in path length if each remaining candidate were added.
     area_deltas : 1D ndarray[int]
         Number of newly covered environment points for each candidate.
     """
@@ -2360,218 +2344,123 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
 
 class GCBCover(GreedyCover):
     """
-    Generalized cost benifit algorithm (GCB) selection using a GP kernel covariance
-    and an approximate tour-length constraint.
+    Greedy coverage selection with a path-length budget.
 
-    This method selects candidate sensing locations to:
+    This class extends `GreedyCover` by adding a travel constraint: it
+    greedily selects sensing locations that improve GP-coverage, but only keeps
+    additions whose resulting path (computed by a TSP solver) stays within a
+    user-specified `distance_budget`.
 
-        1) Cover as many environment points as possible, and
-        2) Respect a total path-length (tour) budget.
+    Coverage model
+    --------------
+    Coverage is inherited from `GreedyCover` and is based on a single-
+    measurement GP posterior-variance test. For candidate x_i and objective x_j:
 
-    --------------------------------------------------------------------------
-    Cover definition
-    --------------------------------------------------------------------------
-    Let K_ij denote the prior GP kernel covariance:
+        v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
 
-        K_ij = kernel(X_candidates[i], X_objective[j])
+    Candidate i covers objective j if:
 
-    For each environment point j and candidate i, we define an implied
-    posterior covariance threshold `tau_post[i, j]` as:
+        v_post(j | i) <= post_var_threshold
 
-        tau_post[i, j] = sqrt(
-            (objective_prior_variance[j] - var_threshold) *
-            (candidate_prior_variance[i] + noise_variance)
-        )
+    which is equivalent to:
 
-    where:
-      - `objective_prior_variance[j] = kernel(X_objective[j], X_objective[j])`
-      - `candidate_prior_variance[i] = kernel(X_candidates[i], X_candidates[i])`
-      - `var_threshold` is a user-specified scalar (interpreted as a prior
-        correlation level in [0, 1])
-      - `noise_variance` is the observation noise variance.
+        k(x_i, x_j)^2 >= (v_obj[j] - post_var_threshold) * (v_cand[i] + σ_n^2)
 
-    Candidate i is said to *cover* environment point j whenever:
-
-        K_ij > tau_post[i, j]
-
-    Cover is therefore defined via a **data-dependent binary mask** derived
-    from the GP kernel and the noise variance, rather than a fixed covariance
-    threshold.
-
-    --------------------------------------------------------------------------
     Algorithm summary
-    --------------------------------------------------------------------------
-    • Precompute a binary coverage map for each candidate based on
-      kernel covariance thresholding.
-    • Start from the single candidate that covers the most environment points.
-    • Iteratively add candidates based on area gain per additional distance
-      (distance and area deltas computed via Numba).
-    • For each proposed addition, solve a short TSP (via `run_tsp`) over the
-      selected points and accept it only if the resulting tour length is
-      within `distance_budget`.
-    • Stop when:
-        - the target coverage fraction is reached, OR
-        - the distance budget prevents any further useful additions, OR
-        - the maximum number of sensing points (`num_sensing`) is reached.
+    -----------------
+    1) Precompute boolean coverages[i, j] for all candidate/objective pairs
+       (via `_compute_coverage_maps`, inherited from GreedyCover).
+    2) Initialize with the single candidate covering the most objective points.
+    3) Iteratively propose candidates using a generalized cost/benefit score:
+         score = (newly-covered points) / (additional distance)
+       where distance/area deltas are computed by a fast helper (Numba).
+    4) For each proposal, re-solve a TSP over the selected points and accept
+       the new point only if the path length is <= `distance_budget`.
+    5) Stop when target coverage is met, the sensing budget is met, or no
+       feasible improvements remain.
 
     Notes
     -----
-    • Only single-robot operation is supported (`num_robots = 1`).
-    • If `X_candidates` is not provided, `X_objective` is used as both the
-      environment set and the candidate set.
-    • The method may select **fewer than `num_sensing`** points when the
-      desired `target_fraction` of coverage is achieved earlier or when the
-      distance budget prevents adding more points.
-
-    Attributes (set after optimize)
-    --------------------------------
-    selected_indices_ : list[int]
-        Ordered indices into `X_candidates` corresponding to the route.
-    coverage_maps_ : list[np.ndarray(bool)]
-        Cover masks for each selected candidate, obtained by thresholding
-        kernel covariance values.
-    path_length_ : float
-        Final tour length of the selected route.
+    - Current implementation assumes `num_robots == 1`.
+    - The method may return fewer than `num_sensing` points due to the distance
+      budget or early attainment of the coverage target.
+    - If `start_nodes` are provided (kwargs), they are prepended to the output
+      route; ensure the distance budget logic accounts for them (see code notes).
     """
+
     def optimize(self,
-                 var_threshold: float = 0.7,
+                 post_var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
                  slack_var: float = 0.25,
                  **kwargs) -> np.ndarray:
         """
-        Run the GCB (greedy coverage + budget) selection algorithm.
-
-        Environment points are given by `X_objective`; candidates are taken
-        from `X_candidates` if provided, otherwise from `X_objective` as well.
-
-        Cover is computed by evaluating the GP kernel covariance between each
-        candidate and each environment point and comparing it to an implied
-        posterior covariance threshold `tau_post`:
-
-            K = kernel(X_candidates, X_objective)
-            tau_post[i, j] = sqrt(
-                (objective_prior_variance[j] - var_threshold) *
-                (candidate_prior_variance[i] + noise_variance)
-            )
-            coverages[i, j] = (K[i, j] > tau_post[i, j])
-
-        where `var_threshold` is interpreted as a prior kernel correlation
-        level (typically in [0, 1]) and `noise_variance` is the observation
-        noise variance.
-
-        The selection stops when any of the following holds:
-
-            • The fraction of covered environment points reaches
-              `target_fraction`.
-            • Adding any remaining candidate that increases coverage would
-              violate the `distance_budget`.
-            • The number of selected points reaches `num_sensing`.
-
-        Thus, in general the method may return fewer than `num_sensing` points.
+        Run the GCB selection with a path-length constraint.
 
         Parameters
         ----------
-        var_threshold : float, optional
-            Prior kernel correlation threshold in [0, 1]. Internally
-            converted into a posterior covariance threshold
-            `tau_post` (which depends on `noise_variance` and the kernel
-            variances) used to binarize coverage. Default is 0.7.
-        target_fraction : int, optional
-            Desired fraction of the environment to cover, expressed as a
-            percentage in [0, 100]. Default is 100 (i.e., full coverage, if
-            achievable).
-        distance_budget : float
-            Maximum allowed tour length (sum of Euclidean distances along the
-            route). Default: float("inf").
-        return_fovs : bool, optional
-            If True, also returns a list of polygonal fields of view (FoVs)
-            corresponding to the convex hull of the covered objective points
-            for each selected candidate. Default is False.
-        slack_var: float, optional
-            Additional slack variance added to var_threshold for candidate 
-            set generation with HexCover to ensure full coverage is possible.
-        kwargs : dict, optional
-            Additional keyword arguments passed directly to the TSP solver
-            `run_tsp`, which is used to order the selected locations
-            along a path.
+        post_var_threshold:
+            Posterior variance upper bound used to binarize coverage (same meaning
+            as in :meth:`GreedyCover.optimize`).
+        target_fraction:
+            Desired percent coverage in [0, 100]. The method stops once the number
+            of covered objective points reaches `ceil(n_obj * target_fraction/100)`.
+        distance_budget:
+            Maximum allowed path length for the selected sensing locations (after
+            TSP re-ordering). Use `inf` to disable the budget.
+        return_fovs:
+            If True, also return polygon FoVs derived from covered objective points.
+        slack_var:
+            Slack applied when generating the candidate set via HexCover:
+            calls HexCover.optimize(post_var_threshold - slack_var, ...).
+        **kwargs:
+            Extra arguments forwarded to the TSP solver. If using special route
+            constraints (e.g., `start_nodes`), ensure those constraints are also
+            reflected in the distance-budget checks.
 
         Returns
         -------
-        X_sol : ndarray of shape (1, k, d)
-            The selected sensing locations in visit order, 
-            where `k <= num_sensing`.
-
-        If `return_fovs` is True, the return value is:
-
-        -------
-        X_sol, fovs : (ndarray, list of shapely.geometry.Polygon)
-            `X_sol` as above, together with a list of buffered convex-hull FoVs
-            computed from the covered environment points for each selected
-            candidate.
+        X_sol:
+            Array shaped (num_robots, k, d) with k <= num_sensing selected points.
+        (X_sol, fovs):
+            If return_fovs is True, also returns a list of shapely Polygons.
         """
-        # ---------------- Candidate & environment sets ----------------
-        X_objective = self.X_objective
-
-        # Get candidates using HexCover
-        self.X_candidates = super(GreedyCover, self).optimize(
-                                            var_threshold=var_threshold - slack_var,
-                                            tsp=False,
-                                            **kwargs)[0]
-
-        X_objective = np.asarray(X_objective)
-        X_candidates = np.asarray(self.X_candidates,
-                                  dtype=X_objective.dtype)
+        if not hasattr(self, 'coverages'):
+            self._compute_coverage_maps(post_var_threshold, 
+                                        target_fraction, 
+                                        slack_var,
+                                        **kwargs)
         
         if kwargs.get('start_nodes', None) is not None:
             offset = 1
         else:
             offset = 0
-
-        # ---------------- Compute coverage maps ----------------
-        candidate_vars = self.kernel.K_diag(X_candidates).numpy()
-        objective_vars = self.kernel.K_diag(X_objective).numpy()
-        fact_1 = np.abs(objective_vars - var_threshold)
-        fact_2 = candidate_vars + self.noise_variance
-        var_condition = np.outer(fact_2, fact_1)
-        prior_covs = self.kernel(X_candidates, X_objective).numpy()
-        coverages = (np.square(prior_covs) > var_condition).astype(np.bool_)
-        del var_condition, prior_covs, fact_1, fact_2, candidate_vars, objective_vars
-
-        v = X_objective.shape[0]
-        target_sum = v * float(target_fraction * 0.01)
-
-        # Sanity check to ensure target fraction coverage can be achieved from candidate locations
-        num_covered = len(np.where(np.sum(coverages, axis=0) > 0)[0])
-        max_fraction = (100.0 * num_covered) / float(v)
-        if max_fraction < target_fraction:
-            raise ValueError(
-                f"Target coverage {target_fraction:.2f}% is not achievable; "
-                f"maximum possible is {max_fraction:.2f}%."
-            )
-
+        
         # ----- Initial location: best single coverage -----
-        single_areas = coverages.sum(axis=1)
+        single_areas = self.coverages.sum(axis=1)
         first_idx = int(np.argmax(single_areas))
 
         selected_idxs = [first_idx]
         distance = 0.0
-        current_cover = coverages[first_idx].copy()
+        current_cover = self.coverages[first_idx].copy()
         current_sum = current_cover.sum()
 
-        remaining = np.array([i for i in range(len(X_candidates)) if i != first_idx],
+        remaining = np.array([i for i in range(len(self.X_candidates)) if i != first_idx],
                              dtype=np.int64)
 
         # ----- GCB loop -----
         while (remaining.size > 0 and
-               current_sum <= target_sum and
+               current_sum < self.target_sum and
                len(selected_idxs) < self.num_sensing):
             remaining_arr = remaining.astype(np.int64)
             selected_arr = np.array(selected_idxs, dtype=np.int64)
 
             distance_deltas, area_deltas = _compute_deltas_all_numba(
-                remaining_arr, selected_arr, X_candidates, coverages,
+                remaining_arr, 
+                selected_arr, 
+                self.X_candidates, 
+                self.coverages,
                 current_cover, distance
             )
 
@@ -2596,9 +2485,9 @@ class GCBCover(GreedyCover):
                     remaining = np.array([], dtype=np.int64)
                     break
 
-                # Recompute TSP tour including this candidate
+                # Recompute TSP path including this candidate
                 idx_list = selected_idxs + [best_idx]
-                locs = X_candidates[idx_list]
+                locs = self.X_candidates[idx_list]
 
                 # run_tsp must be available in the module scope
                 _, dist_list, indices_list = run_tsp(
@@ -2617,21 +2506,36 @@ class GCBCover(GreedyCover):
                     distance = new_distance
 
                     # Recompute coverage and area with new selection
-                    current_cover = np.zeros_like(current_cover, dtype=np.bool_)
-                    for si in selected_idxs:
-                        current_cover |= coverages[si]
-                    current_sum = current_cover.sum()
+                    current_cover = np.any(self.coverages[selected_idxs], axis=0)
+                    current_sum = int(current_cover.sum())
                     break  # back to outer while
 
         # ----- Prepare outputs -----
-        X_sol = X_candidates[selected_idxs]
+        X_sol = self.X_candidates[selected_idxs]
         start_nodes = kwargs.get('start_nodes', None)
         if start_nodes is not None:
             X_sol = np.vstack([start_nodes, X_sol])
         X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
     
+        # Greedy solution
+        X_sol_greedy = super(GCBCover, self).optimize(post_var_threshold=post_var_threshold,
+                                        target_fraction=target_fraction,
+                                        return_fovs=return_fovs,
+                                        **kwargs)
+
         if return_fovs:
-            return X_sol, self._get_fovs(coverages[selected_idxs])
+            fovs_greedy = X_sol_greedy[1]
+            X_sol_greedy = X_sol_greedy[0]
+
+        if get_distance(X_sol_greedy[0]) < get_distance(X_sol[0]):
+            X_sol = X_sol_greedy
+            if return_fovs:
+                fovs = fovs_greedy
+        elif return_fovs:
+            fovs = self._get_fovs(self.coverages[selected_idxs])
+
+        if return_fovs:
+            return X_sol, fovs
         else:
             return X_sol
 
