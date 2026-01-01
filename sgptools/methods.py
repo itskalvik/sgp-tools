@@ -1991,9 +1991,10 @@ class GreedyCover(HexCover):
             If True, also return polygons summarizing each selected candidate’s
             covered region (convex hull of covered objective points, buffered).
         slack_var:
-            Slack applied when generating the candidate set via HexCover:
-            internally calls HexCover.optimize(post_var_threshold - slack_var, ...).
-            This can over-generate candidates to make full coverage more likely.
+            Non-negative slack used to lower the post_var_threshold when generating 
+            the candidate set via HexCover (i.e., ``post_var_threshold - slack_var``), 
+            potentially generating extra candidates and improving the chance of 
+            reaching the target coverage.
         **kwargs:
             Extra arguments forwarded to the TSP ordering routine (and currently
             also forwarded to HexCover.optimize — see code improvement notes).
@@ -2005,11 +2006,33 @@ class GreedyCover(HexCover):
         (X_sol, fovs):
             If return_fovs is True, also returns a list of shapely Polygons.
         """
-        if not hasattr(self, 'coverages'):
-            self._compute_coverage_maps(post_var_threshold, 
-                                        target_fraction, 
-                                        slack_var,
-                                        **kwargs)
+        if not hasattr(self, "coverages"):
+            # Increase slack variance until we can reach the target fraction,
+            # or until the effective threshold would become non-positive.
+            slack = float(slack_var)
+            max_fraction = float("-inf")
+
+            while (post_var_threshold - slack) > 0.0:
+                max_fraction = self._compute_coverage_maps(
+                    post_var_threshold,
+                    target_fraction,
+                    slack,  # use the current (possibly increased) slack
+                    **kwargs,
+                )
+
+                if max_fraction >= target_fraction:
+                    break
+
+                slack += float(slack_var)
+                print("Failed to achieve target coverage. Retrying with increased slack variance...")
+
+            if max_fraction < target_fraction:
+                raise ValueError(
+                    f"Target coverage {target_fraction:.2f}% is not achievable; "
+                    f"maximum possible {max_fraction:.2f}% with "
+                    f"post_var_threshold {post_var_threshold:.2f} and "
+                    f"slack_var {slack:.2f}."
+                )
 
         # ---------------- Greedy loop ----------------
         n = len(self.X_candidates)
@@ -2112,12 +2135,8 @@ class GreedyCover(HexCover):
         # Sanity check to ensure target fraction coverage can be achieved from candidate locations
         num_covered = len(np.where(np.sum(self.coverages, axis=0) > 0)[0])
         max_fraction = (100.0 * num_covered) / float(X_objective.shape[0])
-        if max_fraction < target_fraction:
-            raise ValueError(
-                f"Target coverage {target_fraction:.2f}% is not achievable; "
-                f"maximum possible is {max_fraction:.2f}%."
-            )
-
+        return max_fraction
+    
     def _get_fovs(self, coverages, buffer: float = 0.5):
         """
         Convert coverage masks into polygonal “fields of view” (FoVs).
@@ -2412,8 +2431,10 @@ class GCBCover(GreedyCover):
         return_fovs:
             If True, also return polygon FoVs derived from covered objective points.
         slack_var:
-            Slack applied when generating the candidate set via HexCover:
-            calls HexCover.optimize(post_var_threshold - slack_var, ...).
+            Non-negative slack used to lower the post_var_threshold when generating 
+            the candidate set via HexCover (i.e., ``post_var_threshold - slack_var``), 
+            potentially generating extra candidates and improving the chance of 
+            reaching the target coverage.
         **kwargs:
             Extra arguments forwarded to the TSP solver. If using special route
             constraints (e.g., `start_nodes`), ensure those constraints are also
@@ -2426,11 +2447,33 @@ class GCBCover(GreedyCover):
         (X_sol, fovs):
             If return_fovs is True, also returns a list of shapely Polygons.
         """
-        if not hasattr(self, 'coverages'):
-            self._compute_coverage_maps(post_var_threshold, 
-                                        target_fraction, 
-                                        slack_var,
-                                        **kwargs)
+        if not hasattr(self, "coverages"):
+            # Increase slack variance until we can reach the target fraction,
+            # or until the effective threshold would become non-positive.
+            slack = float(slack_var)
+            max_fraction = float("-inf")
+
+            while (post_var_threshold - slack) > 0.0:
+                max_fraction = self._compute_coverage_maps(
+                    post_var_threshold,
+                    target_fraction,
+                    slack,  # use the current (possibly increased) slack
+                    **kwargs,
+                )
+
+                if max_fraction >= target_fraction:
+                    break
+
+                slack += float(slack_var)
+                print("Failed to achieve target coverage. Retrying with increased slack variance...")
+
+            if max_fraction < target_fraction:
+                raise ValueError(
+                    f"Target coverage {target_fraction:.2f}% is not achievable; "
+                    f"maximum possible {max_fraction:.2f}% with "
+                    f"post_var_threshold {post_var_threshold:.2f} and "
+                    f"slack_var {slack:.2f}."
+                )
         
         if kwargs.get('start_nodes', None) is not None:
             offset = 1

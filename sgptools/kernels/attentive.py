@@ -253,7 +253,7 @@ class Attentive(gpflow.kernels.Kernel):
 @tf.autograph.experimental.do_not_convert
 def rbf(dist: tf.Tensor, lengthscale: tf.Tensor) -> tf.Tensor:
     """Compute RBF kernel values.
-
+    
     The RBF kernel is defined as: $k(d, l) = \exp(-0.5 \times (d/l)^2)$
 
     Args:
