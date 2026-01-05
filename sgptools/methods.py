@@ -1965,7 +1965,7 @@ class GreedyCover(HexCover):
                  post_var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
-                 slack_var: float = 0.25,
+                 slack_var: float = 0.15,
                  **kwargs) -> np.ndarray:
         """
         Run greedy GP-coverage selection.
@@ -2412,7 +2412,7 @@ class GCBCover(GreedyCover):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
-                 slack_var: float = 0.25,
+                 slack_var: float = 0.15,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB selection with a path-length constraint.
