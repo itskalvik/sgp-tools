@@ -1965,7 +1965,8 @@ class GreedyCover(HexCover):
                  post_var_threshold: float = 0.7,
                  target_fraction: int = 100,
                  return_fovs: bool = False,
-                 slack_var: float = 0.15,
+                 slack_ratio: float = None,
+                 candidate_method: str = 'Hex',
                  **kwargs) -> np.ndarray:
         """
         Run greedy GP-coverage selection.
@@ -1990,14 +1991,14 @@ class GreedyCover(HexCover):
         return_fovs:
             If True, also return polygons summarizing each selected candidate’s
             covered region (convex hull of covered objective points, buffered).
-        slack_var:
+        slack_ratio:
             Non-negative slack used to lower the post_var_threshold when generating 
-            the candidate set via HexCover (i.e., ``post_var_threshold - slack_var``), 
-            potentially generating extra candidates and improving the chance of 
+            the candidate set, generating extra candidates and improving the chance of 
             reaching the target coverage.
+        candidate_method: Method ised to generate the candidate set. 
+                          Available options: `Hex` and `Grid`.
         **kwargs:
-            Extra arguments forwarded to the TSP ordering routine (and currently
-            also forwarded to HexCover.optimize — see code improvement notes).
+            Extra arguments forwarded to the TSP solver.
 
         Returns
         -------
@@ -2007,31 +2008,39 @@ class GreedyCover(HexCover):
             If return_fovs is True, also returns a list of shapely Polygons.
         """
         if not hasattr(self, "coverages"):
-            # Increase slack variance until we can reach the target fraction,
-            # or until the effective threshold would become non-positive.
-            slack = float(slack_var)
-            max_fraction = float("-inf")
+            # Increase slack ratio until we can reach the target fraction
 
-            while (post_var_threshold - slack) > 0.0:
+            if slack_ratio is not None:
+                pass
+            elif candidate_method=='Hex':
+                slack_ratio = 0.5
+            elif candidate_method=='Grid':
+                slack_ratio = 0.9
+
+            max_fraction = float("-inf")
+            while max_fraction < target_fraction:
                 max_fraction = self._compute_coverage_maps(
                     post_var_threshold,
                     target_fraction,
-                    slack,  # use the current (possibly increased) slack
+                    slack_ratio,
+                    candidate_method,
                     **kwargs,
                 )
 
-                if max_fraction >= target_fraction:
+                if max_fraction >= target_fraction or max_fraction < 0.:
+                    break                    
+
+                print("Failed to achieve target coverage. Retrying with increased slack ratio...")
+                slack_ratio -= 0.1
+                if slack_ratio < 0.:
                     break
 
-                slack += float(slack_var)
-                print("Failed to achieve target coverage. Retrying with increased slack variance...")
-
-            if max_fraction < target_fraction:
+            if max_fraction < target_fraction or slack_ratio < 0.:
                 raise ValueError(
-                    f"Target coverage {target_fraction:.2f}% is not achievable; "
-                    f"maximum possible {max_fraction:.2f}% with "
-                    f"post_var_threshold {post_var_threshold:.2f} and "
-                    f"slack_var {slack:.2f}."
+                    f"Target coverage: {target_fraction:.2f}% is not achievable; "
+                    f"maximum possible: {max_fraction:.2f}% with "
+                    f"post_var_threshold: {post_var_threshold:.2f} and "
+                    f"Final slack_ratio: {slack_ratio:.2f}."
                 )
 
         # ---------------- Greedy loop ----------------
@@ -2083,17 +2092,42 @@ class GreedyCover(HexCover):
         else:
             return X_sol
 
-    def _compute_coverage_maps(self, post_var_threshold, 
+    def get_grid(self, slack_ratio):
+        # Get lengthscales
+        distance = np.min(self.kernel.get_lengthscales(self.X_objective))
+        distance *= slack_ratio
+
+        # Compute grid
+        len_x = max(self.X_objective[:, 0])-min(self.X_objective[:, 0])
+        len_y = max(self.X_objective[:, 1])-min(self.X_objective[:, 1])
+        num_x = np.ceil(len_x/distance)
+        num_y = np.ceil(len_y/distance)
+        grid_x, grid_y = np.mgrid[min(self.X_objective[:, 0]):max(self.X_objective[:, 0]):complex(num_x), 
+                                  min(self.X_objective[:, 1]):max(self.X_objective[:, 1]):complex(num_y)]
+        X_grid = np.stack([grid_x, grid_y], axis=-1)
+        X_grid = X_grid.reshape(-1, 2).astype(self.X_objective.dtype)
+
+        # Remove sensing locations outside the boundaries
+        if self.pbounds is not None:
+            points = shapely.points(X_grid)
+            inside_idx = shapely.contains(self.pbounds, points)
+            X_grid = X_grid[inside_idx]
+
+        return X_grid
+
+    def _compute_coverage_maps(self, 
+                               post_var_threshold, 
                                target_fraction, 
-                               slack_var, 
+                               slack_ratio,
+                               method: str = 'Hex',
                                **kwargs):
         """
         Build the candidate set and the boolean coverage matrix.
 
         Steps
         -----
-        1) Generate candidate points using HexCover with a tighter threshold
-        (var_threshold - slack_var).
+        1) Generate candidate points using HexCover with a tighter threshold 
+            or with the Grid approach.
         2) Compute:
             v_cand[i] = k(x_i, x_i)
             v_obj[j]  = k(x_j, x_j)
@@ -2111,10 +2145,18 @@ class GreedyCover(HexCover):
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
 
-        # Get candidates using HexCover
-        self.X_candidates = super().optimize(post_var_threshold=post_var_threshold - slack_var,
-                                             tsp=False,
-                                             **kwargs)[0]
+        # Get candidates using HexCover or Grid
+        if method == 'Hex':
+            self.X_candidates = super().optimize(post_var_threshold=post_var_threshold*slack_ratio,
+                                                 tsp=False,
+                                                 **kwargs)[0]
+        elif method == 'Grid':
+            self.X_candidates = self.get_grid(slack_ratio)
+        else:
+            raise ValueError(
+                    f"Invalid candidate set generation method: {method}..."
+                    f"Available options: Hex and Grid"
+                )
 
         X_objective = np.asarray(X_objective)
         X_candidates = np.asarray(self.X_candidates, 
@@ -2412,7 +2454,8 @@ class GCBCover(GreedyCover):
                  target_fraction: int = 100,
                  distance_budget: float = float("inf"),
                  return_fovs: bool = False,
-                 slack_var: float = 0.15,
+                 slack_ratio: float = None,
+                 candidate_method: str = 'Hex',
                  **kwargs) -> np.ndarray:
         """
         Run the GCB selection with a path-length constraint.
@@ -2430,15 +2473,14 @@ class GCBCover(GreedyCover):
             TSP re-ordering). Use `inf` to disable the budget.
         return_fovs:
             If True, also return polygon FoVs derived from covered objective points.
-        slack_var:
+        slack_ratio:
             Non-negative slack used to lower the post_var_threshold when generating 
-            the candidate set via HexCover (i.e., ``post_var_threshold - slack_var``), 
-            potentially generating extra candidates and improving the chance of 
+            the candidate set, generating extra candidates and improving the chance of 
             reaching the target coverage.
+        candidate_method: Method ised to generate the candidate set. 
+                          Available options: `Hex` and `Grid`.
         **kwargs:
-            Extra arguments forwarded to the TSP solver. If using special route
-            constraints (e.g., `start_nodes`), ensure those constraints are also
-            reflected in the distance-budget checks.
+            Extra arguments forwarded to the TSP solver.
 
         Returns
         -------
@@ -2448,31 +2490,39 @@ class GCBCover(GreedyCover):
             If return_fovs is True, also returns a list of shapely Polygons.
         """
         if not hasattr(self, "coverages"):
-            # Increase slack variance until we can reach the target fraction,
-            # or until the effective threshold would become non-positive.
-            slack = float(slack_var)
-            max_fraction = float("-inf")
+            # Increase slack ratio until we can reach the target fraction
 
-            while (post_var_threshold - slack) > 0.0:
+            if slack_ratio is not None:
+                pass
+            elif candidate_method=='Hex':
+                slack_ratio = 0.5
+            elif candidate_method=='Grid':
+                slack_ratio = 0.9
+
+            max_fraction = float("-inf")
+            while max_fraction < target_fraction:
                 max_fraction = self._compute_coverage_maps(
                     post_var_threshold,
                     target_fraction,
-                    slack,  # use the current (possibly increased) slack
+                    slack_ratio,
+                    candidate_method,
                     **kwargs,
                 )
 
-                if max_fraction >= target_fraction:
+                if max_fraction >= target_fraction or max_fraction < 0.:
+                    break                    
+
+                print("Failed to achieve target coverage. Retrying with increased slack ratio...")
+                slack_ratio -= 0.1
+                if slack_ratio < 0.:
                     break
 
-                slack += float(slack_var)
-                print("Failed to achieve target coverage. Retrying with increased slack variance...")
-
-            if max_fraction < target_fraction:
+            if max_fraction < target_fraction or slack_ratio < 0.:
                 raise ValueError(
-                    f"Target coverage {target_fraction:.2f}% is not achievable; "
-                    f"maximum possible {max_fraction:.2f}% with "
-                    f"post_var_threshold {post_var_threshold:.2f} and "
-                    f"slack_var {slack:.2f}."
+                    f"Target coverage: {target_fraction:.2f}% is not achievable; "
+                    f"maximum possible: {max_fraction:.2f}% with "
+                    f"post_var_threshold: {post_var_threshold:.2f} and "
+                    f"Final slack_ratio: {slack_ratio:.2f}."
                 )
         
         if kwargs.get('start_nodes', None) is not None:
