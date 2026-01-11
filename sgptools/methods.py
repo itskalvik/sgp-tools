@@ -1816,6 +1816,10 @@ class HexCover(Method):
             X_sol, _ = run_tsp(X_sol, **kwargs)
         X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
 
+        # Drop TSP start location
+        if 'start_nodes' in kwargs:
+            X_sol = X_sol[:, 1:]
+
         if return_fovs:
             return X_sol, self._get_fovs(X_sol, rmin)
         else:
@@ -1967,6 +1971,7 @@ class GreedyCover(HexCover):
                  return_fovs: bool = False,
                  slack_ratio: float = None,
                  candidate_method: str = 'Hex',
+                 X_warm_start: np.ndarray = None,
                  **kwargs) -> np.ndarray:
         """
         Run greedy GP-coverage selection.
@@ -2024,6 +2029,7 @@ class GreedyCover(HexCover):
                     target_fraction,
                     slack_ratio,
                     candidate_method,
+                    X_warm_start,
                     **kwargs,
                 )
 
@@ -2047,10 +2053,17 @@ class GreedyCover(HexCover):
         n = len(self.X_candidates)
         selected_mask = np.zeros(n, dtype=bool)
         selected = []
-
         current_coverage = np.zeros(self.X_objective.shape[0], 
                                     dtype=bool)
         current_sum = 0
+
+        # Add warm start locations if available
+        if X_warm_start is not None:
+            for idx in np.arange(len(X_warm_start)):
+                current_coverage |= self.coverages[idx]
+                current_sum = int(current_coverage.sum())
+                selected_mask[idx] = True
+                selected.append(idx)
 
         while current_sum < self.target_sum and len(selected) < self.num_sensing:
             remaining = np.where(~selected_mask)[0]
@@ -2082,6 +2095,10 @@ class GreedyCover(HexCover):
         # ---------------- Prepare output ----------------
         if len(selected) == 0:
             return np.zeros((1, 0, self.num_dim), dtype=self.X_objective.dtype)
+
+        # Remove warm start locations
+        if X_warm_start is not None:
+            selected = selected[len(X_warm_start):]
 
         X_sol = self.X_candidates[selected]
         X_sol, _ = run_tsp(X_sol, **kwargs)
@@ -2120,6 +2137,7 @@ class GreedyCover(HexCover):
                                target_fraction, 
                                slack_ratio,
                                method: str = 'Hex',
+                               X_warm_start: np.ndarray = None,
                                **kwargs):
         """
         Build the candidate set and the boolean coverage matrix.
@@ -2157,6 +2175,9 @@ class GreedyCover(HexCover):
                     f"Invalid candidate set generation method: {method}..."
                     f"Available options: Hex and Grid"
                 )
+
+        if X_warm_start is not None:
+            self.X_candidates = np.vstack([X_warm_start, self.X_candidates])
 
         X_objective = np.asarray(X_objective)
         X_candidates = np.asarray(self.X_candidates, 
@@ -2456,6 +2477,7 @@ class GCBCover(GreedyCover):
                  return_fovs: bool = False,
                  slack_ratio: float = None,
                  candidate_method: str = 'Hex',
+                 X_warm_start: np.ndarray = None,
                  **kwargs) -> np.ndarray:
         """
         Run the GCB selection with a path-length constraint.
@@ -2506,6 +2528,7 @@ class GCBCover(GreedyCover):
                     target_fraction,
                     slack_ratio,
                     candidate_method,
+                    X_warm_start,
                     **kwargs,
                 )
 
