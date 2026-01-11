@@ -1885,7 +1885,7 @@ class HexCover(Method):
 #-----------------------------------------------------------------------------
 
 @njit
-def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
+def _compute_gains_numba(remaining_idxs, coverages, current_cover):
     """
     Compute marginal gains for remaining candidates (Numba-accelerated).
 
@@ -1895,7 +1895,7 @@ def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
         Indices of still-available candidates.
     coverages : 2D ndarray[bool], shape (n_candidates, v)
         Binary coverage mask for each candidate.
-    current_coverage : 1D ndarray[bool], shape (v,)
+    current_cover : 1D ndarray[bool], shape (v,)
         Binary mask of currently covered environment points.
 
     Returns
@@ -1904,7 +1904,7 @@ def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
         Marginal gain (number of newly covered points) for each candidate.
     """
     m = remaining_idxs.shape[0]
-    v = current_coverage.shape[0]
+    v = current_cover.shape[0]
     gains = np.empty(m, dtype=np.int64)
 
     for k in range(m):
@@ -1912,7 +1912,7 @@ def _compute_gains_numba(remaining_idxs, coverages, current_coverage):
         cov_i = coverages[idx]
         gain = 0
         for j in range(v):
-            if cov_i[j] and (not current_coverage[j]):
+            if cov_i[j] and (not current_cover[j]):
                 gain += 1
         gains[k] = gain
 
@@ -1971,7 +1971,7 @@ class GreedyCover(HexCover):
                  return_fovs: bool = False,
                  slack_ratio: float = None,
                  candidate_method: str = 'Hex',
-                 X_warm_start: np.ndarray = None,
+                 X_warm_start: np.ndarray = [],
                  **kwargs) -> np.ndarray:
         """
         Run greedy GP-coverage selection.
@@ -2051,19 +2051,18 @@ class GreedyCover(HexCover):
 
         # ---------------- Greedy loop ----------------
         n = len(self.X_candidates)
-        selected_mask = np.zeros(n, dtype=bool)
         selected = []
-        current_coverage = np.zeros(self.X_objective.shape[0], 
+        selected_mask = np.zeros(n, dtype=bool)
+        current_cover = np.zeros(self.X_objective.shape[0], 
                                     dtype=bool)
         current_sum = 0
 
         # Add warm start locations if available
-        if X_warm_start is not None:
-            for idx in np.arange(len(X_warm_start)):
-                current_coverage |= self.coverages[idx]
-                current_sum = int(current_coverage.sum())
-                selected_mask[idx] = True
-                selected.append(idx)
+        if len(X_warm_start):
+            selected = list(range(len(X_warm_start)))
+            current_cover = np.any(self.coverages[selected], axis=0)
+            current_sum = int(current_cover.sum())
+            selected_mask[selected] = True
 
         while current_sum < self.target_sum and len(selected) < self.num_sensing:
             remaining = np.where(~selected_mask)[0]
@@ -2073,7 +2072,7 @@ class GreedyCover(HexCover):
             gains = _compute_gains_numba(
                 remaining.astype(np.int64),
                 self.coverages,
-                current_coverage
+                current_cover
             )
 
             best_pos = int(np.argmax(gains))
@@ -2083,8 +2082,8 @@ class GreedyCover(HexCover):
             if best_gain <= 0:
                 break
 
-            current_coverage |= self.coverages[best_idx]
-            current_sum = int(current_coverage.sum())
+            current_cover |= self.coverages[best_idx]
+            current_sum = int(current_cover.sum())
 
             selected_mask[best_idx] = True
             selected.append(best_idx)
@@ -2097,7 +2096,7 @@ class GreedyCover(HexCover):
             return np.zeros((1, 0, self.num_dim), dtype=self.X_objective.dtype)
 
         # Remove warm start locations
-        if X_warm_start is not None:
+        if len(X_warm_start):
             selected = selected[len(X_warm_start):]
 
         X_sol = self.X_candidates[selected]
@@ -2137,7 +2136,7 @@ class GreedyCover(HexCover):
                                target_fraction, 
                                slack_ratio,
                                method: str = 'Hex',
-                               X_warm_start: np.ndarray = None,
+                               X_warm_start: np.ndarray = [],
                                **kwargs):
         """
         Build the candidate set and the boolean coverage matrix.
@@ -2176,7 +2175,7 @@ class GreedyCover(HexCover):
                     f"Available options: Hex and Grid"
                 )
 
-        if X_warm_start is not None:
+        if len(X_warm_start):
             self.X_candidates = np.vstack([X_warm_start, self.X_candidates])
 
         X_objective = np.asarray(X_objective)
@@ -2477,7 +2476,7 @@ class GCBCover(GreedyCover):
                  return_fovs: bool = False,
                  slack_ratio: float = None,
                  candidate_method: str = 'Hex',
-                 X_warm_start: np.ndarray = None,
+                 X_warm_start: np.ndarray = [],
                  **kwargs) -> np.ndarray:
         """
         Run the GCB selection with a path-length constraint.
@@ -2553,31 +2552,45 @@ class GCBCover(GreedyCover):
         else:
             offset = 0
         
+        ws = len(X_warm_start)
+        selected_idxs = []
+        current_cover = np.zeros(self.X_objective.shape[0], 
+                                    dtype=bool)
+        remaining = np.arange(len(self.X_candidates), dtype=np.int64)
+
+        # Add warm start locations if available
+        if ws:
+            selected_idxs = list(range(ws))
+            current_cover = np.any(self.coverages[selected_idxs], axis=0)
+            current_sum = int(current_cover.sum())
+            remaining = np.arange(ws, len(self.X_candidates),
+                                  dtype=np.int64)                                 
+        
         # ----- Initial location: best single coverage -----
-        single_areas = self.coverages.sum(axis=1)
-        first_idx = int(np.argmax(single_areas))
-
-        selected_idxs = [first_idx]
+        single_areas = self.coverages[ws:].sum(axis=1)
+        first_idx = ws + int(np.argmax(single_areas))
+        selected_idxs.append(first_idx)
         distance = 0.0
-        current_cover = self.coverages[first_idx].copy()
-        current_sum = current_cover.sum()
-
-        remaining = np.array([i for i in range(len(self.X_candidates)) if i != first_idx],
-                             dtype=np.int64)
+        current_cover |= self.coverages[first_idx]
+        current_sum = int(current_cover.sum())
+        remaining = remaining[remaining != first_idx]
 
         # ----- GCB loop -----
         while (remaining.size > 0 and
                current_sum < self.target_sum and
                len(selected_idxs) < self.num_sensing):
-            remaining_arr = remaining.astype(np.int64)
-            selected_arr = np.array(selected_idxs, dtype=np.int64)
+            # Make copies for delta method
+            remaining_local = (remaining - ws).astype(np.int64)
+            selected_local = np.array(selected_idxs[ws:], dtype=np.int64) - ws
 
+            # Compute deltas
             distance_deltas, area_deltas = _compute_deltas_all_numba(
-                remaining_arr, 
-                selected_arr, 
-                self.X_candidates, 
-                self.coverages,
-                current_cover, distance
+                remaining_local, 
+                selected_local, 
+                self.X_candidates[ws:], 
+                self.coverages[ws:],
+                current_cover, 
+                distance
             )
 
             # area gain per extra distance
@@ -2586,11 +2599,11 @@ class GCBCover(GreedyCover):
 
             # inner loop: find a feasible candidate under distance_budget
             while remaining.size > 0:
-                pos = int(np.argmax(ratios))
-                best_idx = int(remaining[pos])
+                pos = int(np.argmax(ratios))          # position in remaining/ratios
+                best_idx = int(remaining[pos])        # GLOBAL candidate index
                 best_ratio = ratios[pos]
 
-                # Remove from remaining pools
+                # Remove from pools by POSITION (aligned arrays)
                 remaining = np.delete(remaining, pos)
                 ratios = np.delete(ratios, pos)
                 distance_deltas = np.delete(distance_deltas, pos)
@@ -2602,7 +2615,7 @@ class GCBCover(GreedyCover):
                     break
 
                 # Recompute TSP path including this candidate
-                idx_list = selected_idxs + [best_idx]
+                idx_list = selected_idxs[ws:] + [best_idx]
                 locs = self.X_candidates[idx_list]
 
                 # run_tsp must be available in the module scope
@@ -2615,28 +2628,32 @@ class GCBCover(GreedyCover):
 
                 new_distance = dist_list[0]
                 order = indices_list[0][offset:] - offset
-                new_selected_idxs = [idx_list[i] for i in order]
+                new_selected_idxs = [idx_list[i] for i in order]  # GLOBAL indices
 
                 if new_distance <= distance_budget:
-                    selected_idxs = new_selected_idxs
+                    selected_idxs = selected_idxs[:ws] + new_selected_idxs
                     distance = new_distance
 
                     # Recompute coverage and area with new selection
-                    current_cover = np.any(self.coverages[selected_idxs], axis=0)
+                    current_cover |= self.coverages[best_idx]
                     current_sum = int(current_cover.sum())
                     break  # back to outer while
-
+            
         # ----- Prepare outputs -----
-        X_sol = self.X_candidates[selected_idxs]
+        X_sol = self.X_candidates[selected_idxs[ws:]]
         start_nodes = kwargs.get('start_nodes', None)
         if start_nodes is not None:
             X_sol = np.vstack([start_nodes, X_sol])
         X_sol = np.array(X_sol).reshape(self.num_robots, -1, self.num_dim)
     
         # Greedy solution
-        X_sol_greedy = super(GCBCover, self).optimize(post_var_threshold=post_var_threshold,
+        X_sol_greedy = super(GCBCover, self).optimize(
+                                        post_var_threshold=post_var_threshold,
                                         target_fraction=target_fraction,
                                         return_fovs=return_fovs,
+                                        slack_ratio=slack_ratio,
+                                        candidate_method=candidate_method,
+                                        X_warm_start=X_warm_start,
                                         **kwargs)
 
         if return_fovs:
@@ -2648,7 +2665,7 @@ class GCBCover(GreedyCover):
             if return_fovs:
                 fovs = fovs_greedy
         elif return_fovs:
-            fovs = self._get_fovs(self.coverages[selected_idxs])
+            fovs = self._get_fovs(self.coverages[selected_idxs[ws:]])
 
         if return_fovs:
             return X_sol, fovs
