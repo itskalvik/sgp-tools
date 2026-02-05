@@ -35,7 +35,6 @@ class IPPBenchmark:
                  xrange,
                  methods,
                  distance_budget,
-                 tsp_time_limit=30,
                  verbose=False,
                  kernel='RBF'):
         dataset = dataset_path.split('/')[-1][:-4]
@@ -56,7 +55,6 @@ class IPPBenchmark:
         self.sampling_rate = sampling_rate
         self.xrange = xrange
         self.distance_budget = distance_budget
-        self.tsp_time_limit = tsp_time_limit
         self.max_dist = max_dist
         self.verbose = verbose
 
@@ -71,8 +69,13 @@ class IPPBenchmark:
             self.continuous_sening = False
 
         # Load the dataset
-        self.dataset = Dataset(dataset_path,
-                               num_candidates=500)
+        if dataset_path.endswith('.npy'):
+            data = np.load(dataset_path)
+            self.dataset = Dataset(data=data,
+                                   num_candidates=500)
+        else:
+            self.dataset = Dataset(dataset_path,
+                                num_candidates=500)
 
         # Get oracle hyperparameters to benchmark rmse
         start_time = time()
@@ -103,8 +106,7 @@ class IPPBenchmark:
                 Xu_init, _ = run_tsp(Xu_init,
                                      num_vehicles=self.num_robots,
                                      max_dist=self.max_dist,
-                                     resample=num_waypoints,
-                                     time_limit=self.tsp_time_limit)
+                                     resample=num_waypoints)
 
                 # Setup the IPP Transform
                 transform = IPPTransform(num_robots=self.num_robots,
@@ -140,9 +142,6 @@ class IPPBenchmark:
 
                     if len(method_list) == 3:
                         kwargs['optimizer'] = method_list[2]
-
-                    if 'SchurMI' == objective: # ensure no overlap with X_objective
-                        kwargs['X_candidates'] = self.dataset.X_train[:len(X_objective)]
 
                     if method_backend == 'ContinuousSGP' or method_backend == 'DiscreteSGP':
                         X_objective = self.dataset.X_train
@@ -236,7 +235,6 @@ if __name__ == '__main__':
                         default='../datasets/mississippi.tif')
     parser.add_argument("--kernel", type=str, default='RBF')
     parser.add_argument("--verbose", action='store_true')
-    parser.add_argument("--tsp_time_limit", type=int, default=-1)
     args = parser.parse_args()
 
     # Set the maximum distance (for each path) for the TSP solver
@@ -245,13 +243,6 @@ if __name__ == '__main__':
     # Limit maximum waypoints/placements for multi robot case
     max_range = 101 if args.num_robots == 1 and args.sampling_rate == 2 else 51
     xrange = range(5, max_range, 5)
-
-    if args.tsp_time_limit > 0:
-        tsp_time_limit = args.tsp_time_limit
-    elif args.num_robots == 1:
-        tsp_time_limit = 30
-    else:
-        tsp_time_limit = 120
 
     # Methods to benchmark
     methods = ['BayesianOpt', 'CMA', 'ContinuousSGP']
@@ -297,7 +288,6 @@ if __name__ == '__main__':
                              xrange,
                              methods,
                              args.distance_budget,
-                             tsp_time_limit=tsp_time_limit,
                              verbose=args.verbose,
                              kernel=args.kernel)
     benchmark.run()
