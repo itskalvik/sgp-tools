@@ -199,16 +199,19 @@ class IPPBenchmark:
             rmse = get_rmse(y_pred, self.dataset.y_test)
             nlpd = get_nlpd(y_pred, self.dataset.y_test, y_var)
             smse = get_smse(y_pred, self.dataset.y_test, y_var)
+            mi   = get_mi(solution_X, self.dataset.X_test, self.noise_variance_opt, self.kernel_opt)
         else:
             rmse = np.nan
             nlpd = np.nan
             smse = np.nan
+            mi   = np.nan
 
         self.results[num_waypoints][method]['ParamTime'].append(param_time)
         self.results[num_waypoints][method]['IPPTime'].append(ipp_time)
         self.results[num_waypoints][method]['RMSE'].append(rmse)
         self.results[num_waypoints][method]['NLPD'].append(nlpd)
         self.results[num_waypoints][method]['SMSE'].append(smse)
+        self.results[num_waypoints][method]['MI'].append(mi)
         if self.distance_budget:
             self.results[num_waypoints][method]['Constraint'].append(
                 bool(budget_satisfied))
