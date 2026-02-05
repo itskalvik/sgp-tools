@@ -78,11 +78,16 @@ class IPPBenchmark:
                                 num_candidates=500)
 
         # Get oracle hyperparameters to benchmark rmse
+        if kernel == 'Attentive':
+            kwargs = {'optimizer': 'tf.Adam'}
+        else:
+            kwargs = {}
         start_time = time()
         _, self.noise_variance_opt, self.kernel_opt = get_model_params(
             *self.dataset.get_train(), 
             kernel=get_kernel(kernel)(),
-            verbose=True)
+            verbose=True,
+            **kwargs)
         end_time = time()
         self.gp_time = end_time - start_time
         print(f'GP Training Time: {self.gp_time:.2f}')
