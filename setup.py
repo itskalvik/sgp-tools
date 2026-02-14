@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -38,7 +38,7 @@ setup(
                       'gpflow>=2.10.0',
                       'pillow',
                       'geopandas',
-                      'setuptools<82'
+                      'setuptools<81'
                      ],
         classifiers=[
         "Programming Language :: Python :: 3",

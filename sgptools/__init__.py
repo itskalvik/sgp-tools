@@ -11,7 +11,7 @@ The library includes python code for the following:
 
 """
 
-__version__ = "2.0.6"
+__version__ = "2.0.7"
 __author__ = 'Kalvik'
 
 from .core import *
