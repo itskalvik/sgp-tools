@@ -37,7 +37,8 @@ setup(
                       'typing_extensions',
                       'gpflow>=2.10.0',
                       'pillow',
-                      'geopandas'
+                      'geopandas',
+                      'setuptools<82'
                      ],
         classifiers=[
         "Programming Language :: Python :: 3",
