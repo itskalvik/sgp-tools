@@ -5,3 +5,4 @@ sgptools.egg-info/
 outcmaes/
 site/
 .venv/
+.cache/

@@ -100,6 +100,7 @@ nav:
       - IPP: tutorials/IPP.ipynb
       - AIPP: tutorials/AIPP.ipynb
       - Non-Stationary Kernels: tutorials/non_stationary_kernels.ipynb
+      - Uncertainty-Guaranteed IPP: tutorials/uncertainty_guaranteed_IPP.ipynb
 
 extra_css:
   - stylesheets/extra.css
