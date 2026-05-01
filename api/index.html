@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -944,6 +944,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1184,6 +1190,90 @@
     
   
     DifferentiableObjective
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="methods/hex_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HexCover
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="methods/greedy_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GreedyCover
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="methods/gcb_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GCBCover
   
 
     
@@ -1747,6 +1837,8 @@
       
         
       
+        
+      
     
     
     
@@ -1885,6 +1977,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/uncertainty_guaranteed_IPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uncertainty-Guaranteed Informative Path Planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1913,24 +2033,18 @@
 
 
 <h1 id="how-it-all-works-together-a-conceptual-workflow">How It All Works Together: A Conceptual Workflow<a class="headerlink" href="#how-it-all-works-together-a-conceptual-workflow" title="Permanent link">&para;</a></h1>
-<p>A typical use case of the <code>sgptools</code> library would follow these steps:</p>
-<ol>
-<li>
-<p><strong>Load Data:</strong> A user would start by creating a <code>Dataset</code> object from their data, which could be a <code>.tif</code> file or a <code>NumPy</code> array. The <code>Dataset</code> class handles the necessary preprocessing and standardization. Alternatively, the user can use real-time data from a robot. </p>
-</li>
-<li>
-<p><strong>Define a Transformation:</strong> Based on the problem, the user would instantiate a <code>Transform</code> object. For example, for a multi-robot path planning problem with a distance budget, they would use <code>IPPTransform</code>. For a single sensor with a square field of view, they might use <code>SquareTransform</code>.</p>
-</li>
-<li>
-<p><strong>Choose an Optimization Method:</strong> The user would then select an optimization method from the <code>methods</code> module. For the novel SGP-based approach, they would choose <code>ContinuousSGP</code>. For comparison with other methods, they could use <code>BayesianOpt</code>, <code>CMA</code>, or the greedy methods.</p>
-</li>
-<li>
-<p><strong>Run Optimization:</strong> The <code>optimize()</code> method of the chosen optimizer is called. This will run the optimization algorithm (e.g., maximizing the ELBO in the case of <code>ContinuousSGP</code>) and return the optimized sensor locations or paths.</p>
-</li>
-<li>
-<p><strong>Post-processing:</strong> The solution might be post-processed, for example, by mapping the continuous locations to a set of discrete candidates using <code>cont2disc</code>.</p>
-</li>
-</ol>
+<p>A typical use case of the <code>sgptools</code> library follows a clean, four-step pipeline:</p>
+<p><strong>1. Ingest Data (<code>Dataset</code>)</strong> Start by instantiating a <code>Dataset</code> object. This class handles the ingestion and optional standardization of your environment data. You can load static maps (such as <code>.tif</code> images or <code>NumPy</code> arrays) or stream raw, real-time sensor data directly from an autonomous system.</p>
+<p><strong>2. Define Constraints &amp; Sensor Models (<code>Transform</code>) [Optional]</strong> Tailor the problem geometry by applying a <code>Transform</code> object. This step maps your physical and operational reality to the optimizer. For instance, use an <code>IPPTransform</code> to enforce a travel distance budget for multi-robot path planning, or apply a specific footprint (like a <code>SquareTransform</code>) to accurately model the field of view.</p>
+<p><strong>3. Select an Optimization Strategy (<code>methods</code>)</strong> Choose the mathematical solver best suited to your objective from the <code>methods</code> module:</p>
+<ul>
+<li><strong>Coverage with Guarantees:</strong> Use <code>GreedyCover</code>, <code>GCBCover</code>, or <code>HexCover</code> for IPP with uncertainty guarantees, ensuring the maximum posterior variance remains below a specified threshold.</li>
+<li><strong>SGP-Based IPP:</strong> Use <code>ContinuousSGP</code> for fast, continuous-space IPP powered by Sparse Gaussian Processes.</li>
+<li><strong>Black-Box IPP:</strong> Use <code>BayesianOpt</code> or <code>CMA</code> for derivative-free, continuous path optimization.</li>
+<li><strong>Greedy IPP:</strong> Use <code>GreedyObjective</code> for discrete-space optimization via a greedy algorithm. This seamlessly integrates with any metric from the <code>objectives</code> module.</li>
+<li><strong>Differentiable IPP:</strong> Use <code>DifferentiableObjective</code> for continuous-space optimization using gradient descent. Like the greedy approach, this is fully compatible with any metric from the <code>objectives</code> module.</li>
+</ul>
+<p><strong>4. Execute the Solver (<code>optimize()</code>)</strong> Finally, call the <code>.optimize()</code> method on your selected optimizer. This triggers the underlying algorithm—such as maximizing the ELBO—and returns the final optimized waypoints or sensing locations.</p>
 
 
 

@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -946,6 +946,12 @@
       
         
       
+        
+      
+        
+      
+        
+      
     
     
     
@@ -1186,6 +1192,90 @@
     
   
     DifferentiableObjective
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="hex_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HexCover
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="greedy_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GreedyCover
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="gcb_cover.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GCBCover
   
 
     
@@ -1749,6 +1839,8 @@
       
         
       
+        
+      
     
     
     
@@ -1887,6 +1979,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/uncertainty_guaranteed_IPP.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uncertainty-Guaranteed Informative Path Planning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1947,19 +2067,91 @@
     <div class="doc doc-contents first">
 
         <p>Retrieve an optimization method class by name.</p>
-<h4 id="sgptools.methods.get_method--parameters">Parameters<a class="headerlink" href="#sgptools.methods.get_method--parameters" title="Permanent link">&para;</a></h4>
-<p>method:
-    Name of the optimization method. Must be one of the keys in
-    :data:<code>METHODS</code>, e.g. <code>'ContinuousSGP'</code>, <code>'CMA'</code>, <code>'BayesianOpt'</code>,
-    <code>'GreedyObjective'</code>, etc.</p>
-<h4 id="sgptools.methods.get_method--returns">Returns<a class="headerlink" href="#sgptools.methods.get_method--returns" title="Permanent link">&para;</a></h4>
-<p>Type[Method]
-    The corresponding method class.</p>
-<h4 id="sgptools.methods.get_method--raises">Raises<a class="headerlink" href="#sgptools.methods.get_method--raises" title="Permanent link">&para;</a></h4>
-<p>KeyError
-    If <code>method</code> is not a valid key in :data:<code>METHODS</code>.</p>
-<h4 id="sgptools.methods.get_method--usage">Usage<a class="headerlink" href="#sgptools.methods.get_method--usage" title="Permanent link">&para;</a></h4>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ContinuousSGPClass</span> <span class="o">=</span> <span class="n">get_method</span><span class="p">(</span><span class="s1">&#39;ContinuousSGP&#39;</span><span class="p">)</span>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>method</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of the optimization method. Must be one of the keys in
+:data:<code>METHODS</code>, e.g. <code>'ContinuousSGP'</code>, <code>'CMA'</code>, <code>'BayesianOpt'</code>,
+<code>'GreedyObjective'</code>, etc.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Type">Type</span>[<a class="autorefs autorefs-internal" title="sgptools.methods.Method" href="method.html#sgptools.methods.Method">Method</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Type[Method]:
+The corresponding method class.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="KeyError">KeyError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If <code>method</code> is not a valid key in :data:<code>METHODS</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="usage" open>
+  <summary>Usage</summary>
+  <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">ContinuousSGPClass</span> <span class="o">=</span> <span class="n">get_method</span><span class="p">(</span><span class="s1">&#39;ContinuousSGP&#39;</span><span class="p">)</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">csgp</span> <span class="o">=</span> <span class="n">ContinuousSGPClass</span><span class="p">(</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">num_sensing</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">X_objective</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
@@ -1967,81 +2159,71 @@
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">noise_variance</span><span class="o">=</span><span class="n">noise_var_opt</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
 </span></code></pre></div>
-
+</details>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>sgptools/methods.py</code></summary>
-              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-2689">2689</a></span>
-<span class="normal"><a href="#__codelineno-0-2690">2690</a></span>
-<span class="normal"><a href="#__codelineno-0-2691">2691</a></span>
-<span class="normal"><a href="#__codelineno-0-2692">2692</a></span>
-<span class="normal"><a href="#__codelineno-0-2693">2693</a></span>
-<span class="normal"><a href="#__codelineno-0-2694">2694</a></span>
-<span class="normal"><a href="#__codelineno-0-2695">2695</a></span>
-<span class="normal"><a href="#__codelineno-0-2696">2696</a></span>
-<span class="normal"><a href="#__codelineno-0-2697">2697</a></span>
-<span class="normal"><a href="#__codelineno-0-2698">2698</a></span>
-<span class="normal"><a href="#__codelineno-0-2699">2699</a></span>
-<span class="normal"><a href="#__codelineno-0-2700">2700</a></span>
-<span class="normal"><a href="#__codelineno-0-2701">2701</a></span>
-<span class="normal"><a href="#__codelineno-0-2702">2702</a></span>
-<span class="normal"><a href="#__codelineno-0-2703">2703</a></span>
-<span class="normal"><a href="#__codelineno-0-2704">2704</a></span>
-<span class="normal"><a href="#__codelineno-0-2705">2705</a></span>
-<span class="normal"><a href="#__codelineno-0-2706">2706</a></span>
-<span class="normal"><a href="#__codelineno-0-2707">2707</a></span>
-<span class="normal"><a href="#__codelineno-0-2708">2708</a></span>
-<span class="normal"><a href="#__codelineno-0-2709">2709</a></span>
-<span class="normal"><a href="#__codelineno-0-2710">2710</a></span>
-<span class="normal"><a href="#__codelineno-0-2711">2711</a></span>
-<span class="normal"><a href="#__codelineno-0-2712">2712</a></span>
-<span class="normal"><a href="#__codelineno-0-2713">2713</a></span>
-<span class="normal"><a href="#__codelineno-0-2714">2714</a></span>
-<span class="normal"><a href="#__codelineno-0-2715">2715</a></span>
-<span class="normal"><a href="#__codelineno-0-2716">2716</a></span>
-<span class="normal"><a href="#__codelineno-0-2717">2717</a></span>
-<span class="normal"><a href="#__codelineno-0-2718">2718</a></span>
-<span class="normal"><a href="#__codelineno-0-2719">2719</a></span>
-<span class="normal"><a href="#__codelineno-0-2720">2720</a></span>
-<span class="normal"><a href="#__codelineno-0-2721">2721</a></span>
-<span class="normal"><a href="#__codelineno-0-2722">2722</a></span>
-<span class="normal"><a href="#__codelineno-0-2723">2723</a></span>
-<span class="normal"><a href="#__codelineno-0-2724">2724</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-2689"><a id="__codelineno-0-2689" name="__codelineno-0-2689"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_method</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Method</span><span class="p">]:</span>
-</span><span id="__span-0-2690"><a id="__codelineno-0-2690" name="__codelineno-0-2690"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="__span-0-2691"><a id="__codelineno-0-2691" name="__codelineno-0-2691"></a><span class="sd">    Retrieve an optimization method class by name.</span>
-</span><span id="__span-0-2692"><a id="__codelineno-0-2692" name="__codelineno-0-2692"></a>
-</span><span id="__span-0-2693"><a id="__codelineno-0-2693" name="__codelineno-0-2693"></a><span class="sd">    Parameters</span>
-</span><span id="__span-0-2694"><a id="__codelineno-0-2694" name="__codelineno-0-2694"></a><span class="sd">    ----------</span>
-</span><span id="__span-0-2695"><a id="__codelineno-0-2695" name="__codelineno-0-2695"></a><span class="sd">    method:</span>
-</span><span id="__span-0-2696"><a id="__codelineno-0-2696" name="__codelineno-0-2696"></a><span class="sd">        Name of the optimization method. Must be one of the keys in</span>
-</span><span id="__span-0-2697"><a id="__codelineno-0-2697" name="__codelineno-0-2697"></a><span class="sd">        :data:`METHODS`, e.g. `&#39;ContinuousSGP&#39;`, `&#39;CMA&#39;`, `&#39;BayesianOpt&#39;`,</span>
-</span><span id="__span-0-2698"><a id="__codelineno-0-2698" name="__codelineno-0-2698"></a><span class="sd">        `&#39;GreedyObjective&#39;`, etc.</span>
-</span><span id="__span-0-2699"><a id="__codelineno-0-2699" name="__codelineno-0-2699"></a>
-</span><span id="__span-0-2700"><a id="__codelineno-0-2700" name="__codelineno-0-2700"></a><span class="sd">    Returns</span>
-</span><span id="__span-0-2701"><a id="__codelineno-0-2701" name="__codelineno-0-2701"></a><span class="sd">    -------</span>
-</span><span id="__span-0-2702"><a id="__codelineno-0-2702" name="__codelineno-0-2702"></a><span class="sd">    Type[Method]</span>
-</span><span id="__span-0-2703"><a id="__codelineno-0-2703" name="__codelineno-0-2703"></a><span class="sd">        The corresponding method class.</span>
-</span><span id="__span-0-2704"><a id="__codelineno-0-2704" name="__codelineno-0-2704"></a>
-</span><span id="__span-0-2705"><a id="__codelineno-0-2705" name="__codelineno-0-2705"></a><span class="sd">    Raises</span>
-</span><span id="__span-0-2706"><a id="__codelineno-0-2706" name="__codelineno-0-2706"></a><span class="sd">    ------</span>
-</span><span id="__span-0-2707"><a id="__codelineno-0-2707" name="__codelineno-0-2707"></a><span class="sd">    KeyError</span>
-</span><span id="__span-0-2708"><a id="__codelineno-0-2708" name="__codelineno-0-2708"></a><span class="sd">        If `method` is not a valid key in :data:`METHODS`.</span>
-</span><span id="__span-0-2709"><a id="__codelineno-0-2709" name="__codelineno-0-2709"></a>
-</span><span id="__span-0-2710"><a id="__codelineno-0-2710" name="__codelineno-0-2710"></a><span class="sd">    Usage</span>
-</span><span id="__span-0-2711"><a id="__codelineno-0-2711" name="__codelineno-0-2711"></a><span class="sd">    --------</span>
-</span><span id="__span-0-2712"><a id="__codelineno-0-2712" name="__codelineno-0-2712"></a><span class="sd">    ```python</span>
-</span><span id="__span-0-2713"><a id="__codelineno-0-2713" name="__codelineno-0-2713"></a><span class="sd">    ContinuousSGPClass = get_method(&#39;ContinuousSGP&#39;)</span>
-</span><span id="__span-0-2714"><a id="__codelineno-0-2714" name="__codelineno-0-2714"></a><span class="sd">    csgp = ContinuousSGPClass(</span>
-</span><span id="__span-0-2715"><a id="__codelineno-0-2715" name="__codelineno-0-2715"></a><span class="sd">        num_sensing=10,</span>
-</span><span id="__span-0-2716"><a id="__codelineno-0-2716" name="__codelineno-0-2716"></a><span class="sd">        X_objective=X_train,</span>
-</span><span id="__span-0-2717"><a id="__codelineno-0-2717" name="__codelineno-0-2717"></a><span class="sd">        kernel=kernel_opt,</span>
-</span><span id="__span-0-2718"><a id="__codelineno-0-2718" name="__codelineno-0-2718"></a><span class="sd">        noise_variance=noise_var_opt,</span>
-</span><span id="__span-0-2719"><a id="__codelineno-0-2719" name="__codelineno-0-2719"></a><span class="sd">    )</span>
-</span><span id="__span-0-2720"><a id="__codelineno-0-2720" name="__codelineno-0-2720"></a><span class="sd">    ```</span>
-</span><span id="__span-0-2721"><a id="__codelineno-0-2721" name="__codelineno-0-2721"></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="__span-0-2722"><a id="__codelineno-0-2722" name="__codelineno-0-2722"></a>    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">METHODS</span><span class="p">:</span>
-</span><span id="__span-0-2723"><a id="__codelineno-0-2723" name="__codelineno-0-2723"></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Method &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39; not found. Available methods: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">METHODS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-0-2724"><a id="__codelineno-0-2724" name="__codelineno-0-2724"></a>    <span class="k">return</span> <span class="n">METHODS</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
+              <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-2558">2558</a></span>
+<span class="normal"><a href="#__codelineno-0-2559">2559</a></span>
+<span class="normal"><a href="#__codelineno-0-2560">2560</a></span>
+<span class="normal"><a href="#__codelineno-0-2561">2561</a></span>
+<span class="normal"><a href="#__codelineno-0-2562">2562</a></span>
+<span class="normal"><a href="#__codelineno-0-2563">2563</a></span>
+<span class="normal"><a href="#__codelineno-0-2564">2564</a></span>
+<span class="normal"><a href="#__codelineno-0-2565">2565</a></span>
+<span class="normal"><a href="#__codelineno-0-2566">2566</a></span>
+<span class="normal"><a href="#__codelineno-0-2567">2567</a></span>
+<span class="normal"><a href="#__codelineno-0-2568">2568</a></span>
+<span class="normal"><a href="#__codelineno-0-2569">2569</a></span>
+<span class="normal"><a href="#__codelineno-0-2570">2570</a></span>
+<span class="normal"><a href="#__codelineno-0-2571">2571</a></span>
+<span class="normal"><a href="#__codelineno-0-2572">2572</a></span>
+<span class="normal"><a href="#__codelineno-0-2573">2573</a></span>
+<span class="normal"><a href="#__codelineno-0-2574">2574</a></span>
+<span class="normal"><a href="#__codelineno-0-2575">2575</a></span>
+<span class="normal"><a href="#__codelineno-0-2576">2576</a></span>
+<span class="normal"><a href="#__codelineno-0-2577">2577</a></span>
+<span class="normal"><a href="#__codelineno-0-2578">2578</a></span>
+<span class="normal"><a href="#__codelineno-0-2579">2579</a></span>
+<span class="normal"><a href="#__codelineno-0-2580">2580</a></span>
+<span class="normal"><a href="#__codelineno-0-2581">2581</a></span>
+<span class="normal"><a href="#__codelineno-0-2582">2582</a></span>
+<span class="normal"><a href="#__codelineno-0-2583">2583</a></span>
+<span class="normal"><a href="#__codelineno-0-2584">2584</a></span>
+<span class="normal"><a href="#__codelineno-0-2585">2585</a></span>
+<span class="normal"><a href="#__codelineno-0-2586">2586</a></span>
+<span class="normal"><a href="#__codelineno-0-2587">2587</a></span>
+<span class="normal"><a href="#__codelineno-0-2588">2588</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-0-2558"><a id="__codelineno-0-2558" name="__codelineno-0-2558"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_method</span><span class="p">(</span><span class="n">method</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Type</span><span class="p">[</span><span class="n">Method</span><span class="p">]:</span>
+</span><span id="__span-0-2559"><a id="__codelineno-0-2559" name="__codelineno-0-2559"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve an optimization method class by name.</span>
+</span><span id="__span-0-2560"><a id="__codelineno-0-2560" name="__codelineno-0-2560"></a>
+</span><span id="__span-0-2561"><a id="__codelineno-0-2561" name="__codelineno-0-2561"></a><span class="sd">    Args:</span>
+</span><span id="__span-0-2562"><a id="__codelineno-0-2562" name="__codelineno-0-2562"></a><span class="sd">        method (str):</span>
+</span><span id="__span-0-2563"><a id="__codelineno-0-2563" name="__codelineno-0-2563"></a><span class="sd">            Name of the optimization method. Must be one of the keys in</span>
+</span><span id="__span-0-2564"><a id="__codelineno-0-2564" name="__codelineno-0-2564"></a><span class="sd">            :data:`METHODS`, e.g. `&#39;ContinuousSGP&#39;`, `&#39;CMA&#39;`, `&#39;BayesianOpt&#39;`,</span>
+</span><span id="__span-0-2565"><a id="__codelineno-0-2565" name="__codelineno-0-2565"></a><span class="sd">            `&#39;GreedyObjective&#39;`, etc.</span>
+</span><span id="__span-0-2566"><a id="__codelineno-0-2566" name="__codelineno-0-2566"></a>
+</span><span id="__span-0-2567"><a id="__codelineno-0-2567" name="__codelineno-0-2567"></a><span class="sd">    Returns:</span>
+</span><span id="__span-0-2568"><a id="__codelineno-0-2568" name="__codelineno-0-2568"></a><span class="sd">        Type[Method]:</span>
+</span><span id="__span-0-2569"><a id="__codelineno-0-2569" name="__codelineno-0-2569"></a><span class="sd">            The corresponding method class.</span>
+</span><span id="__span-0-2570"><a id="__codelineno-0-2570" name="__codelineno-0-2570"></a>
+</span><span id="__span-0-2571"><a id="__codelineno-0-2571" name="__codelineno-0-2571"></a><span class="sd">    Raises:</span>
+</span><span id="__span-0-2572"><a id="__codelineno-0-2572" name="__codelineno-0-2572"></a><span class="sd">        KeyError:</span>
+</span><span id="__span-0-2573"><a id="__codelineno-0-2573" name="__codelineno-0-2573"></a><span class="sd">            If `method` is not a valid key in :data:`METHODS`.</span>
+</span><span id="__span-0-2574"><a id="__codelineno-0-2574" name="__codelineno-0-2574"></a>
+</span><span id="__span-0-2575"><a id="__codelineno-0-2575" name="__codelineno-0-2575"></a><span class="sd">    Usage:</span>
+</span><span id="__span-0-2576"><a id="__codelineno-0-2576" name="__codelineno-0-2576"></a><span class="sd">        ```python</span>
+</span><span id="__span-0-2577"><a id="__codelineno-0-2577" name="__codelineno-0-2577"></a><span class="sd">        ContinuousSGPClass = get_method(&#39;ContinuousSGP&#39;)</span>
+</span><span id="__span-0-2578"><a id="__codelineno-0-2578" name="__codelineno-0-2578"></a><span class="sd">        csgp = ContinuousSGPClass(</span>
+</span><span id="__span-0-2579"><a id="__codelineno-0-2579" name="__codelineno-0-2579"></a><span class="sd">            num_sensing=10,</span>
+</span><span id="__span-0-2580"><a id="__codelineno-0-2580" name="__codelineno-0-2580"></a><span class="sd">            X_objective=X_train,</span>
+</span><span id="__span-0-2581"><a id="__codelineno-0-2581" name="__codelineno-0-2581"></a><span class="sd">            kernel=kernel_opt,</span>
+</span><span id="__span-0-2582"><a id="__codelineno-0-2582" name="__codelineno-0-2582"></a><span class="sd">            noise_variance=noise_var_opt,</span>
+</span><span id="__span-0-2583"><a id="__codelineno-0-2583" name="__codelineno-0-2583"></a><span class="sd">        )</span>
+</span><span id="__span-0-2584"><a id="__codelineno-0-2584" name="__codelineno-0-2584"></a><span class="sd">        ```</span>
+</span><span id="__span-0-2585"><a id="__codelineno-0-2585" name="__codelineno-0-2585"></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="__span-0-2586"><a id="__codelineno-0-2586" name="__codelineno-0-2586"></a>    <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">METHODS</span><span class="p">:</span>
+</span><span id="__span-0-2587"><a id="__codelineno-0-2587" name="__codelineno-0-2587"></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Method &#39;</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&#39; not found. Available methods: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">METHODS</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-0-2588"><a id="__codelineno-0-2588" name="__codelineno-0-2588"></a>    <span class="k">return</span> <span class="n">METHODS</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
 </span></code></pre></div></td></tr></table></div>
             </details>
     </div>
