@@ -30,7 +30,7 @@ class OSGPR_VFE(GPModel, InternalDataTrainingLossMixin):
     """Online Sparse Variational GP regression model from [streaming_sparse_gp](https://github.com/thangbui/streaming_sparse_gp/tree/master)
 
     Refer to the following paper for more details:
-        - Streaming Gaussian process approximations [Bui et al., 2017]
+        - Bui et al., 2017. *Streaming Gaussian process approximations.*
 
     Args:
         data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)

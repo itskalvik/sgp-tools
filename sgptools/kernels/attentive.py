@@ -33,7 +33,7 @@ class Attentive(gpflow.kernels.Kernel):
     Implementation based on [Weizhe-Chen/attentive_kernels](https://github.com/Weizhe-Chen/attentive_kernels).
 
     Refer to the following paper for more details:
-        - AK: Attentive Kernel for Information Gathering [Chen et al., 2022]
+        - Chen et al., 2022. *AK: Attentive Kernel for Information Gathering.*
 
     Attributes:
         _free_amplitude (tf.Variable):

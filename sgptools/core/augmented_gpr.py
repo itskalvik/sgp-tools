@@ -29,9 +29,8 @@ class AugmentedGPR(GPR):
     """GPR model from the GPFlow library augmented to use a transform object's
     expand and aggregate functions on the data points where necessary.  
 
-    Refer to the following papers for more details:
-        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+    Refer to the following paper for more details:
+        - Jakkala and Akella, 2025. *Fully differentiable sensor placement and informative path planning.*
 
     Args:
         data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)

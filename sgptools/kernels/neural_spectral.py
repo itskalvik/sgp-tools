@@ -37,7 +37,7 @@ class NeuralSpectral(gpflow.kernels.Kernel):
     Based on the implementation from this [repo](https://github.com/sremes/nssm-gp/tree/master?tab=readme-ov-file).
 
     Refer to the following papers for more details:
-        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
+        - Remes et al., 2018. *Neural Non-Stationary Spectral Kernel.*
 
     Attributes:
         input_dim (int): Dimensionality of the input data points.
@@ -254,7 +254,7 @@ def init_neural_kernel(X_train: np.ndarray,
     initializations and return the model with the best initial Evidence Lower Bound (ELBO).
 
     Refer to the original paper for more details:
-        - Neural Non-Stationary Spectral Kernel [Remes et al., 2018]
+        - Remes et al., 2018. *Neural Non-Stationary Spectral Kernel.*
 
     Args:
         X_train (np.ndarray): (n, d); Input training set points.

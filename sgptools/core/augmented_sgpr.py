@@ -34,10 +34,8 @@ class AugmentedSGPR(SGPR):
     has an additional update function to update the kernel and noise variance parameters 
     (currently, the online updates part works only with RBF kernels).  
 
-
-    Refer to the following papers for more details:
-        - Efficient Sensor Placement from Regression with Sparse Gaussian Processes in Continuous and Discrete Spaces [Jakkala and Akella, 2023]
-        - Multi-Robot Informative Path Planning from Regression with Sparse Gaussian Processes [Jakkala and Akella, 2024]
+    Refer to the following paper for more details:
+        - Jakkala and Akella, 2025. *Fully differentiable sensor placement and informative path planning.*
 
     Args:
         data (tuple): (X, y) ndarrays with inputs (n, d) and labels (n, 1)

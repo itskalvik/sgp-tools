@@ -46,7 +46,11 @@ plugins:
   - search
   - offline
   - mkdocs-jupyter
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            inherited_members: true
 
 nav:
   - Home: index.md
@@ -72,6 +76,9 @@ nav:
       - BayesianOpt: api/methods/bayesian_opt.md
       - CMA: api/methods/cma.md
       - DifferentiableObjective: api/methods/differentiable_objective.md
+      - HexCover: api/methods/hex_cover.md
+      - GreedyCover: api/methods/greedy_cover.md
+      - GCBCover: api/methods/gcb_cover.md
     - Objectives:
       - api/objectives/index.md
       - Objective: api/objectives/objective.md

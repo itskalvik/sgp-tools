@@ -477,7 +477,7 @@ class  BOptimal(Objective):
     Computes the B-optimal design metric.
 
     Refer to the following paper for more details:
-        - Approximate Sequential Optimization for Informative Path Planning [Ott et al., 2024]
+        - Ott et al., 2024. *Approximate Sequential Optimization for Informative Path Planning.*
 
     B-optimality minimizes the trace of the inverse of the covariance matrix 
     $-Tr(K(X, X)^{-1})$. Since optimization 

@@ -35,21 +35,24 @@ from sgptools.core.transformations import Transform  # for type hinting
 
 
 class Method:
-    """
-    Base class for informative sensing / path-planning optimization methods.
+    """Base class for informative sensing / path-planning optimization methods.
 
     All methods optimize a set of sensing locations or waypoints,
     typically under a task-specific objective defined over a Gaussian process
     model (e.g., mutual information, ELBO).
 
     Attributes:
-        num_sensing: Number of sensing locations (or waypoints) to optimize
+        num_sensing (int):
+            Number of sensing locations (or waypoints) to optimize
             per robot.
-        num_dim: Dimensionality of each sensing location (e.g., 2 for (x, y),
+        num_dim (int):
+            Dimensionality of each sensing location (e.g., 2 for (x, y),
             3 for (x, y, θ)).
-        num_robots: Number of robots / agents whose paths or sensing locations
+        num_robots (int):
+            Number of robots / agents whose paths or sensing locations
             are being optimized.
-        X_candidates: Optional discrete set of candidate sensing locations
+        X_candidates (np.ndarray | None):
+            Optional discrete set of candidate sensing locations
             with shape `(c, num_dim)`. If provided, continuous solutions may be
             snapped to the closest candidates via `cont2disc`.
     """
@@ -64,42 +67,40 @@ class Method:
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
                  **kwargs: Any):
-        """
-        Base initializer for an optimization method.
+        """Base initializer for an optimization method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of sensing locations (inducing points / waypoints) to be
-            optimized per robot.
-        X_objective:
-            Array of shape `(n, d)` containing the inputs used to define the
-            objective (e.g., training inputs or a spatial grid). The last
-            dimension `d` is used as the default `num_dim` if `num_dim` is not
-            provided explicitly.
-        kernel:
-            GPflow kernel used by the objective. Stored only indirectly through
-            subclasses (via their objective models).
-        noise_variance:
-            Observation noise variance used in the objective.
-        transform:
-            Optional `Transform` object that maps inducing points to an
-            expanded representation (e.g., IPP path expansion, sensor FoV).
-            Also used for constraint evaluation. Not stored here, but passed
-            through to subclasses as needed.
-        num_robots:
-            Number of robots / agents. The total number of optimized points
-            is `num_sensing * num_robots`. Defaults to 1.
-        X_candidates:
-            Optional array of shape `(c, d)` representing a discrete set of
-            feasible sensing locations. When provided, many methods map their
-            continuous solution to this candidate set using `cont2disc`.
-        num_dim:
-            Dimensionality of each sensing location. If `None`, defaults to
-            `X_objective.shape[-1]`.
-        **kwargs:
-            Additional keyword arguments are accepted for forward compatibility,
-            but ignored by the base class.
+        Args:
+            num_sensing (int):
+                Number of sensing locations (inducing points / waypoints) to be
+                optimized per robot.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` containing the inputs used to define the
+                objective (e.g., training inputs or a spatial grid). The last
+                dimension `d` is used as the default `num_dim` if `num_dim` is not
+                provided explicitly.
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel used by the objective. Stored only indirectly through
+                subclasses (via their objective models).
+            noise_variance (float):
+                Observation noise variance used in the objective.
+            transform (Transform | None):
+                Optional `Transform` object that maps inducing points to an
+                expanded representation (e.g., IPP path expansion, sensor FoV).
+                Also used for constraint evaluation. Not stored here, but passed
+                through to subclasses as needed.
+            num_robots (int):
+                Number of robots / agents. The total number of optimized points
+                is `num_sensing * num_robots`. Defaults to 1.
+            X_candidates (np.ndarray | None):
+                Optional array of shape `(c, d)` representing a discrete set of
+                feasible sensing locations. When provided, many methods map their
+                continuous solution to this candidate set using `cont2disc`.
+            num_dim (int | None):
+                Dimensionality of each sensing location. If `None`, defaults to
+                `X_objective.shape[-1]`.
+            **kwargs (Any):
+                Additional keyword arguments are accepted for forward compatibility,
+                but ignored by the base class.
         """
         self.num_sensing = num_sensing
         self.num_robots = num_robots
@@ -110,65 +111,55 @@ class Method:
             self.num_dim = num_dim
 
     def optimize(self) -> np.ndarray:
-        """
-        Run the optimization procedure and return the optimized sensing
+        """Run the optimization procedure and return the optimized sensing
         locations / waypoints.
 
-        Returns
-        -------
-        np.ndarray
-            Array with shape `(num_robots, num_sensing, num_dim)` containing
-            the optimized sensing locations.
+        Returns:
+            np.ndarray:
+                Array with shape `(num_robots, num_sensing, num_dim)` containing
+                the optimized sensing locations.
 
-        Raises
-        ------
-        NotImplementedError
-            Must be implemented in subclasses.
+        Raises:
+            NotImplementedError:
+                Must be implemented in subclasses.
         """
         raise NotImplementedError
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise-variance hyperparameters used by the
+        """Update the kernel and noise-variance hyperparameters used by the
         underlying objective or SGP model.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
 
-        Raises
-        ------
-        NotImplementedError
-            Must be implemented in subclasses.
+        Raises:
+            NotImplementedError:
+                Must be implemented in subclasses.
         """
         raise NotImplementedError
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise-variance hyperparameters used by
+        """Return the current kernel and noise-variance hyperparameters used by
         the underlying objective or SGP model.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A tuple `(kernel, noise_variance)` containing copies of the current
-            hyperparameters.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A tuple `(kernel, noise_variance)` containing copies of the current
+                hyperparameters.
 
-        Raises
-        ------
-        NotImplementedError
-            Must be implemented in subclasses.
+        Raises:
+            NotImplementedError:
+                Must be implemented in subclasses.
         """
         raise NotImplementedError
 
 
 class BayesianOpt(Method):
-    """
-    Informative sensor placement / path optimization using Bayesian
+    """Informative sensor placement / path optimization using Bayesian
     Optimization over a continuous search space.
 
     A Bayesian optimization loop is run over a flattened vector containing all
@@ -177,24 +168,22 @@ class BayesianOpt(Method):
     evaluated under a GP-based objective (e.g. mutual information), and
     penalized by any constraints provided by the `Transform`.
 
-    References
-    ----------
-    - Vivaldini et al., 2019. *UAV route planning for active disease
-      classification.*
-    - Francis et al., 2019. *Occupancy map building through Bayesian
-      exploration.*
+    Refer to the following papers for more details:
+        - Vivaldini et al., 2019. *UAV route planning for active disease
+        classification.*
+        - Francis et al., 2019. *Occupancy map building through Bayesian
+        exploration.*
 
-    Attributes
-    ----------
-    objective:
-        Objective object encapsulating the GP-based information measure to
-        maximize.
-    transform:
-        Optional transform applied to candidate sensing locations before
-        evaluating the objective.
-    pbounds:
-        Dictionary mapping parameter names `'x0', 'x1', ...` to their search
-        bounds `(lower, upper)`, as required by `bayes_opt.BayesianOptimization`.
+    Attributes:
+        objective (Objective):
+            Objective object encapsulating the GP-based information measure to
+            maximize.
+        transform (Transform | None):
+            Optional transform applied to candidate sensing locations before
+            evaluating the objective.
+        pbounds (Dict[str, Tuple[float, float]]):
+            Dictionary mapping parameter names `'x0', 'x1', ...` to their search
+            bounds `(lower, upper)`, as required by `bayes_opt.BayesianOptimization`.
     """
 
     def __init__(self,
@@ -208,40 +197,38 @@ class BayesianOpt(Method):
                  num_dim: Optional[int] = None,
                  objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
-        """
-        Initialize a Bayesian optimization-based method.
+        """Initialize a Bayesian optimization-based method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of sensing locations per robot to optimize.
-        X_objective:
-            Array of shape `(n, d)` used to define the underlying objective.
-            The bounds of this set are used to define the BO search space.
-        kernel:
-            GPflow kernel used inside the objective.
-        noise_variance:
-            Observation noise variance used inside the objective.
-        transform:
-            Optional transform applied to the candidate solution before
-            evaluating the objective (and constraints). For example, an
-            `IPPTransform`.
-        num_robots:
-            Number of robots / agents. Defaults to 1.
-        X_candidates:
-            Optional discrete candidate set of locations with shape `(c, d)`.
-            If provided, the final continuous solution is snapped to the
-            nearest candidate locations.
-        num_dim:
-            Dimensionality of the sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`.
-        objective:
-            Objective specification. Either a string key understood by
-            `get_objective` (e.g. `'SLogMI'`, `'MI'`) or an already-instantiated
-            `Objective` object.
-        **kwargs:
-            Additional keyword arguments forwarded to the objective constructor
-            when `objective` is a string.
+        Args:
+            num_sensing (int):
+                Number of sensing locations per robot to optimize.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used to define the underlying objective.
+                The bounds of this set are used to define the BO search space.
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel used inside the objective.
+            noise_variance (float):
+                Observation noise variance used inside the objective.
+            transform (Transform | None):
+                Optional transform applied to the candidate solution before
+                evaluating the objective (and constraints). For example, an
+                `IPPTransform`.
+            num_robots (int):
+                Number of robots / agents. Defaults to 1.
+            X_candidates (np.ndarray | None):
+                Optional discrete candidate set of locations with shape `(c, d)`.
+                If provided, the final continuous solution is snapped to the
+                nearest candidate locations.
+            num_dim (int | None):
+                Dimensionality of the sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`.
+            objective (str | Objective):
+                Objective specification. Either a string key understood by
+                `get_objective` (e.g. `'SLogMI'`, `'MI'`) or an already-instantiated
+                `Objective` object.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to the objective constructor
+                when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -264,26 +251,22 @@ class BayesianOpt(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the underlying objective.
+        """Update the kernel and noise variance used by the underlying objective.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance used by the objective.
+        """Return the current kernel and noise variance used by the objective.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current noise variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -294,29 +277,26 @@ class BayesianOpt(Method):
                  verbose: bool = False,
                  seed: Optional[int] = None,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Run Bayesian optimization to obtain informative sensing locations.
+        """Run Bayesian optimization to obtain informative sensing locations.
 
-        Parameters
-        ----------
-        max_steps:
-            Number of Bayesian optimization iterations after the initial random
-            exploration. Defaults to 50.
-        init_points:
-            Number of purely random evaluations before BO starts. Defaults to 10.
-        verbose:
-            If `True`, print progress messages from `BayesianOptimization`.
-        seed:
-            Optional random seed to make BO reproducible.
-        **kwargs:
-            Extra keyword arguments forwarded to `BayesianOptimization`
-            (currently unused in this wrapper, but accepted for flexibility).
+        Args:
+            max_steps (int):
+                Number of Bayesian optimization iterations after the initial random
+                exploration. Defaults to 50.
+            init_points (int):
+                Number of purely random evaluations before BO starts. Defaults to 10.
+            verbose (bool):
+                If `True`, print progress messages from `BayesianOptimization`.
+            seed (int | None):
+                Optional random seed to make BO reproducible.
+            **kwargs (Any):
+                Extra keyword arguments forwarded to `BayesianOptimization`
+                (currently unused in this wrapper, but accepted for flexibility).
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            optimized sensing locations in the original coordinate space.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                optimized sensing locations in the original coordinate space.
         """
         verbose = 1 if verbose else 0
         optimizer = BayesianOptimization(f=self._objective,
@@ -350,8 +330,7 @@ class BayesianOpt(Method):
         return sol_np
 
     def _objective(self, **kwargs: float) -> float:
-        """
-        Objective function passed to `BayesianOptimization`.
+        """Objective function passed to `BayesianOptimization`.
 
         Parameters are expected as a flattened dictionary `{ 'x0': ..., 'x1': ... }`,
         which is reshaped into `(num_sensing * num_robots, num_dim)` to form
@@ -367,15 +346,13 @@ class BayesianOpt(Method):
         expected to return non-positive values, so larger violations produce
         more negative penalties.
 
-        Parameters
-        ----------
-        **kwargs:
-            Flattened coordinates keyed by `'x0', 'x1', ...`.
+        Args:
+            **kwargs (float):
+                Flattened coordinates keyed by `'x0', 'x1', ...`.
 
-        Returns
-        -------
-        float
-            Objective value to be maximized by `BayesianOptimization`.
+        Returns:
+            float:
+                Objective value to be maximized by `BayesianOptimization`.
         """
         X_list: List[float] = []
         for i in range(len(kwargs)):
@@ -396,30 +373,27 @@ class BayesianOpt(Method):
 
 
 class CMA(Method):
-    """
-    Informative sensor placement / path optimization using CMA-ES
+    """Informative sensor placement / path optimization using CMA-ES
     (Covariance Matrix Adaptation Evolution Strategy).
 
     CMA-ES is a derivative-free, population-based genetic optimizer well-suited for
     non-convex, non-smooth objectives. Here, it searches over the flattened
     vector of sensing locations / waypoints.
 
-    Reference
-    ---------
-    - Hitz et al., 2017. *Adaptive Continuous-Space Informative Path Planning
-      for Online Environmental Monitoring.*
+    Refer to the following paper for more details:
+        - Hitz et al., 2017. *Adaptive Continuous-Space Informative Path Planning
+        for Online Environmental Monitoring.*
 
-    Attributes
-    ----------
-    objective:
-        Objective object to evaluate information gain.
-    transform:
-        Optional transform applied to candidate solutions (e.g., for IPP / FoV).
-    X_init:
-        Flattened initial guess of the sensing locations.
-    pbounds:
-        Convex hull of the `X_objective` points, used as an implicit geometric
-        bound (not enforced directly by CMA-ES).
+    Attributes:
+        objective (Objective):
+            Objective object to evaluate information gain.
+        transform (Transform | None):
+            Optional transform applied to candidate solutions (e.g., for IPP / FoV).
+        X_init (np.ndarray):
+            Flattened initial guess of the sensing locations.
+        pbounds (shapely.geometry.Polygon):
+            Convex hull of the `X_objective` points, used as an implicit geometric
+            bound (not enforced directly by CMA-ES).
     """
 
     def __init__(self,
@@ -434,42 +408,40 @@ class CMA(Method):
                  objective: Union[str, Objective] = 'SLogMI',
                  X_init: Optional[np.ndarray] = None,
                  **kwargs: Any):
-        """
-        Initialize a CMA-ES-based optimization method.
+        """Initialize a CMA-ES-based optimization method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of sensing locations per robot.
-        X_objective:
-            Array of shape `(n, d)` used to define the GP objective and
-            to build the convex hull bounds.
-        kernel:
-            GPflow kernel used inside the objective.
-        noise_variance:
-            Observation noise variance used inside the objective.
-        transform:
-            Optional transform applied to candidate solutions before objective
-            evaluation and constraints.
-        num_robots:
-            Number of robots / agents. Defaults to 1.
-        X_candidates:
-            Optional discrete candidate set of locations with shape `(c, d)`.
-            If provided, continuous solutions are snapped to candidates.
-        num_dim:
-            Dimensionality of sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if `X_init`
-            is provided.
-        objective:
-            Objective specification, either a string key for
-            `get_objective` or a pre-instantiated `Objective`.
-        X_init:
-            Initial guess for the sensing locations, with shape
-            `(num_sensing * num_robots, num_dim)`. If `None`, an initial set
-            is selected via `get_inducing_pts`.
-        **kwargs:
-            Extra keyword arguments forwarded to the objective constructor
-            when `objective` is a string.
+        Args:
+            num_sensing (int):
+                Number of sensing locations per robot.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used to define the GP objective and
+                to build the convex hull bounds.
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel used inside the objective.
+            noise_variance (float):
+                Observation noise variance used inside the objective.
+            transform (Transform | None):
+                Optional transform applied to candidate solutions before objective
+                evaluation and constraints.
+            num_robots (int):
+                Number of robots / agents. Defaults to 1.
+            X_candidates (np.ndarray | None):
+                Optional discrete candidate set of locations with shape `(c, d)`.
+                If provided, continuous solutions are snapped to candidates.
+            num_dim (int | None):
+                Dimensionality of sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`, or to `X_init.shape[-1]` if `X_init`
+                is provided.
+            objective (str | Objective):
+                Objective specification, either a string key for
+                `get_objective` or a pre-instantiated `Objective`.
+            X_init (np.ndarray | None):
+                Initial guess for the sensing locations, with shape
+                `(num_sensing * num_robots, num_dim)`. If `None`, an initial set
+                is selected via `get_inducing_pts`.
+            **kwargs (Any):
+                Extra keyword arguments forwarded to the objective constructor
+                when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -495,26 +467,22 @@ class CMA(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the objective.
+        """Update the kernel and noise variance used by the objective.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance used by the objective.
+        """Return the current kernel and noise variance used by the objective.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current noise variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -526,32 +494,29 @@ class CMA(Method):
                  seed: Optional[int] = None,
                  restarts: int = 5,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Run CMA-ES to obtain informative sensing locations.
+        """Run CMA-ES to obtain informative sensing locations.
 
-        Parameters
-        ----------
-        max_steps:
-            Maximum number of function evaluations (CMA-ES iterations). Defaults
-            to 500.
-        tol:
-            Function-value tolerance for termination (stopping criterion
-            passed to CMA). Defaults to `1e-6`.
-        verbose:
-            If `True`, CMA-ES prints progress messages.
-        seed:
-            Optional random seed for reproducibility.
-        restarts:
-            Number of CMA-ES restarts allowed. Defaults to 5.
-        **kwargs:
-            Additional keyword arguments forwarded to `cma.fmin2` (currently
-            unused in this wrapper but accepted for flexibility).
+        Args:
+            max_steps (int):
+                Maximum number of function evaluations (CMA-ES iterations). Defaults
+                to 500.
+            tol (float):
+                Function-value tolerance for termination (stopping criterion
+                passed to CMA). Defaults to `1e-6`.
+            verbose (bool):
+                If `True`, CMA-ES prints progress messages.
+            seed (int | None):
+                Optional random seed for reproducibility.
+            restarts (int):
+                Number of CMA-ES restarts allowed. Defaults to 5.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to `cma.fmin2` (currently
+                unused in this wrapper but accepted for flexibility).
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            optimized sensing locations.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                optimized sensing locations.
         """
         sigma0 = 1.0
         verbose = 1 if verbose else 0
@@ -581,8 +546,7 @@ class CMA(Method):
         return sol_np
 
     def _objective(self, X: np.ndarray) -> float:
-        """
-        Objective function passed to CMA-ES (to be *minimized*).
+        """Objective function passed to CMA-ES (to be *minimized*).
 
         The internal objective (e.g., mutual information) is naturally
         maximized. CMA-ES, however, minimizes. To reconcile this, the method
@@ -596,18 +560,16 @@ class CMA(Method):
         4. Add the constraint penalty.
         5. Return the negative of this value as a Python float.
 
-        Parameters
-        ----------
-        X:
-            Flattened array of length `num_sensing * num_robots * num_dim`
-            containing the current candidate solution.
+        Args:
+            X (np.ndarray):
+                Flattened array of length `num_sensing * num_robots * num_dim`
+                containing the current candidate solution.
 
-        Returns
-        -------
-        float
-            Negative objective value to be minimized by CMA-ES. Large positive
-            returns correspond to poor solutions; large negative returns
-            correspond to good solutions.
+        Returns:
+            float:
+                Negative objective value to be minimized by CMA-ES. Large positive
+                returns correspond to poor solutions; large negative returns
+                correspond to good solutions.
         """
         X_reshaped = np.array(X).reshape(-1, self.num_dim)
         constraint_penality: float = 0.0
@@ -625,48 +587,41 @@ class CMA(Method):
         return -reward.numpy()  # CMA-ES minimizes
 
     def update_transform(self, transform: Transform) -> None:
-        """
-        Replace the transform used by the CMA-ES method.
+        """Replace the transform used by the CMA-ES method.
 
-        Parameters
-        ----------
-        transform:
-            New `Transform` instance to use for expansion and constraints.
+        Args:
+            transform (Transform):
+                New `Transform` instance to use for expansion and constraints.
         """
         self.transform = transform
 
     def get_transform(self) -> Transform:
-        """
-        Return a deep copy of the transform used by this method.
+        """Return a deep copy of the transform used by this method.
 
-        Returns
-        -------
-        Transform
-            Deep copy of the current transform.
+        Returns:
+            Transform:
+                Deep copy of the current transform.
         """
         return deepcopy(self.transform)
 
 
 class ContinuousSGP(Method):
-    """
-    Informative sensing / path optimization via direct optimization of
+    """Informative sensing / path optimization via direct optimization of
     Sparse Gaussian Process (SGP) inducing points.
 
     This method treats the inducing locations of an `AugmentedSGPR` model as
     the decision variables and optimizes them with respect to the SGP's ELBO
     (or another internal objective implemented by `AugmentedSGPR`).
 
-    References
-    ----------
-    - Jakkala & Akella, 2024. *Multi-Robot Informative Path Planning from
-      Regression with Sparse Gaussian Processes.*
-    - Jakkala & Akella, 2025. *Fully differentiable sensor placement and 
-      informative path planning.*
+    Refer to the following papers for more details:
+        - Jakkala and Akella, 2024. *Multi-Robot Informative Path Planning from
+        Regression with Sparse Gaussian Processes.*
+        - Jakkala and Akella, 2025. *Fully differentiable sensor placement and 
+        informative path planning.*
 
-    Attributes
-    ----------
-    sgpr:
-        `AugmentedSGPR` model whose inducing points are being optimized.
+    Attributes:
+        sgpr (AugmentedSGPR):
+            `AugmentedSGPR` model whose inducing points are being optimized.
     """
 
     def __init__(self,
@@ -682,46 +637,44 @@ class ContinuousSGP(Method):
                  X_time: Optional[np.ndarray] = None,
                  orientation: bool = False,
                  **kwargs: Any):
-        """
-        Initialize a continuous SGP-based optimization method.
+        """Initialize a continuous SGP-based optimization method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of inducing points (sensing locations) per robot.
-        X_objective:
-            Array of shape `(n, d)` used to define the spatial domain and
-            training inputs for the SGP.
-        kernel:
-            GPflow kernel for the SGP model.
-        noise_variance:
-            Observation noise variance for the SGP model.
-        transform:
-            Optional `Transform` to apply to inducing points for IPP or FoV
-            modeling. Passed directly into `AugmentedSGPR`.
-        num_robots:
-            Number of robots / agents. The total number of inducing points is
-            `num_sensing * num_robots`. Defaults to 1.
-        X_candidates:
-            Optional candidate set `(c, d)` used to snap the final continuous
-            inducing locations to discrete locations.
-        num_dim:
-            Dimensionality of sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if an initial
-            solution is provided.
-        X_init:
-            Initial inducing points with shape `(num_sensing * num_robots, d)`.
-            If `None`, points are chosen via `get_inducing_pts`. If given,
-            its dimensionality overrides `num_dim`.
-        X_time:
-            Optional temporal coordinates (e.g. for spatio-temporal models),
-            passed as `inducing_variable_time` to `AugmentedSGPR`.
-        orientation:
-            If `True` and `X_init` is not provided, `get_inducing_pts` is
-            allowed to include an orientation dimension for the inducing points.
-        **kwargs:
-            Additional keyword arguments forwarded to `AugmentedSGPR` if needed
-            (currently unused here but accepted for flexibility).
+        Args:
+            num_sensing (int):
+                Number of inducing points (sensing locations) per robot.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used to define the spatial domain and
+                training inputs for the SGP.
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel for the SGP model.
+            noise_variance (float):
+                Observation noise variance for the SGP model.
+            transform (Transform | None):
+                Optional `Transform` to apply to inducing points for IPP or FoV
+                modeling. Passed directly into `AugmentedSGPR`.
+            num_robots (int):
+                Number of robots / agents. The total number of inducing points is
+                `num_sensing * num_robots`. Defaults to 1.
+            X_candidates (np.ndarray | None):
+                Optional candidate set `(c, d)` used to snap the final continuous
+                inducing locations to discrete locations.
+            num_dim (int | None):
+                Dimensionality of sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`, or to `X_init.shape[-1]` if an initial
+                solution is provided.
+            X_init (np.ndarray | None):
+                Initial inducing points with shape `(num_sensing * num_robots, d)`.
+                If `None`, points are chosen via `get_inducing_pts`. If given,
+                its dimensionality overrides `num_dim`.
+            X_time (np.ndarray | None):
+                Optional temporal coordinates (e.g. for spatio-temporal models),
+                passed as `inducing_variable_time` to `AugmentedSGPR`.
+            orientation (bool):
+                If `True` and `X_init` is not provided, `get_inducing_pts` is
+                allowed to include an orientation dimension for the inducing points.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to `AugmentedSGPR` if needed
+                (currently unused here but accepted for flexibility).
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -749,26 +702,22 @@ class ContinuousSGP(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the SGP model.
+        """Update the kernel and noise variance used by the SGP model.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.sgpr.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance of the SGP model.
+        """Return the current kernel and noise variance of the SGP model.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current likelihood variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current likelihood variance.
         """
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
@@ -778,30 +727,27 @@ class ContinuousSGP(Method):
                  optimizer: str = 'scipy.L-BFGS-B',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Optimize the inducing points of the SGP model.
+        """Optimize the inducing points of the SGP model.
 
         The ELBO (or equivalent objective defined within `AugmentedSGPR`) is
         optimized w.r.t. the inducing locations only; kernel hyperparameters
         are kept fixed.
 
-        Parameters
-        ----------
-        max_steps:
-            Maximum number of optimization steps. Defaults to 500.
-        optimizer:
-            Optimizer specification in the form `"backend.method"` (e.g.
-            `'scipy.L-BFGS-B'`, `'tf.adam'`), as expected by `optimize_model`.
-        verbose:
-            If `True`, print progress information during optimization.
-        **kwargs:
-            Extra keyword arguments forwarded to `optimize_model`.
+        Args:
+            max_steps (int):
+                Maximum number of optimization steps. Defaults to 500.
+            optimizer (str):
+                Optimizer specification in the form `"backend.method"` (e.g.
+                `'scipy.L-BFGS-B'`, `'tf.adam'`), as expected by `optimize_model`.
+            verbose (bool):
+                If `True`, print progress information during optimization.
+            **kwargs (Any):
+                Extra keyword arguments forwarded to `optimize_model`.
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            optimized inducing locations.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                optimized inducing locations.
         """
         _ = optimize_model(
             self.sgpr,
@@ -829,20 +775,17 @@ class ContinuousSGP(Method):
 
     @property
     def transform(self) -> Transform:
-        """
-        Transform associated with the underlying SGP model.
+        """Transform associated with the underlying SGP model.
 
-        Returns
-        -------
-        Transform
-            The `Transform` instance used by `AugmentedSGPR`.
+        Returns:
+            Transform:
+                The `Transform` instance used by `AugmentedSGPR`.
         """
         return self.sgpr.transform
 
 
 class GreedyObjective(Method):
-    """
-    Informative sensor placement / path optimization using a greedy selection
+    """Informative sensor placement / path optimization using a greedy selection
     based on a generic objective function.
 
     The method iteratively adds sensing locations from a discrete candidate
@@ -850,19 +793,17 @@ class GreedyObjective(Method):
     using `apricot.CustomSelection` as the selection engine. Only single-robot
     scenarios are supported.
 
-    References
-    ----------
-    - Krause et al., 2008. *Near-Optimal Sensor Placements in Gaussian
-      Processes: Theory, Efficient Algorithms and Empirical Studies.*
-    - Ma et al., 2018. *Data-driven learning and planning for environmental
-      sampling.*
+    Refer to the following papers for more details:
+        - Krause et al., 2008. *Near-Optimal Sensor Placements in Gaussian
+        Processes: Theory, Efficient Algorithms and Empirical Studies.*
+        - Ma et al., 2018. *Data-driven learning and planning for environmental
+        sampling.*
 
-    Attributes
-    ----------
-    objective:
-        Objective object to maximize over the chosen locations.
-    transform:
-        Optional transform applied to selected locations.
+    Attributes:
+        objective (Objective):
+            Objective object to maximize over the chosen locations.
+        transform (Transform | None):
+            Optional transform applied to selected locations.
     """
 
     def __init__(self,
@@ -876,38 +817,36 @@ class GreedyObjective(Method):
                  num_dim: Optional[int] = None,
                  objective: Union[str, Objective] = 'SLogMI',
                  **kwargs: Any):
-        """
-        Initialize a greedy objective-based method.
+        """Initialize a greedy objective-based method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of sensing locations to select.
-        X_objective:
-            Array of shape `(n, d)` used to define the objective (e.g. GP
-            training inputs).
-        kernel:
-            GPflow kernel used inside the objective.
-        noise_variance:
-            Observation noise variance used inside the objective.
-        transform:
-            Optional transform applied to selected locations before evaluating
-            the objective and constraints.
-        num_robots:
-            Number of robots / agents. `GreedyObjective` currently supports
-            only `num_robots = 1` and will assert otherwise.
-        X_candidates:
-            Discrete candidate locations with shape `(c, d)`. If `None`,
-            defaults to `X_objective`.
-        num_dim:
-            Dimensionality of the sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`.
-        objective:
-            Objective specification (string key or `Objective` instance) used
-            by `get_objective` when a string is given.
-        **kwargs:
-            Additional keyword arguments forwarded to the objective constructor
-            when `objective` is a string.
+        Args:
+            num_sensing (int):
+                Number of sensing locations to select.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used to define the objective (e.g. GP
+                training inputs).
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel used inside the objective.
+            noise_variance (float):
+                Observation noise variance used inside the objective.
+            transform (Transform | None):
+                Optional transform applied to selected locations before evaluating
+                the objective and constraints.
+            num_robots (int):
+                Number of robots / agents. `GreedyObjective` currently supports
+                only `num_robots = 1` and will assert otherwise.
+            X_candidates (np.ndarray | None):
+                Discrete candidate locations with shape `(c, d)`. If `None`,
+                defaults to `X_objective`.
+            num_dim (int | None):
+                Dimensionality of the sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`.
+            objective (str | Objective):
+                Objective specification (string key or `Objective` instance) used
+                by `get_objective` when a string is given.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to the objective constructor
+                when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -936,26 +875,22 @@ class GreedyObjective(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the objective.
+        """Update the kernel and noise variance used by the objective.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance used by the objective.
+        """Return the current kernel and noise variance used by the objective.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current noise variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -964,25 +899,22 @@ class GreedyObjective(Method):
                  optimizer: str = 'naive',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Run greedy selection over the candidate set.
+        """Run greedy selection over the candidate set.
 
-        Parameters
-        ----------
-        optimizer:
-            Greedy strategy identifier passed to `apricot.CustomSelection`
-            (e.g., `'naive'`, `'lazy'`).
-        verbose:
-            If `True`, print progress information from apricot.
-        **kwargs:
-            Additional keyword arguments forwarded to `CustomSelection`
-            (currently unused in this wrapper but accepted for flexibility).
+        Args:
+            optimizer (str):
+                Greedy strategy identifier passed to `apricot.CustomSelection`
+                (e.g., `'naive'`, `'lazy'`).
+            verbose (bool):
+                If `True`, print progress information from apricot.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to `CustomSelection`
+                (currently unused in this wrapper but accepted for flexibility).
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            selected sensing locations.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                selected sensing locations.
         """
         model = CustomSelection(self.num_sensing,
                                 self._objective,
@@ -1006,8 +938,7 @@ class GreedyObjective(Method):
         return sol_locations
 
     def _objective(self, X_indices: np.ndarray) -> float:
-        """
-        Objective callback used by `apricot.CustomSelection`.
+        """Objective callback used by `apricot.CustomSelection`.
 
         The input is an array of candidate indices. The method:
         1. Maps indices to candidate locations.
@@ -1016,17 +947,15 @@ class GreedyObjective(Method):
         4. Adds the transform constraint penalty.
         5. Returns the resulting scalar as a Python float.
 
-        Parameters
-        ----------
-        X_indices:
-            Array of shape `(n, 1)` containing indices into `self.X_objective`
-            / `self.X_candidates`.
+        Args:
+            X_indices (np.ndarray):
+                Array of shape `(n, 1)` containing indices into `self.X_objective`
+                / `self.X_candidates`.
 
-        Returns
-        -------
-        float
-            Objective value to be maximized by apricot's greedy selection
-            routine.
+        Returns:
+            float:
+                Objective value to be maximized by apricot's greedy selection
+                routine.
         """
         # Map solution location indices to locations
         X_indices_flat = np.array(X_indices).reshape(-1).astype(int)
@@ -1046,22 +975,19 @@ class GreedyObjective(Method):
 
 
 class GreedySGP(Method):
-    """
-    Greedy sensing / placement using a Sparse GP (SGP) ELBO objective.
+    """Greedy sensing / placement using a Sparse GP (SGP) ELBO objective.
 
     At each greedy step, candidate inducing points are selected and used to
     update the inducing variables of an `AugmentedSGPR` model, and the ELBO
     is evaluated. Only single-robot settings are currently supported.
 
-    Reference
-    ---------
-    - Jakkala & Akella, 2025. *Fully differentiable sensor placement and 
-      informative path planning.*
+    Refer to the following paper for more details:
+        - Jakkala and Akella, 2025. *Fully differentiable sensor placement and 
+        informative path planning.*
 
-    Attributes
-    ----------
-    sgpr:
-        `AugmentedSGPR` model whose ELBO is used as greedy objective.
+    Attributes:
+        sgpr (AugmentedSGPR):
+            `AugmentedSGPR` model whose ELBO is used as greedy objective.
     """
 
     def __init__(self,
@@ -1074,34 +1000,32 @@ class GreedySGP(Method):
                  X_candidates: Optional[np.ndarray] = None,
                  num_dim: Optional[int] = None,
                  **kwargs: Any):
-        """
-        Initialize a greedy SGP-based method.
+        """Initialize a greedy SGP-based method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of inducing points to select.
-        X_objective:
-            Array of shape `(n, d)` used as training inputs for the SGP model.
-        kernel:
-            GPflow kernel for the SGP model.
-        noise_variance:
-            Observation noise variance for the SGP model.
-        transform:
-            Optional `Transform` applied to inducing points inside the SGP
-            model (e.g., IPP transforms).
-        num_robots:
-            Number of robots / agents. `GreedySGP` currently supports only
-            `num_robots = 1` and will assert otherwise.
-        X_candidates:
-            Discrete candidate set `(c, d)`. If `None`, defaults to
-            `X_objective`.
-        num_dim:
-            Dimensionality of sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`.
-        **kwargs:
-            Additional keyword arguments accepted for forward compatibility
-            (unused here).
+        Args:
+            num_sensing (int):
+                Number of inducing points to select.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used as training inputs for the SGP model.
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel for the SGP model.
+            noise_variance (float):
+                Observation noise variance for the SGP model.
+            transform (Transform | None):
+                Optional `Transform` applied to inducing points inside the SGP
+                model (e.g., IPP transforms).
+            num_robots (int):
+                Number of robots / agents. `GreedySGP` currently supports only
+                `num_robots = 1` and will assert otherwise.
+            X_candidates (np.ndarray | None):
+                Discrete candidate set `(c, d)`. If `None`, defaults to
+                `X_objective`.
+            num_dim (int | None):
+                Dimensionality of sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`.
+            **kwargs (Any):
+                Additional keyword arguments accepted for forward compatibility
+                (unused here).
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -1137,26 +1061,22 @@ class GreedySGP(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the SGP model.
+        """Update the kernel and noise variance used by the SGP model.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.sgpr.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance of the SGP model.
+        """Return the current kernel and noise variance of the SGP model.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current likelihood variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current likelihood variance.
         """
         return deepcopy(self.sgpr.kernel), \
                self.sgpr.likelihood.variance.numpy()
@@ -1165,25 +1085,22 @@ class GreedySGP(Method):
                  optimizer: str = 'naive',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Run greedy selection using the SGP's ELBO as objective.
+        """Run greedy selection using the SGP's ELBO as objective.
 
-        Parameters
-        ----------
-        optimizer:
-            Greedy strategy identifier passed to `apricot.CustomSelection`
-            (e.g., `'naive'`, `'lazy'`).
-        verbose:
-            If `True`, print progress information from apricot.
-        **kwargs:
-            Additional keyword arguments forwarded to `CustomSelection`
-            (currently unused here but accepted for flexibility).
+        Args:
+            optimizer (str):
+                Greedy strategy identifier passed to `apricot.CustomSelection`
+                (e.g., `'naive'`, `'lazy'`).
+            verbose (bool):
+                If `True`, print progress information from apricot.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to `CustomSelection`
+                (currently unused here but accepted for flexibility).
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            selected sensing locations.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                selected sensing locations.
         """
         model = CustomSelection(self.num_sensing,
                                 self._objective,
@@ -1208,8 +1125,7 @@ class GreedySGP(Method):
         return sol_np
 
     def _objective(self, X_indices: np.ndarray) -> float:
-        """
-        Objective callback used by `apricot.CustomSelection` for greedy SGP.
+        """Objective callback used by `apricot.CustomSelection` for greedy SGP.
 
         Given a (possibly partial) set of indices, this method:
         1. Maps indices to candidate locations.
@@ -1217,17 +1133,15 @@ class GreedySGP(Method):
         3. Updates the SGP's inducing variables.
         4. Returns the SGP ELBO for the resulting inducing set.
 
-        Parameters
-        ----------
-        X_indices:
-            Array of shape `(n, 1)` containing indices into `self.X_objective`
-            / `self.X_candidates`.
+        Args:
+            X_indices (np.ndarray):
+                Array of shape `(n, 1)` containing indices into `self.X_objective`
+                / `self.X_candidates`.
 
-        Returns
-        -------
-        float
-            ELBO value of the SGP model for this inducing set, as a Python
-            float. Larger values correspond to better selections.
+        Returns:
+            float:
+                ELBO value of the SGP model for this inducing set, as a Python
+                float. Larger values correspond to better selections.
         """
         # Map solution location indices to locations
         # Since SGP requires num_sensing points,
@@ -1254,20 +1168,17 @@ class GreedySGP(Method):
 
     @property
     def transform(self) -> Transform:
-        """
-        Transform associated with the underlying SGP model.
+        """Transform associated with the underlying SGP model.
 
-        Returns
-        -------
-        Transform
-            The `Transform` instance used by `AugmentedSGPR`.
+        Returns:
+            Transform:
+                The `Transform` instance used by `AugmentedSGPR`.
         """
         return self.sgpr.transform
 
 
 class DifferentiableObjective(Method):
-    """
-    Informative sensor placement / path planning by directly differentiating
+    """Informative sensor placement / path planning by directly differentiating
     through the objective function.
 
     The sensing locations (or waypoints) are represented as TensorFlow
@@ -1276,15 +1187,14 @@ class DifferentiableObjective(Method):
     be more sample-efficient than black-box methods, but is more sensitive to
     local minima.
 
-    Attributes
-    ----------
-    transform:
-        Optional transform applied to the current solution.
-    X_sol:
-        TensorFlow variable representing the current solution locations.
-    objective:
-        Objective object that maps (transformed) sensing locations to a scalar
-        value.
+    Attributes:
+        transform (Transform | None):
+            Optional transform applied to the current solution.
+        X_sol (tf.Variable):
+            TensorFlow variable representing the current solution locations.
+        objective (Objective):
+            Objective object that maps (transformed) sensing locations to a scalar
+            value.
     """
 
     def __init__(self,
@@ -1301,48 +1211,46 @@ class DifferentiableObjective(Method):
                  X_time: Optional[np.ndarray] = None,
                  orientation: bool = False,
                  **kwargs: Any):
-        """
-        Initialize a differentiable-objective method.
+        """Initialize a differentiable-objective method.
 
-        Parameters
-        ----------
-        num_sensing:
-            Number of sensing locations per robot.
-        X_objective:
-            Array of shape `(n, d)` used to define the objective (e.g., GP
-            training inputs).
-        kernel:
-            GPflow kernel used inside the objective.
-        noise_variance:
-            Observation noise variance used inside the objective.
-        transform:
-            Optional transform applied to the solution before evaluating the
-            objective and constraints.
-        num_robots:
-            Number of robots / agents. The total number of optimized points is
-            `num_sensing * num_robots`.
-        X_candidates:
-            Optional candidate set `(c, d)` to which the final continuous
-            solution can be snapped.
-        num_dim:
-            Dimensionality of sensing locations. If `None`, defaults to
-            `X_objective.shape[-1]`, or to `X_init.shape[-1]` if given.
-        objective:
-            Objective specification (string key or `Objective` instance) used to
-            construct the reward function.
-        X_init:
-            Initial sensing locations with shape `(num_sensing * num_robots, d)`.
-            If `None`, points are selected via `get_inducing_pts`. If given,
-            its dimensionality overrides `num_dim`.
-        X_time:
-            (Reserved for future use with spatio-temporal models; not used
-            directly here.)
-        orientation:
-            If `True` and `X_init` is not provided, `get_inducing_pts` may add
-            an orientation dimension to the initial points.
-        **kwargs:
-            Additional keyword arguments forwarded to the objective constructor
-            when `objective` is a string.
+        Args:
+            num_sensing (int):
+                Number of sensing locations per robot.
+            X_objective (np.ndarray):
+                Array of shape `(n, d)` used to define the objective (e.g., GP
+                training inputs).
+            kernel (gpflow.kernels.Kernel):
+                GPflow kernel used inside the objective.
+            noise_variance (float):
+                Observation noise variance used inside the objective.
+            transform (Transform | None):
+                Optional transform applied to the solution before evaluating the
+                objective and constraints.
+            num_robots (int):
+                Number of robots / agents. The total number of optimized points is
+                `num_sensing * num_robots`.
+            X_candidates (np.ndarray | None):
+                Optional candidate set `(c, d)` to which the final continuous
+                solution can be snapped.
+            num_dim (int | None):
+                Dimensionality of sensing locations. If `None`, defaults to
+                `X_objective.shape[-1]`, or to `X_init.shape[-1]` if given.
+            objective (str | Objective):
+                Objective specification (string key or `Objective` instance) used to
+                construct the reward function.
+            X_init (np.ndarray | None):
+                Initial sensing locations with shape `(num_sensing * num_robots, d)`.
+                If `None`, points are selected via `get_inducing_pts`. If given,
+                its dimensionality overrides `num_dim`.
+            X_time (np.ndarray | None):
+                (Reserved for future use with spatio-temporal models; not used
+                directly here.)
+            orientation (bool):
+                If `True` and `X_init` is not provided, `get_inducing_pts` may add
+                an orientation dimension to the initial points.
+            **kwargs (Any):
+                Additional keyword arguments forwarded to the objective constructor
+                when `objective` is a string.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -1367,26 +1275,22 @@ class DifferentiableObjective(Method):
 
     def update(self, kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update the kernel and noise variance used by the objective.
+        """Update the kernel and noise variance used by the objective.
 
-        Parameters
-        ----------
-        kernel:
-            New GPflow kernel instance.
-        noise_variance:
-            New observation noise variance.
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.objective.update(kernel, noise_variance)
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return the current kernel and noise variance used by the objective.
+        """Return the current kernel and noise variance used by the objective.
 
-        Returns
-        -------
-        (gpflow.kernels.Kernel, float)
-            A deep copy of the kernel and the current noise variance.
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A deep copy of the kernel and the current noise variance.
         """
         return deepcopy(self.objective.kernel), \
                self.objective.noise_variance
@@ -1396,29 +1300,26 @@ class DifferentiableObjective(Method):
                  optimizer: str = 'scipy.L-BFGS-B',
                  verbose: bool = False,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Optimize sensing locations by differentiating through the objective.
+        """Optimize sensing locations by differentiating through the objective.
 
         `self.X_sol` is treated as a trainable variable and optimized using the
         specified optimizer and the internal `_objective` as the scalar loss.
 
-        Parameters
-        ----------
-        max_steps:
-            Maximum number of optimization steps. Defaults to 500.
-        optimizer:
-            Optimizer specification `"backend.method"` (e.g., `'scipy.L-BFGS-B'`,
-            `'tf.adam'`) passed to `optimize_model`.
-        verbose:
-            If `True`, print progress information during optimization.
-        **kwargs:
-            Extra keyword arguments forwarded to `optimize_model`.
+        Args:
+            max_steps (int):
+                Maximum number of optimization steps. Defaults to 500.
+            optimizer (str):
+                Optimizer specification `"backend.method"` (e.g., `'scipy.L-BFGS-B'`,
+                `'tf.adam'`) passed to `optimize_model`.
+            verbose (bool):
+                If `True`, print progress information during optimization.
+            **kwargs (Any):
+                Extra keyword arguments forwarded to `optimize_model`.
 
-        Returns
-        -------
-        np.ndarray
-            Array of shape `(num_robots, num_sensing, num_dim)` containing the
-            optimized sensing locations.
+        Returns:
+            np.ndarray:
+                Array of shape `(num_robots, num_sensing, num_dim)` containing the
+                optimized sensing locations.
         """
         _ = optimize_model(
             training_loss=self._objective,
@@ -1445,8 +1346,7 @@ class DifferentiableObjective(Method):
         return sol_np
 
     def _objective(self) -> float:
-        """
-        Scalar loss function used by `optimize_model`.
+        """Scalar loss function used by `optimize_model`.
 
         The objective is built as:
 
@@ -1459,10 +1359,9 @@ class DifferentiableObjective(Method):
         interpreted as either a negative reward or a penalized reward. The
         optimizer *minimizes* this loss.
 
-        Returns
-        -------
-        tf.Tensor
-            Scalar TensorFlow value representing the loss to minimize.
+        Returns:
+            tf.Tensor:
+                Scalar TensorFlow value representing the loss to minimize.
         """
         constraint_penality: float = 0.0
         if self.transform is not None:
@@ -1479,27 +1378,23 @@ class DifferentiableObjective(Method):
 # -----------------------------------------------------------------------------
 
 class HexCover(Method):
-    """
-    Hexagonal lattice coverage based on GP kernel hyperparameters.
+    """Hexagonal lattice coverage based on GP kernel hyperparameters.
 
     This method constructs a deterministic hexagonal tiling over a rectangular
     2D environment such that the GP posterior variance at every point in the
-    environment is bounded by a user-specified threshold (under the same
-    sufficient condition used in the minimal HexCover implementation).
+    environment is bounded by a user-specified threshold.
         
-    Refer to the following paper for more details:
-        - Approximation Algorithms for Robot Tours in Random Fields with 
-        Guaranteed Estimation Accuracy [Dutta et al., 2023]
-
     Implementation based on Dr. Shamak Dutta's original code.
 
-    Notes
-    -----
-    - Only supports 2D spatial domains (first two coordinates).
-    - Multi-robot settings are not supported (`num_robots` must be 1).
-    - The total number of points is determined by the tiling; it may be
-      different from `num_sensing`. As with `GreedyCover`, returning fewer
-      than `num_sensing` points is allowed.
+    Refer to the following paper for more details:
+        - Dutta et al., 2023. *Approximation Algorithms for Robot Tours in Random Fields with 
+        Guaranteed Estimation Accuracy.*
+
+    Notes:
+        - Only supports 2D spatial domains (first two coordinates).
+        - Multi-robot settings are not supported (`num_robots` must be 1).
+        - The total number of points is determined by the tiling; it may be
+          different from `num_sensing`.
     """
 
     def __init__(self,
@@ -1515,42 +1410,40 @@ class HexCover(Method):
                  width: Optional[float] = None,
                  pbounds: Optional[np.ndarray] = None,
                  **kwargs: Any):
-        """
-        Initialize a HexCover method.
+        """Initialize the method.
 
-        Parameters
-        ----------
-        num_sensing : int
-            Maximum number of sensing locations (not strictly enforced; the
-            tiling determines the actual number of points).
-        X_objective : ndarray, shape (n, d)
-            Environment points. Used only to infer the bounding rectangle
-            (min/max in the first two dimensions) when `height`/`width` are
-            not provided.
-        kernel : gpflow.kernels.Kernel
-            GP kernel (assumed to have a `variance` and `lengthscales`
-            attribute, e.g., SquaredExponential).
-        noise_variance : float
-            Observation noise variance.
-        transform : Transform or None
-            Reserved for compatibility with other methods.
-        num_robots : int
-            Must be 1. Multi-robot tilings are not supported.
-        X_candidates : ndarray or None
-            Ignored. Present for API compatibility with other methods.
-        num_dim : int or None
-            Dimensionality of points. Defaults to `X_objective.shape[-1]`.
-        height : float or None
-            Environment height in the y-direction. If None, inferred from
-            `X_objective` as `y_max - y_min`.
-        width : float or None
-            Environment width in the x-direction. If None, inferred from
-            `X_objective` as `x_max - x_min`.
-        pbounds:
-            Coordinates of the environment boundry polygon, used to ensure all 
-            sensing locations are inside the environment.
-        kwargs : dict
-            Ignored. Accepted for forward compatibility.
+        Args:
+            num_sensing (int):
+                Maximum number of sensing locations (not strictly enforced; the
+                tiling determines the actual number of points).
+            X_objective (np.ndarray):
+                Environment points. Used only to infer the bounding rectangle
+                (min/max in the first two dimensions) when `height`/`width` are
+                not provided.
+            kernel (gpflow.kernels.Kernel):
+                GP kernel (assumed to have a `variance` and `lengthscales`
+                attribute, e.g., SquaredExponential).
+            noise_variance (float):
+                Observation noise variance.
+            transform (Transform | None):
+                Reserved for compatibility with other methods.
+            num_robots (int):
+                Must be 1. Multi-robot tilings are not supported.
+            X_candidates (np.ndarray | None):
+                Ignored. Present for API compatibility with other methods.
+            num_dim (int | None):
+                Dimensionality of points. Defaults to `X_objective.shape[-1]`.
+            height (float | None):
+                Environment height in the y-direction. If None, inferred from
+                `X_objective` as `y_max - y_min`.
+            width (float | None):
+                Environment width in the x-direction. If None, inferred from
+                `X_objective` as `x_max - x_min`.
+            pbounds (np.ndarray | None):
+                Coordinates of the environment boundry polygon, used to ensure all 
+                sensing locations are inside the environment.
+            **kwargs (Any):
+                Ignored. Accepted for forward compatibility.
         """
         super().__init__(num_sensing, X_objective, kernel, noise_variance,
                          transform, num_robots, X_candidates, num_dim)
@@ -1590,8 +1483,7 @@ class HexCover(Method):
     # ------------------------------------------------------------------
 
     def _extract_kernel_scalars(self) -> float:
-        """
-        Extract scalar kernel hyperparameters and store them on the instance.
+        """Extract scalar kernel hyperparameters and store them on the instance.
 
         This method computes and stores:
         - `self.lengthscale`: a scalar lengthscale (minimum across dimensions
@@ -1618,8 +1510,7 @@ class HexCover(Method):
         self.prior_variance = prior_variance
 
     def _compute_rmin(self, post_var_threshold: Optional[float] = None) -> float:
-        """
-        Compute the sufficient radius $r_{\\min}$ for the hexagonal tiling.
+        """Compute the sufficient radius $r_{\\min}$ for the hexagonal tiling.
 
         The radius is computed using the same sufficient condition as in the
         minimal HexCover implementation:
@@ -1635,22 +1526,19 @@ class HexCover(Method):
         - $\\sigma^2$ is the noise variance, and
         - $\\Delta$ is the allowed posterior variance threshold.
 
-        Parameters
-        ----------
-        post_var_threshold : float or None
-            Posterior variance threshold :math:`\\Delta`. If None, uses the
-            current value stored in `self.post_var_threshold`.
+        Args:
+            post_var_threshold (float | None):
+                Posterior variance threshold :math:`\\Delta`. If None, uses the
+                current value stored in `self.post_var_threshold`.
 
-        Returns
-        -------
-        float
-            The sufficient radius :math:`r_{\\min}` for the hexagonal tiling.
+        Returns:
+            float:
+                The sufficient radius :math:`r_{\\min}` for the hexagonal tiling.
 
-        Raises
-        ------
-        ValueError
-            If the computed term inside the logarithm is not in (0, 1),
-            which indicates incompatible hyperparameters and/or threshold.
+        Raises:
+            ValueError:
+                If the computed term inside the logarithm is not in (0, 1),
+                which indicates incompatible hyperparameters and/or threshold.
         """
         if post_var_threshold is None:
             post_var_threshold = self.post_var_threshold
@@ -1673,26 +1561,23 @@ class HexCover(Method):
                           width: float,
                           radius: float,
                           fill_edge: bool = True) -> np.ndarray:
-        """
-        Generate a hexagonal tiling over a rectangular region.
+        """Generate a hexagonal tiling over a rectangular region.
 
-        Parameters
-        ----------
-        height : float
-            Height of the environment in the y-direction.
-        width : float
-            Width of the environment in the x-direction.
-        radius : float
-            Hexagon circumradius :math:`r_{\\min}`.
-        fill_edge : bool, optional
-            If True, add additional centers near the environment boundary
-            to reduce uncovered gaps. Default is True.
+        Args:
+            height (float):
+                Height of the environment in the y-direction.
+            width (float):
+                Width of the environment in the x-direction.
+            radius (float):
+                Hexagon circumradius :math:`r_{\\min}`.
+            fill_edge (bool):
+                If True, add additional centers near the environment boundary
+                to reduce uncovered gaps. Default is True.
 
-        Returns
-        -------
-        ndarray of shape (k, 2)
-            Array of 2D points representing hexagon centers in local
-            `[0, width] × [0, height]` coordinates.
+        Returns:
+            np.ndarray:
+                ndarray of shape (k, 2). Array of 2D points representing hexagon
+                centers in local `[0, width] × [0, height]` coordinates.
         """
         hs = 3.0 * radius
         vs = np.sqrt(3.0) * radius
@@ -1735,16 +1620,24 @@ class HexCover(Method):
     def update(self,
                kernel: gpflow.kernels.Kernel,
                noise_variance: float) -> None:
-        """
-        Update kernel and noise variance hyperparameters.
+        """Update kernel and noise variance hyperparameters.
+        
+        Args:
+            kernel (gpflow.kernels.Kernel):
+                New GPflow kernel instance.
+            noise_variance (float):
+                New observation noise variance.
         """
         self.kernel = kernel
         self.noise_variance = float(noise_variance)
         self._extract_kernel_scalars()
 
     def get_hyperparameters(self) -> Tuple[gpflow.kernels.Kernel, float]:
-        """
-        Return current kernel and noise variance as (kernel, noise_variance).
+        """Return current kernel and noise variance as (kernel, noise_variance).
+
+        Returns:
+            Tuple[gpflow.kernels.Kernel, float]:
+                A tuple containing the kernel instance and noise variance.
         """
         return deepcopy(self.kernel), float(self.noise_variance)
 
@@ -1753,38 +1646,35 @@ class HexCover(Method):
                  return_fovs: bool = False,
                  tsp: bool = True,
                  **kwargs: Any) -> np.ndarray:
-        """
-        Construct the hexagonal coverage pattern.
+        """Construct the hexagonal coverage pattern.
 
-        Parameters
-        ----------
-        post_var_threshold : float or None, optional
-            Target posterior variance threshold :math:`\\Delta`. If None,
-            defaults to `0.2 * prior_variance` (following the minimal
-            implementation where `delta = 0.2 * sigma0**2`).
-        return_fovs : bool, optional
-            If True, also returns a list of polygonal fields of view (FoVs)
-            corresponding to regular hexagons centered at the sensing
-            locations. Default is False.
-        tsp : bool, optional
-            If True, runs a TSP heuristic (`run_tsp`) to order the sensing
-            locations. Default is True.
-        **kwargs : dict
-            Additional keyword arguments passed to `run_tsp` when `tsp` is True.
+        Args:
+            post_var_threshold (float | None):
+                Target posterior variance threshold :math:`\\Delta`. If None,
+                defaults to `0.2 * prior_variance` (following the minimal
+                implementation where `delta = 0.2 * sigma0**2`).
+            return_fovs (bool):
+                If True, also returns a list of polygonal fields of view (FoVs)
+                corresponding to regular hexagons centered at the sensing
+                locations. Default is False.
+            tsp (bool):
+                If True, runs a TSP heuristic (`run_tsp`) to order the sensing
+                locations. Default is True.
+            **kwargs (Any):
+                Additional keyword arguments passed to `run_tsp` when `tsp` is True.
 
-        Returns
-        -------
-        X_sol : ndarray of shape (1, k, d)
-            Selected sensing locations. `k` is determined by the tiling and
-            may differ from `num_sensing`. The last dimension `d` matches
-            `self.num_dim`; only the first two coordinates are used for the
-            spatial layout, the remaining coordinates are zero.
+        Returns:
+            np.ndarray | Tuple[np.ndarray, List[shapely.geometry.Polygon]]:
+                X_sol : ndarray of shape (1, k, d)
+                Selected sensing locations. `k` is determined by the tiling and
+                may differ from `num_sensing`. The last dimension `d` matches
+                `self.num_dim`; only the first two coordinates are used for the
+                spatial layout, the remaining coordinates are zero.
 
-        If `return_fovs` is True, the return value is:
-
-        (X_sol, fovs) : (ndarray, list of shapely.geometry.Polygon)
-            `X_sol` as above, together with a list of regular hexagonal FoVs
-            centered at each selected sensing location.
+                If `return_fovs` is True, the return value is:
+                (X_sol, fovs) : (ndarray, list of shapely.geometry.Polygon)
+                `X_sol` as above, together with a list of regular hexagonal FoVs
+                centered at each selected sensing location.
         """
         # Posterior variance threshold Δ
         if post_var_threshold is None:
@@ -1826,26 +1716,24 @@ class HexCover(Method):
             return X_sol
 
     def _get_fovs(self, X_sol, radius):
-        """
-        Construct polygonal fields of view (FoVs) for the sensing locations.
+        """Construct polygonal fields of view (FoVs) for the sensing locations.
 
         For each selected sensing location, this method creates a regular
         hexagon centered at the sensing point with the given radius. The
         resulting polygons approximate the spatial footprint of each
         sensing location.
 
-        Parameters
-        ----------
-        X_sol : ndarray of shape (1, k, d)
-            Sensing locations returned by :meth:`optimize`. Only the first
-            two coordinates of each point are used.
-        radius : float
-            Hexagon side length (or circumradius) used to construct each FoV.
+        Args:
+            X_sol (np.ndarray):
+                ndarray of shape (1, k, d). Sensing locations returned by
+                :meth:`optimize`. Only the first two coordinates of each point
+                are used.
+            radius (float):
+                Hexagon side length (or circumradius) used to construct each FoV.
 
-        Returns
-        -------
-        fovs : list of shapely.geometry.Polygon
-            List of regular hexagonal polygons, one per sensing location.
+        Returns:
+            List[shapely.geometry.Polygon]:
+                List of regular hexagonal polygons, one per sensing location.
         """
         fovs = []
         for pt in X_sol[0]:
@@ -1855,22 +1743,19 @@ class HexCover(Method):
     
     @staticmethod
     def _create_regular_hexagon(center_x, center_y, side_length):
-        """
-        Create a regular hexagon polygon centered at a given point.
+        """Create a regular hexagon polygon centered at a given point.
 
-        Parameters
-        ----------
-        center_x : float
-            x-coordinate of the hexagon center.
-        center_y : float
-            y-coordinate of the hexagon center.
-        side_length : float
-            Side length (and effective radius) of the hexagon.
+        Args:
+            center_x (float):
+                x-coordinate of the hexagon center.
+            center_y (float):
+                y-coordinate of the hexagon center.
+            side_length (float):
+                Side length (and effective radius) of the hexagon.
 
-        Returns
-        -------
-        shapely.geometry.Polygon
-            Polygon representing the regular hexagon.
+        Returns:
+            shapely.geometry.Polygon:
+                Polygon representing the regular hexagon.
         """
         coords = []
         for i in range(6):
@@ -1886,22 +1771,22 @@ class HexCover(Method):
 
 @njit
 def _compute_gains_numba(remaining_idxs, coverages, current_cover):
-    """
-    Compute marginal gains for remaining candidates (Numba-accelerated).
+    """Compute marginal gains for remaining candidates (Numba-accelerated).
 
-    Parameters
-    ----------
-    remaining_idxs : 1D ndarray[int]
-        Indices of still-available candidates.
-    coverages : 2D ndarray[bool], shape (n_candidates, v)
-        Binary coverage mask for each candidate.
-    current_cover : 1D ndarray[bool], shape (v,)
-        Binary mask of currently covered environment points.
+    Args:
+        remaining_idxs (np.ndarray):
+            1D ndarray[int]. Indices of still-available candidates.
+        coverages (np.ndarray):
+            2D ndarray[bool], shape (n_candidates, v). Binary coverage mask
+            for each candidate.
+        current_cover (np.ndarray):
+            1D ndarray[bool], shape (v,). Binary mask of currently covered
+            environment points.
 
-    Returns
-    -------
-    ndarray[int]
-        Marginal gain (number of newly covered points) for each candidate.
+    Returns:
+        np.ndarray:
+            ndarray[int]. Marginal gain (number of newly covered points)
+            for each candidate.
     """
     m = remaining_idxs.shape[0]
     v = current_cover.shape[0]
@@ -1919,50 +1804,28 @@ def _compute_gains_numba(remaining_idxs, coverages, current_cover):
     return gains
 
 class GreedyCover(HexCover):
-    """
-    Greedy sensing-location selection via GP posterior-variance “coverage”.
+    """Greedy sensing-location selection via GP posterior-variance.
 
     The method selects points from a discrete candidate set to cover as many
     objective/environment points as possible under a *single-measurement*
     Gaussian Process (GP) variance reduction criterion.
 
-    Coverage criterion
-    ------------------
-    Let:
-      - x_i be a candidate sensing location
-      - x_j be an objective/environment point
-      - k(·,·) be the prior GP kernel covariance
-      - σ_n^2 be the observation noise variance (self.noise_variance)
+    Refer to the following paper for more details:
+        - Jakkala et al., 2026. *Informative Path Planning with Guaranteed Estimation Uncertainty.*
 
-    The prior variances are:
-        v_cand[i] = k(x_i, x_i)
-        v_obj[j]  = k(x_j, x_j)
+    Algorithm summary:
+        - Build a boolean coverage matrix.
+        - Greedily select the candidate with the largest number of newly covered
+           objective points.
+        - Stop when the target coverage fraction is reached or the sensing budget
+           is exhausted.
+        - Optionally order the selected points via a TSP solver.
 
-    After observing y at x_i (single observation), the GP posterior variance at
-    x_j is:
-        v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
-
-    Candidate i is said to *cover* objective point j if:
-        v_post(j | i) <= post_var_threshold
-
-    This is equivalent to the implemented inequality:
-        k(x_i, x_j)^2 >= (v_obj[j] - post_var_threshold) * (v_cand[i] + σ_n^2)
-
-    Algorithm
-    ---------
-    1) Build a boolean coverage matrix coverages[i, j].
-    2) Greedily select the candidate with the largest number of newly covered
-       objective points.
-    3) Stop when the target coverage fraction is reached or the sensing budget
-       is exhausted.
-    4) Optionally order the selected points via a TSP solver.
-
-    Notes
-    -----
-    - Current implementation assumes a single robot (num_robots == 1).
-    - May return fewer than num_sensing points if the target is reached early.
-    - Raises ValueError if the target coverage is not achievable from the
-      candidate set.
+    Notes:
+        - Current implementation assumes a single robot (num_robots == 1).
+        - May return fewer than num_sensing points if the target is reached early.
+        - Raises ValueError if the target coverage is not achievable from the
+          candidate set.
     """
 
     def optimize(self,
@@ -1973,44 +1836,43 @@ class GreedyCover(HexCover):
                  candidate_method: str = 'Hex',
                  X_warm_start: np.ndarray = [],
                  **kwargs) -> np.ndarray:
-        """
-        Run greedy GP-coverage selection.
+        """Run greedy sensing-location selection via GP posterior-variance.
 
-        This method constructs a coverage mask using the GP posterior variance test:
-
-            v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
-            covered(i, j) := v_post(j | i) <= post_var_threshold
-
-        and then greedily selects candidates that maximize the number of *newly*
+        This method constructs coverage maps using the GP posterior variance.
+        
+        Then greedily selects candidates that maximize the number of *newly*
         covered objective points until either:
+        
         - target_fraction percent of objective points are covered, or
+        
         - num_sensing points have been selected.
 
-        Parameters
-        ----------
-        post_var_threshold:
-            Posterior variance upper bound at objective points (same units as the
-            kernel variance). Lower values demand stronger information gain.
-        target_fraction:
-            Desired percent coverage in [0, 100]. (Using float allows e.g., 95.0.)
-        return_fovs:
-            If True, also return polygons summarizing each selected candidate’s
-            covered region (convex hull of covered objective points, buffered).
-        slack_ratio:
-            Non-negative slack used to lower the post_var_threshold when generating 
-            the candidate set, generating extra candidates and improving the chance of 
-            reaching the target coverage.
-        candidate_method: Method ised to generate the candidate set. 
-                          Available options: `Hex` and `Grid`.
-        **kwargs:
-            Extra arguments forwarded to the TSP solver.
+        Args:
+            post_var_threshold (float):
+                Posterior variance upper bound at objective points (same units as the
+                kernel variance). Lower values demand stronger information gain.
+            target_fraction (int):
+                Desired percent coverage in [0, 100]. (Using float allows e.g., 95.0.)
+            return_fovs (bool):
+                If True, also return polygons summarizing each selected candidate’s
+                covered region (convex hull of covered objective points, buffered).
+            slack_ratio (float | None):
+                Non-negative slack used to lower the post_var_threshold when generating 
+                the candidate set, generating extra candidates and improving the chance of 
+                reaching the target coverage.
+            candidate_method (str): 
+                Method used to generate the candidate set. Available options: `Hex` and `Grid`.
+            X_warm_start (np.ndarray):
+                Initial candidate locations to force inclusion.
+            **kwargs (Any):
+                Extra arguments forwarded to the TSP solver.
 
-        Returns
-        -------
-        X_sol:
-            Array shaped (num_robots, k, d) with k <= num_sensing selected points.
-        (X_sol, fovs):
-            If return_fovs is True, also returns a list of shapely Polygons.
+        Returns:
+            np.ndarray | Tuple[np.ndarray, List[shapely.geometry.Polygon]]:
+                X_sol:
+                    Array shaped (num_robots, k, d) with k <= num_sensing selected points.
+                (X_sol, fovs):
+                    If return_fovs is True, also returns a list of shapely Polygons.
         """
         if not hasattr(self, "coverages"):
             # Increase slack ratio until we can reach the target fraction
@@ -2108,7 +1970,8 @@ class GreedyCover(HexCover):
         else:
             return X_sol
 
-    def get_grid(self, slack_ratio):
+    def _get_grid(self, slack_ratio):
+        """Generate a grid candidate set."""
         # Get lengthscales
         distance = np.min(self.kernel.get_lengthscales(self.X_objective))
         distance *= slack_ratio
@@ -2138,26 +2001,41 @@ class GreedyCover(HexCover):
                                method: str = 'Hex',
                                X_warm_start: np.ndarray = [],
                                **kwargs):
-        """
-        Build the candidate set and the boolean coverage matrix.
+        """Build the candidate set and the boolean coverage matrix.
 
-        Steps
-        -----
-        1) Generate candidate points using HexCover with a tighter threshold 
-            or with the Grid approach.
-        2) Compute:
-            v_cand[i] = k(x_i, x_i)
-            v_obj[j]  = k(x_j, x_j)
-            K[i, j]   = k(x_i, x_j)
-        3) Mark covered(i, j) true when:
-            K[i, j]^2 >= (v_obj[j] - var_threshold) * (v_cand[i] + σ_n^2)
-        4) Compute the integer number of objective points required to meet
-        target_fraction, and verify achievability.
+        Steps:
+            1) Generate candidate points using HexCover with a tighter threshold 
+               or with the Grid approach.
+            2) Compute:
+                v_cand[i] = k(x_i, x_i)
+                v_obj[j]  = k(x_j, x_j)
+                K[i, j]   = k(x_i, x_j)
+            3) Mark covered(i, j) true when:
+                K[i, j]^2 >= (v_obj[j] - var_threshold) * (v_cand[i] + σ_n^2)
+            4) Compute the integer number of objective points required to meet
+               target_fraction, and verify achievability.
 
-        Raises
-        ------
-        ValueError:
-            If the candidate set cannot achieve the requested target_fraction.
+        Args:
+            post_var_threshold (float):
+                Posterior variance upper bound at objective points.
+            target_fraction (float):
+                Desired percent coverage in [0, 100].
+            slack_ratio (float):
+                Non-negative slack to adjust threshold during candidate generation.
+            method (str):
+                Method to generate the candidate set ('Hex' or 'Grid').
+            X_warm_start (np.ndarray):
+                Initial candidate locations to force inclusion.
+            **kwargs (Any):
+                Additional keyword arguments.
+
+        Returns:
+            float:
+                Maximum achievable fractional coverage.
+
+        Raises:
+            ValueError:
+                If the candidate set cannot achieve the requested target_fraction.
         """
         # ---------------- Candidate & environment sets ----------------
         X_objective = self.X_objective
@@ -2168,7 +2046,7 @@ class GreedyCover(HexCover):
                                                  tsp=False,
                                                  **kwargs)[0]
         elif method == 'Grid':
-            self.X_candidates = self.get_grid(slack_ratio)
+            self.X_candidates = self._get_grid(slack_ratio)
         else:
             raise ValueError(
                     f"Invalid candidate set generation method: {method}..."
@@ -2200,25 +2078,22 @@ class GreedyCover(HexCover):
         return max_fraction
     
     def _get_fovs(self, coverages, buffer: float = 0.5):
-        """
-        Convert coverage masks into polygonal “fields of view” (FoVs).
+        """Convert coverage masks into polygonal “fields of view” (FoVs).
 
         For each selected candidate row in `coverages`, collect the objective points
         that are covered, compute their convex hull, and apply a geometric buffer
         (dilation). Candidates covering fewer than 3 points are skipped.
 
-        Parameters
-        ----------
-        coverages:
-            Boolean array of shape (k, n_obj) where each row indicates which
-            objective points are covered by one selected candidate.
-        buffer:
-            Buffer radius passed to Shapely's .buffer(...).
+        Args:
+            coverages (np.ndarray):
+                Boolean array of shape (k, n_obj) where each row indicates which
+                objective points are covered by one selected candidate.
+            buffer (float):
+                Buffer radius passed to Shapely's .buffer(...).
 
-        Returns
-        -------
-        list[shapely.geometry.Polygon]
-            Buffered convex hull polygon per candidate (when enough points exist).
+        Returns:
+            List[shapely.geometry.Polygon]:
+                Buffered convex hull polygon per candidate (when enough points exist).
         """
         fovs = []
         for cover in coverages:
@@ -2233,8 +2108,15 @@ class GreedyCover(HexCover):
 
 @njit
 def _path_length_numba(points):
-    """
-    Total Euclidean length of a polyline. Numba version.
+    """Total Euclidean length of a polyline. Numba version.
+
+    Args:
+        points (np.ndarray):
+            Array of shape (n, d) representing points along the polyline.
+
+    Returns:
+        float:
+            Total path length.
     """
     n = points.shape[0]
     if n < 2:
@@ -2252,9 +2134,18 @@ def _path_length_numba(points):
 
 @njit
 def _approx_dist_numba(p_nodes, x):
-    """
-    Approximate path length after inserting point x into an existing route.
+    """Approximate path length after inserting point x into an existing route.
     Numba version of approx_dist.
+
+    Args:
+        p_nodes (np.ndarray):
+            Array of shape (n, d) representing the existing route points.
+        x (np.ndarray):
+            Array of shape (d,) representing the new point to insert.
+
+    Returns:
+        float:
+            Approximated shortest resulting path length.
     """
     n = p_nodes.shape[0]
     d = p_nodes.shape[1]
@@ -2362,32 +2253,30 @@ def _approx_dist_numba(p_nodes, x):
 @njit
 def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
                               coverage_arr, current_cover, distance):
-    """
-    Numba-accelerated computation of distance_deltas and area_deltas
+    """Numba-accelerated computation of distance_deltas and area_deltas
     for all remaining candidates.
 
-    Parameters
-    ----------
-    remaining_idxs : 1D ndarray[int]
-        Indices of candidates that have not yet been selected.
-    selected_idxs : 1D ndarray[int]
-        Indices of currently selected candidates.
-    X : 2D ndarray[float], shape (m, d)
-        Candidate locations.
-    coverage_arr : 2D ndarray[bool], shape (m, v)
-        Binary coverage mask for each candidate, where coverage_arr[i, j]
-        indicates whether candidate i covers environment point j.
-    current_cover : 1D ndarray[bool], shape (v,)
-        Binary mask of currently covered environment points.
-    distance : float
-        Current path length.
+    Args:
+        remaining_idxs (np.ndarray):
+            1D ndarray[int]. Indices of candidates that have not yet been selected.
+        selected_idxs (np.ndarray):
+            1D ndarray[int]. Indices of currently selected candidates.
+        X (np.ndarray):
+            2D ndarray[float], shape (m, d). Candidate locations.
+        coverage_arr (np.ndarray):
+            2D ndarray[bool], shape (m, v). Binary coverage mask for each candidate,
+            where coverage_arr[i, j] indicates whether candidate i covers environment point j.
+        current_cover (np.ndarray):
+            1D ndarray[bool], shape (v,). Binary mask of currently covered environment points.
+        distance (float):
+            Current path length.
 
-    Returns
-    -------
-    distance_deltas : 1D ndarray[float]
-        Increase in path length if each remaining candidate were added.
-    area_deltas : 1D ndarray[int]
-        Number of newly covered environment points for each candidate.
+    Returns:
+        Tuple[np.ndarray, np.ndarray]:
+            distance_deltas : 1D ndarray[float]
+                Increase in path length if each remaining candidate were added.
+            area_deltas : 1D ndarray[int]
+                Number of newly covered environment points for each candidate.
     """
     m_rem = remaining_idxs.shape[0]
     v = current_cover.shape[0]
@@ -2424,49 +2313,29 @@ def _compute_deltas_all_numba(remaining_idxs, selected_idxs, X,
 
 
 class GCBCover(GreedyCover):
-    """
-    Greedy coverage selection with a path-length budget.
+    """GCB coverage selection with an optional path-length budget.
 
     This class extends `GreedyCover` by adding a travel constraint: it
     greedily selects sensing locations that improve GP-coverage, but only keeps
     additions whose resulting path (computed by a TSP solver) stays within a
     user-specified `distance_budget`.
 
-    Coverage model
-    --------------
-    Coverage is inherited from `GreedyCover` and is based on a single-
-    measurement GP posterior-variance test. For candidate x_i and objective x_j:
+    Algorithm summary:
+        - Precompute boolean coverages for all candidate/objective pairs.
+        - Initialize with the single candidate covering the most objective points.
+        - Iteratively propose candidates using a generalized cost/benefit score:
+             score = (newly-covered points) / (additional distance).
+        - For each proposal, re-solve a TSP over the selected points and accept
+           the new point only if the path length is <= `distance_budget`.
+        - Stop when target coverage is met, the sensing budget is met, or no
+           feasible improvements remain.
 
-        v_post(j | i) = v_obj[j] - k(x_i, x_j)^2 / (v_cand[i] + σ_n^2)
-
-    Candidate i covers objective j if:
-
-        v_post(j | i) <= post_var_threshold
-
-    which is equivalent to:
-
-        k(x_i, x_j)^2 >= (v_obj[j] - post_var_threshold) * (v_cand[i] + σ_n^2)
-
-    Algorithm summary
-    -----------------
-    1) Precompute boolean coverages[i, j] for all candidate/objective pairs
-       (via `_compute_coverage_maps`, inherited from GreedyCover).
-    2) Initialize with the single candidate covering the most objective points.
-    3) Iteratively propose candidates using a generalized cost/benefit score:
-         score = (newly-covered points) / (additional distance)
-       where distance/area deltas are computed by a fast helper (Numba).
-    4) For each proposal, re-solve a TSP over the selected points and accept
-       the new point only if the path length is <= `distance_budget`.
-    5) Stop when target coverage is met, the sensing budget is met, or no
-       feasible improvements remain.
-
-    Notes
-    -----
-    - Current implementation assumes `num_robots == 1`.
-    - The method may return fewer than `num_sensing` points due to the distance
-      budget or early attainment of the coverage target.
-    - If `start_nodes` are provided (kwargs), they are prepended to the output
-      route; ensure the distance budget logic accounts for them (see code notes).
+    Notes:
+        - Current implementation assumes `num_robots == 1`.
+        - The method may return fewer than `num_sensing` points due to the distance
+          budget or early attainment of the coverage target.
+        - If `start_nodes` are provided (kwargs), they are prepended to the output
+          route; ensure the distance budget logic accounts for them (see code notes).
     """
 
     def optimize(self,
@@ -2478,37 +2347,37 @@ class GCBCover(GreedyCover):
                  candidate_method: str = 'Hex',
                  X_warm_start: np.ndarray = [],
                  **kwargs) -> np.ndarray:
-        """
-        Run the GCB selection with a path-length constraint.
+        """Run the GCB selection with a path-length constraint.
 
-        Parameters
-        ----------
-        post_var_threshold:
-            Posterior variance upper bound used to binarize coverage (same meaning
-            as in :meth:`GreedyCover.optimize`).
-        target_fraction:
-            Desired percent coverage in [0, 100]. The method stops once the number
-            of covered objective points reaches `ceil(n_obj * target_fraction/100)`.
-        distance_budget:
-            Maximum allowed path length for the selected sensing locations (after
-            TSP re-ordering). Use `inf` to disable the budget.
-        return_fovs:
-            If True, also return polygon FoVs derived from covered objective points.
-        slack_ratio:
-            Non-negative slack used to lower the post_var_threshold when generating 
-            the candidate set, generating extra candidates and improving the chance of 
-            reaching the target coverage.
-        candidate_method: Method ised to generate the candidate set. 
-                          Available options: `Hex` and `Grid`.
-        **kwargs:
-            Extra arguments forwarded to the TSP solver.
+        Args:
+            post_var_threshold (float):
+                Posterior variance upper bound used to binarize coverage (same meaning
+                as in :meth:`GreedyCover.optimize`).
+            target_fraction (int):
+                Desired percent coverage in [0, 100]. The method stops once the number
+                of covered objective points reaches `ceil(n_obj * target_fraction/100)`.
+            distance_budget (float):
+                Maximum allowed path length for the selected sensing locations (after
+                TSP re-ordering). Use `inf` to disable the budget.
+            return_fovs (bool):
+                If True, also return polygon FoVs derived from covered objective points.
+            slack_ratio (float | None):
+                Non-negative slack used to lower the post_var_threshold when generating 
+                the candidate set, generating extra candidates and improving the chance of 
+                reaching the target coverage.
+            candidate_method (str): 
+                Method used to generate the candidate set. Available options: `Hex` and `Grid`.
+            X_warm_start (np.ndarray):
+                Initial candidate locations to force inclusion.
+            **kwargs (Any):
+                Extra arguments forwarded to the TSP solver.
 
-        Returns
-        -------
-        X_sol:
-            Array shaped (num_robots, k, d) with k <= num_sensing selected points.
-        (X_sol, fovs):
-            If return_fovs is True, also returns a list of shapely Polygons.
+        Returns:
+            np.ndarray | Tuple[np.ndarray, List[shapely.geometry.Polygon]]:
+                X_sol:
+                    Array shaped (num_robots, k, d) with k <= num_sensing selected points.
+                (X_sol, fovs):
+                    If return_fovs is True, also returns a list of shapely Polygons.
         """
         if not hasattr(self, "coverages"):
             # Increase slack ratio until we can reach the target fraction
@@ -2687,37 +2556,32 @@ METHODS: Dict[str, Type[Method]] = {
 
 
 def get_method(method: str) -> Type[Method]:
-    """
-    Retrieve an optimization method class by name.
+    """Retrieve an optimization method class by name.
 
-    Parameters
-    ----------
-    method:
-        Name of the optimization method. Must be one of the keys in
-        :data:`METHODS`, e.g. `'ContinuousSGP'`, `'CMA'`, `'BayesianOpt'`,
-        `'GreedyObjective'`, etc.
+    Args:
+        method (str):
+            Name of the optimization method. Must be one of the keys in
+            :data:`METHODS`, e.g. `'ContinuousSGP'`, `'CMA'`, `'BayesianOpt'`,
+            `'GreedyObjective'`, etc.
 
-    Returns
-    -------
-    Type[Method]
-        The corresponding method class.
+    Returns:
+        Type[Method]:
+            The corresponding method class.
 
-    Raises
-    ------
-    KeyError
-        If `method` is not a valid key in :data:`METHODS`.
+    Raises:
+        KeyError:
+            If `method` is not a valid key in :data:`METHODS`.
 
-    Usage
-    --------
-    ```python
-    ContinuousSGPClass = get_method('ContinuousSGP')
-    csgp = ContinuousSGPClass(
-        num_sensing=10,
-        X_objective=X_train,
-        kernel=kernel_opt,
-        noise_variance=noise_var_opt,
-    )
-    ```
+    Usage:
+        ```python
+        ContinuousSGPClass = get_method('ContinuousSGP')
+        csgp = ContinuousSGPClass(
+            num_sensing=10,
+            X_objective=X_train,
+            kernel=kernel_opt,
+            noise_variance=noise_var_opt,
+        )
+        ```
     """
     if method not in METHODS:
         raise KeyError(f"Method '{method}' not found. Available methods: {', '.join(METHODS.keys())}")

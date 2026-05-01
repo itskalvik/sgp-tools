@@ -4,3 +4,4 @@ datasets/
 sgptools.egg-info/
 outcmaes/
 site/
+.venv/
