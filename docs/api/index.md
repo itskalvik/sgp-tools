@@ -1,13 +1,17 @@
 # How It All Works Together: A Conceptual Workflow
 
-A typical use case of the `sgptools` library would follow these steps:
+A typical use case of the `sgptools` library follows a clean, four-step pipeline:
 
-1. **Load Data:** A user would start by creating a `Dataset` object from their data, which could be a `.tif` file or a `NumPy` array. The `Dataset` class handles the necessary preprocessing and standardization. Alternatively, the user can use real-time data from a robot. 
+**1. Ingest Data (`Dataset`)** Start by instantiating a `Dataset` object. This class handles the ingestion and optional standardization of your environment data. You can load static maps (such as `.tif` images or `NumPy` arrays) or stream raw, real-time sensor data directly from an autonomous system.
 
-2. **Define a Transformation:** Based on the problem, the user would instantiate a `Transform` object. For example, for a multi-robot path planning problem with a distance budget, they would use `IPPTransform`. For a single sensor with a square field of view, they might use `SquareTransform`.
+**2. Define Constraints & Sensor Models (`Transform`) [Optional]** Tailor the problem geometry by applying a `Transform` object. This step maps your physical and operational reality to the optimizer. For instance, use an `IPPTransform` to enforce a travel distance budget for multi-robot path planning, or apply a specific footprint (like a `SquareTransform`) to accurately model the field of view.
 
-3. **Choose an Optimization Method:** The user would then select an optimization method from the `methods` module. For the novel SGP-based approach, they would choose `ContinuousSGP`. For comparison with other methods, they could use `BayesianOpt`, `CMA`, or the greedy methods.
+**3. Select an Optimization Strategy (`methods`)** Choose the mathematical solver best suited to your objective from the `methods` module:
 
-4. **Run Optimization:** The `optimize()` method of the chosen optimizer is called. This will run the optimization algorithm (e.g., maximizing the ELBO in the case of `ContinuousSGP`) and return the optimized sensor locations or paths.
+* **Coverage with Guarantees:** Use `GreedyCover`, `GCBCover`, or `HexCover` for IPP with uncertainty guarantees, ensuring the maximum posterior variance remains below a specified threshold.
+* **SGP-Based IPP:** Use `ContinuousSGP` for fast, continuous-space IPP powered by Sparse Gaussian Processes.
+* **Black-Box IPP:** Use `BayesianOpt` or `CMA` for derivative-free, continuous path optimization.
+* **Greedy IPP:** Use `GreedyObjective` for discrete-space optimization via a greedy algorithm. This seamlessly integrates with any metric from the `objectives` module.
+* **Differentiable IPP:** Use `DifferentiableObjective` for continuous-space optimization using gradient descent. Like the greedy approach, this is fully compatible with any metric from the `objectives` module.
 
-5. **Post-processing:** The solution might be post-processed, for example, by mapping the continuous locations to a set of discrete candidates using `cont2disc`.
+**4. Execute the Solver (`optimize()`)** Finally, call the `.optimize()` method on your selected optimizer. This triggers the underlying algorithm—such as maximizing the ELBO—and returns the final optimized waypoints or sensing locations.
