@@ -1,6 +1,10 @@
 <p align="center">
-  <img src="assets/SGP-Tools.png#only-light" alt="SGP-Tools Logo" width="600"/>
-  <img src="assets/logo_dark.png#only-dark" alt="SGP-Tools Logo" width="600"/>
+  <a href="https://www.sgp-tools.com/#gh-light-mode-only">
+    <img src="assets/SGP-Tools.png#gh-light-mode-only" alt="SGP-Tools Logo" width="600" />
+  </a>
+  <a href="https://www.sgp-tools.com/#gh-dark-mode-only">
+    <img src="assets/logo_dark.png#gh-dark-mode-only" alt="SGP-Tools Logo" width="600" />
+  </a>
 </p>
 
 <p align="center">
@@ -13,8 +17,12 @@
 </p>
 
 <p align="center">
-  <img src="assets/asv.gif" width="49%">
-  <img src="assets/auv.gif" width="49%">
+  <a href="https://youtu.be/9ghPcQJtmWE" target="_blank">
+    <img src="assets/asv.gif" width="49%">
+  </a>
+  <a href="https://youtu.be/fwG-EzzaCtk" target="_blank">
+    <img src="assets/auv.gif" width="49%">
+  </a>
   <img src="assets/point_sensing.gif" width="49%">
   <img src="assets/non-point_sensing.gif" width="49%">
   <img src="assets/AIPP-4R.gif" width="49%">
