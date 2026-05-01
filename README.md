@@ -13,6 +13,8 @@
 </p>
 
 <p align="center">
+  <img src="docs/assets/asv.gif" width="49%">
+  <img src="docs/assets/auv.gif" width="49%">
   <img src="docs/assets/point_sensing.gif" width="49%">
   <img src="docs/assets/non-point_sensing.gif" width="49%">
   <img src="docs/assets/AIPP-4R.gif" width="49%">
@@ -47,7 +49,7 @@ A common approach to surveying an area is to use a "lawnmower" path, a simple ba
 
 ## Why SGP-Tools?
 
--   **State-of-the-Art Algorithms**: Includes a variety of optimization methods including greedy algorithms, Bayesian optimization, CMA-ES, and SGP-based optimization.
+-   **State-of-the-Art Algorithms**: Includes a variety of optimization methods including uncertainty guaranteed methods, SGP-based optimization, greedy algorithms, Bayesian optimization, and CMA-ES (evolutionary algorithm).
 -   **Advanced Modeling Capabilities**: Go beyond simple point sensing with tools for informative path planning for multi-robot systems and complex sensor field-of-view (FoV) models.
 -   **Non-Stationary Kernels**: Capture complex, real-world phenomena with specialized non-stationary kernels like the Neural Spectral Kernel and the Attentive Kernel.
 -   **Flexible and Extensible**: Built on GPflow and TensorFlow, the library is designed to be modular and easy to extend with your own custom methods, kernels, and objectives.
@@ -139,6 +141,14 @@ High-resolution topography and bathymetry data can be downloaded from [NOAA Digi
 Please consider citing the following papers if you use SGP-Tools in your academic work 😄
 
 ```
+@inproceedings{JakkalaAOA26,
+author={Kalvik Jakkala and Saurav Agarwal and Jason O'Kane and Srinivas Akella},
+TITLE={Informative Path Planning with Guaranteed Estimation Uncertainty},
+booktitle = {Robotics: Science and Systems (RSS)},
+YEAR={2026},
+url={https://www.itskalvik.com/publication/uncertainty-guaranteed-ipp/}
+}
+
 @article{JakkalaA25,
 author={Kalvik Jakkala and Srinivas Akella},
 title ={Fully differentiable sensor placement and informative path planning},
